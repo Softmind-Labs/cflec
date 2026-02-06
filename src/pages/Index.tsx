@@ -120,7 +120,7 @@ export default function Index() {
           </p>
           
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button size="lg" className="gap-2 bg-white text-foreground hover:bg-white/90 text-base px-8">
                 <PlayCircle className="h-5 w-5" />
                 Start Learning Free
@@ -172,7 +172,7 @@ export default function Index() {
                     <p className="text-white/80 mb-4">
                       {feature.description}
                     </p>
-                    <Button className="w-fit bg-cflp-green hover:bg-cflp-green/90 text-cflp-green-foreground">
+                    <Button className="w-fit bg-cflp-blue hover:bg-cflp-blue/90 text-cflp-blue-foreground">
                       {feature.cta}
                     </Button>
                   </div>
@@ -255,8 +255,8 @@ export default function Index() {
               <p className="text-muted-foreground text-lg">
                 High Schoolers (13-17) and Adults (18+) can access our full curriculum with 27 modules, stock trading simulator, and earn all 4 certificate levels.
               </p>
-              <Link to="/auth">
-                <Button className="bg-cflp-green hover:bg-cflp-green/90 text-cflp-green-foreground" size="lg">
+              <Link to="/auth?mode=signup">
+                <Button className="bg-cflp-blue hover:bg-cflp-blue/90 text-cflp-blue-foreground" size="lg">
                   Enter Adult Portal
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
