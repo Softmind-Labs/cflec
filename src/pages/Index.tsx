@@ -14,6 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { APP_FULL_NAME } from '@/lib/constants';
+import cflecLogo from '@/assets/cflec-logo.jpg';
 
 export default function Index() {
   const features = [
@@ -52,8 +53,7 @@ export default function Index() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-white" />
-            <span className="text-xl font-bold text-white">CFLP</span>
+            <img src={cflecLogo} alt="CFLEC Logo" className="h-10 w-auto" />
           </div>
           <nav className="flex items-center gap-4">
             <Link to="/auth">
@@ -115,7 +115,7 @@ export default function Index() {
               </Button>
             </Link>
             <Link to="/kids">
-              <Button size="lg" variant="outline" className="gap-2 border-white/40 text-white hover:bg-white/10 hover:text-white text-base px-8">
+              <Button size="lg" variant="outline" className="gap-2 border-kids-primary bg-kids-primary/10 text-white hover:bg-kids-primary hover:text-kids-primary-foreground text-base px-8">
                 <Sparkles className="h-5 w-5" />
                 Kids Portal
               </Button>
