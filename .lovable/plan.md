@@ -1,188 +1,191 @@
 
-# Redesign "Choose Your Learning Path" Section - Bolt Style
+
+# Fix Color Scheme, Add Sidebar Navigation, and Improve Auth Page
 
 ## Overview
-Transform the current card-based "Choose Your Learning Path" section into a modern, alternating image/text layout inspired by the Bolt website design, using the provided adults.jpg and kids.jpg images.
+This plan addresses three key improvements:
+1. Update the color scheme from green to blue/gold to match the CFLEC logo
+2. Replace the top header navigation with a professional left sidebar for authenticated pages
+3. Improve the Auth page to default to signup when coming from "Start Learning Free"
 
 ---
 
-## Design Reference Analysis
+## 1. Color Scheme Update (Blue & Gold)
 
-Based on the Bolt screenshots provided:
+### Current Issue
+The primary color is set to green (`142 76% 36%`), but the CFLEC logo features blue and gold colors.
 
-### Layout Pattern
+### Changes to `src/index.css`
+
+**Update the following CSS variables in both light and dark modes:**
+
+| Variable | Current (Green) | New (Blue) |
+|----------|-----------------|------------|
+| `--primary` | `142 76% 36%` | `217 91% 60%` |
+| `--primary-foreground` | `0 0% 100%` | `0 0% 100%` |
+| `--ring` | `142 76% 36%` | `217 91% 60%` |
+| `--sidebar-primary` | `142 76% 36%` | `217 91% 60%` |
+| `--sidebar-ring` | `142 76% 36%` | `217 91% 60%` |
+
+The gold accent (`--cflp-gold: 45 93% 47%`) is already defined and will be used for highlights and special elements.
+
+### Button Color Updates
+
+Update CTA buttons throughout the app:
+- Change `bg-cflp-green` to `bg-cflp-blue` for primary actions
+- Use `bg-cflp-gold` for accent/highlight buttons
+- Keep `bg-cflp-green` only for the Green certificate level indicator
+
+**Files affected:**
+- `src/index.css` - CSS variables
+- `src/pages/Index.tsx` - Feature card buttons, portal buttons
+- `src/pages/Dashboard.tsx` - Certificate and progress indicators
+
+---
+
+## 2. Left Sidebar Navigation
+
+### Current Architecture
+- Top header navigation in `src/components/layout/Header.tsx`
+- `MainLayout` wraps authenticated pages with Header + Footer
+
+### New Architecture
+- Create `AppSidebar.tsx` component with left sidebar navigation
+- Update `MainLayout.tsx` to use `SidebarProvider` + `Sidebar` instead of top Header
+- Keep Header for mobile hamburger menu trigger
+- Add logo, navigation items, and user profile to sidebar
+
+### New File: `src/components/layout/AppSidebar.tsx`
+
 ```text
-SECTION 1 - Adults & Teens:
-+------------------+------------------+
-|                  |                  |
-|    [IMAGE]       |  Eyebrow text    |
-|    adults.jpg    |  Large Headline  |
-|                  |  Description     |
-|                  |  [CTA Button]    |
-|                  |                  |
-+------------------+------------------+
-
-SECTION 2 - Kids Zone (alternating):
-+------------------+------------------+
-|                  |                  |
-|  Eyebrow text    |    [IMAGE]       |
-|  Large Headline  |    kids.jpg      |
-|  Description     |                  |
-|  [CTA Button]    |                  |
-|                  |                  |
-+------------------+------------------+
++---------------------------+
+|     CFLEC Logo            |
++---------------------------+
+|                           |
+|  📊 Dashboard             |
+|  📚 Modules               |
+|  📈 Simulator             |
+|  🏆 Certificates          |
+|                           |
++---------------------------+
+|  [User Avatar]            |
+|  User Name                |
+|  [Profile] [Logout]       |
++---------------------------+
 ```
 
-### Key Design Elements
-- Large, high-quality images taking up ~50% of width
-- Clean whitespace with minimal background styling
-- Small eyebrow/label text above main headline
-- Bold serif headline (matching Playfair Display)
-- Descriptive paragraph text
-- Green CTA button (brand color)
-- Alternating left/right image placement
+**Navigation Items:**
+- Dashboard (`/dashboard`) - LayoutDashboard icon
+- Modules (`/modules`) - BookOpen icon
+- Simulator (`/simulator`) - TrendingUp icon
+- Certificates (`/certificates`) - Award icon
+
+### Updated `src/components/layout/MainLayout.tsx`
+
+```tsx
+<SidebarProvider>
+  <div className="min-h-screen flex w-full">
+    <AppSidebar />
+    <SidebarInset>
+      <header className="flex h-16 items-center border-b px-4 md:px-6">
+        <SidebarTrigger className="md:hidden" />
+        {/* Page title or breadcrumbs */}
+      </header>
+      <main className="flex-1 p-4 md:p-6">
+        {children}
+      </main>
+      <Footer />
+    </SidebarInset>
+  </div>
+</SidebarProvider>
+```
+
+### Sidebar Features
+- Collapsible on desktop (icon-only mode)
+- Sheet/drawer on mobile
+- Active route highlighting using NavLink
+- Logo at top
+- User profile and logout at bottom
 
 ---
+
+## 3. Auth Page Improvements
+
+### Current Issue
+The "Start Learning Free" button on the landing page links to `/auth`, which defaults to the Login tab.
+
+### Solution
+Pass a query parameter to indicate signup mode: `/auth?mode=signup`
+
+### Changes
+
+**1. Update `src/pages/Index.tsx`:**
+```tsx
+<Link to="/auth?mode=signup">
+  <Button>Start Learning Free</Button>
+</Link>
+```
+
+**2. Update `src/pages/Auth.tsx`:**
+- Read the `mode` query parameter from URL
+- Set initial tab based on the parameter
+- Default to 'login' if no parameter
+
+```tsx
+const [searchParams] = useSearchParams();
+const initialTab = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
+const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab);
+```
+
+---
+
+## 4. Footer Logo Update
+
+### Changes to `src/components/layout/Footer.tsx`
+- Replace the `GraduationCap` icon with the actual CFLEC logo image
+- Import `cflecLogo` from assets
+
+---
+
+## Implementation Order
+
+1. **Color Scheme** - Update CSS variables in `index.css`
+2. **Landing Page Colors** - Update button colors in `Index.tsx`
+3. **Auth Page** - Add query param support for signup mode
+4. **Create AppSidebar** - New sidebar component
+5. **Update MainLayout** - Integrate sidebar
+6. **Update Footer** - Add logo
+7. **Dashboard Colors** - Update progress indicators
+
+---
+
+## Files to Create
+- `src/components/layout/AppSidebar.tsx`
 
 ## Files to Modify
-
-### 1. Copy Image Assets
-Copy the uploaded images to `src/assets/portals/`:
-- `src/assets/portals/adults.jpg` - for Adults & Teens section
-- `src/assets/portals/kids.jpg` - for Kids Zone section
-
-### 2. Update `src/pages/Index.tsx`
-
-**Remove:**
-- Current card-based grid layout (lines 229-303)
-- The gradient background on the section
-
-**Replace with:**
-- Section header with centered title and subtitle
-- Two full-width alternating rows
-- Each row: 50% image, 50% text content
-- Image with subtle rounded corners
-- Text area with: eyebrow label, large serif headline, description, bullet points (optional), CTA button
+- `src/index.css`
+- `src/pages/Index.tsx`
+- `src/pages/Auth.tsx`
+- `src/pages/Dashboard.tsx`
+- `src/components/layout/MainLayout.tsx`
+- `src/components/layout/Footer.tsx`
 
 ---
 
-## New Section Structure
+## Technical Details
 
-### Section Container
-```tsx
-<section className="py-20 bg-background">
-  <div className="container">
-    {/* Section Header */}
-    <div className="text-center mb-16">
-      <h2 className="font-serif text-3xl font-semibold md:text-4xl">
-        Choose Your Learning Path
-      </h2>
-      <p className="mt-4 text-muted-foreground">
-        Age-appropriate content designed for every learner
-      </p>
-    </div>
-    
-    {/* Adults & Teens Row - Image Left, Text Right */}
-    <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
-      <div className="relative">
-        <img src={adultsImg} className="rounded-lg w-full h-auto" />
-      </div>
-      <div className="space-y-6">
-        <p className="text-sm font-medium text-primary">Adults & Teens</p>
-        <h3 className="font-serif text-3xl md:text-4xl font-semibold">
-          Master Financial Literacy
-        </h3>
-        <p className="text-muted-foreground text-lg">
-          High Schoolers (13-17) and Adults (18+) can access our 
-          full curriculum with 27 modules, stock trading simulator, 
-          and earn all 4 certificate levels.
-        </p>
-        <Button className="bg-cflp-green hover:bg-cflp-green/90" size="lg">
-          Enter Adult Portal
-        </Button>
-      </div>
-    </div>
-    
-    {/* Kids Zone Row - Text Left, Image Right */}
-    <div className="grid md:grid-cols-2 gap-12 items-center">
-      <div className="space-y-6 md:order-1">
-        <p className="text-sm font-medium text-kids-primary">Kids Zone</p>
-        <h3 className="font-serif text-3xl md:text-4xl font-semibold">
-          Fun Financial Adventures
-        </h3>
-        <p className="text-muted-foreground text-lg">
-          Young learners (6-12) enjoy interactive lessons, games, 
-          rewards, and work toward their Green certificate in a 
-          colorful, engaging environment.
-        </p>
-        <Button className="bg-kids-primary hover:bg-kids-primary/90 text-kids-primary-foreground" size="lg">
-          Enter Kids Zone
-        </Button>
-      </div>
-      <div className="relative md:order-2">
-        <img src={kidsImg} className="rounded-lg w-full h-auto" />
-      </div>
-    </div>
-  </div>
-</section>
-```
+### Color Values Reference
 
----
+| Color | HSL Value | Usage |
+|-------|-----------|-------|
+| Blue (Primary) | `217 91% 60%` | Primary buttons, links, sidebar accents |
+| Gold | `45 93% 47%` | Highlights, special CTAs, accent elements |
+| Green | `142 76% 36%` | Green certificate level only |
+| White | `0 0% 95%` | White certificate level |
 
-## Styling Details
+### Sidebar Configuration
+- Width expanded: 16rem (256px)
+- Width collapsed: 3rem (48px)
+- Collapsible mode: icon
+- Mobile: Sheet/drawer from left
 
-### Image Styling
-- Rounded corners: `rounded-lg` or `rounded-xl`
-- Full width within grid cell: `w-full`
-- Object fit: `object-cover` if using fixed height
-- Optional: subtle shadow for depth
-
-### Text Content Styling
-- Eyebrow: `text-sm font-medium text-primary` (or `text-kids-primary` for Kids)
-- Headline: `font-serif text-3xl md:text-4xl font-semibold`
-- Description: `text-muted-foreground text-lg`
-- Button: Green brand color, larger size (`size="lg"`)
-
-### Spacing
-- Section padding: `py-20`
-- Grid gap: `gap-12`
-- Between rows: `mb-24`
-- Text content spacing: `space-y-6`
-
----
-
-## Responsive Behavior
-
-| Breakpoint | Layout |
-|------------|--------|
-| Mobile (< 768px) | Single column, image stacks above text |
-| Desktop (768px+) | Two columns with alternating image positions |
-
-On mobile, both rows will show image first, then text below (natural stacking order for first row; use `md:order-` classes to control the second row).
-
----
-
-## Content Mapping
-
-### Adults & Teens
-- Eyebrow: "Adults & Teens"
-- Headline: "Master Financial Literacy"
-- Description: "High Schoolers (13-17) and Adults (18+) can access our full curriculum with 27 modules, stock trading simulator, and earn all 4 certificate levels."
-- CTA: "Enter Adult Portal" - links to `/auth`
-
-### Kids Zone
-- Eyebrow: "Kids Zone"
-- Headline: "Fun Financial Adventures"
-- Description: "Young learners (6-12) enjoy interactive lessons, games, rewards, and work toward their Green certificate in a colorful, engaging environment."
-- CTA: "Enter Kids Zone" - links to `/kids`
-
----
-
-## Implementation Steps
-
-1. Copy `adults.jpg` to `src/assets/portals/adults.jpg`
-2. Copy `kids.jpg` to `src/assets/portals/kids.jpg`
-3. Add imports for the new images in Index.tsx
-4. Replace the Portal Selection section (lines 229-303) with the new alternating layout
-5. Keep the section header but remove the gradient background
-6. Implement responsive ordering for mobile
