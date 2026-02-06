@@ -10,6 +10,7 @@ import {
   PlayCircle, 
   CheckCircle,
   ChevronRight,
+  ChevronDown,
   Sparkles
 } from 'lucide-react';
 import { APP_FULL_NAME } from '@/lib/constants';
@@ -47,57 +48,84 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      {/* Transparent Header for Hero */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">CFLP</span>
+            <GraduationCap className="h-8 w-8 text-white" />
+            <span className="text-xl font-bold text-white">CFLP</span>
           </div>
           <nav className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost">Login</Button>
+              <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
             </Link>
             <Link to="/auth">
-              <Button>Get Started</Button>
+              <Button className="bg-white text-foreground hover:bg-white/90">Get Started</Button>
             </Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-cflp-gold/10" />
-        <div className="container relative py-24 md:py-32">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge className="mb-4" variant="secondary">
-              <Sparkles className="mr-1 h-3 w-3" />
-              Trusted by 10,000+ learners
-            </Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              Master Your{' '}
-              <span className="text-primary">Financial Future</span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground md:text-xl">
-              {APP_FULL_NAME} - Your journey to financial literacy starts here. 
-              Learn, practice, earn certificates, and compete with others in our 
-              risk-free trading simulator.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/auth">
-                <Button size="lg" className="gap-2">
-                  <PlayCircle className="h-5 w-5" />
-                  Start Learning Free
-                </Button>
-              </Link>
-              <Link to="/kids">
-                <Button size="lg" variant="outline" className="gap-2 border-kids-primary text-kids-primary hover:bg-kids-primary hover:text-kids-primary-foreground">
-                  <Sparkles className="h-5 w-5" />
-                  Kids Portal
-                </Button>
-              </Link>
-            </div>
+      {/* Hero Section with Video Background */}
+      <section className="relative h-screen w-full overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/videos/money.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Dark Gradient Overlay */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.7) 100%)'
+          }}
+        />
+        
+        {/* Hero Content */}
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+          <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
+            <Sparkles className="mr-1 h-3 w-3" />
+            Trusted by 10,000+ learners
+          </Badge>
+          
+          <h1 className="font-serif text-5xl font-semibold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+            Master Your
+            <br />
+            <span className="text-cflp-gold">Financial Future</span>
+          </h1>
+          
+          <p className="mt-6 max-w-2xl text-lg text-white/90 md:text-xl" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
+            {APP_FULL_NAME} — Your journey to financial literacy starts here. 
+            Learn, practice, earn certificates, and compete with others in our 
+            risk-free trading simulator.
+          </p>
+          
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link to="/auth">
+              <Button size="lg" className="gap-2 bg-white text-foreground hover:bg-white/90 text-base px-8">
+                <PlayCircle className="h-5 w-5" />
+                Start Learning Free
+              </Button>
+            </Link>
+            <Link to="/kids">
+              <Button size="lg" variant="outline" className="gap-2 border-white/40 text-white hover:bg-white/10 hover:text-white text-base px-8">
+                <Sparkles className="h-5 w-5" />
+                Kids Portal
+              </Button>
+            </Link>
           </div>
+        </div>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+          <ChevronDown className="h-8 w-8 text-white/60" />
         </div>
       </section>
 
@@ -105,7 +133,7 @@ export default function Index() {
       <section className="py-20 bg-muted/50">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Everything You Need to Succeed</h2>
+            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Everything You Need to Succeed</h2>
             <p className="mt-4 text-muted-foreground">
               Comprehensive financial education designed for all ages and skill levels
             </p>
@@ -132,7 +160,7 @@ export default function Index() {
       <section className="py-20">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Earn Recognized Certificates</h2>
+            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Earn Recognized Certificates</h2>
             <p className="mt-4 text-muted-foreground">
               Progress through four levels of mastery and earn certificates to showcase your skills
             </p>
@@ -177,7 +205,7 @@ export default function Index() {
       <section className="py-20 bg-gradient-to-r from-primary/5 to-kids-primary/5">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">Choose Your Learning Path</h2>
+            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Choose Your Learning Path</h2>
             <p className="mt-4 text-muted-foreground">
               Age-appropriate content designed for every learner
             </p>
