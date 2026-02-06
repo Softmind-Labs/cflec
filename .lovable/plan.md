@@ -1,182 +1,128 @@
 
 
-# Premium Hero Section with Video Background
+# Redesign "Everything You Need to Succeed" Section
 
 ## Overview
-Transform the landing page hero section into a full-viewport immersive experience with the uploaded money video as a background, paired with sophisticated typography that conveys professionalism and trust.
+Replace the current icon-based feature cards with a modern, image-driven card layout inspired by the Bolt reference screenshot. Each card will feature a full-height background image with text overlay.
 
 ---
 
-## Changes Summary
+## Design Approach
 
-### 1. Video Background Hero (100vh)
+### Current State
+- 4 feature cards in a grid layout
+- Each card has an icon, title, and description
+- Uses standard Card component with light background
 
-**Current State:**
-- Hero section uses a gradient background with padding-based height
-- Text content is centered with standard spacing
+### New Design
+- 4 tall cards with full background images
+- Dark gradient overlay for text readability
+- White text positioned at top-left
+- Green CTA button for each feature
+- Horizontally scrollable on mobile, grid on desktop
 
-**New Implementation:**
-- Full viewport height (100vh) hero section
-- Video element as background with:
-  - `autoPlay`, `muted`, `loop`, `playsInline` attributes
-  - `object-cover` to fill the entire section
-  - Dark overlay (gradient or semi-transparent black) for text readability
-- Content positioned absolutely over the video
-- Video file copied from `user-uploads://money.mp4` to `public/videos/money.mp4`
-
-**Structure:**
+### Card Layout
 ```text
-+------------------------------------------+
-|  [Fixed Header - transparent on hero]    |
-+------------------------------------------+
-|                                          |
-|         VIDEO BACKGROUND (100vh)         |
-|         with dark overlay                |
-|                                          |
-|    +----------------------------+        |
-|    |  Badge: Trusted by 10,000+ |        |
-|    |                            |        |
-|    |  MASTER YOUR               |        |
-|    |  FINANCIAL FUTURE          |        |
-|    |                            |        |
-|    |  [Subtitle text]           |        |
-|    |                            |        |
-|    |  [CTA Buttons]             |        |
-|    +----------------------------+        |
-|                                          |
-|         [Scroll indicator arrow]         |
-+------------------------------------------+
++------------------------+
+|                        |
+|  Title (serif)         |
+|  Description text      |
+|                        |
+|  [CTA Button]          |
+|                        |
+|     BACKGROUND         |
+|       IMAGE            |
+|                        |
++------------------------+
 ```
 
-### 2. Mature Typography
+---
 
-**Font Selection: Inter or Instrument Serif**
+## Feature Cards Content
 
-For a sophisticated, non-AI look, I recommend using **Inter** for body text combined with a serif display font for headings. Options:
-
-| Font | Style | Use Case |
-|------|-------|----------|
-| **Inter** | Sans-serif | Body text, UI elements - clean, professional |
-| **Playfair Display** | Serif | Headlines - elegant, established feel |
-| **Source Serif Pro** | Serif | Alternative headlines - modern classic |
-
-**Implementation:**
-- Add Google Fonts link to `index.html` for Playfair Display + Inter
-- Configure Tailwind with font families
-- Apply serif font to hero headlines
-- Keep Inter for body and UI text
-
-**Typography Hierarchy:**
-```text
-H1 (Hero):     Playfair Display, 4.5rem-6rem, font-semibold
-H2 (Sections): Playfair Display, 2.5rem-3rem, font-semibold  
-Body:          Inter, 1rem-1.25rem, regular
-Buttons:       Inter, font-medium
-```
-
-### 3. Header Transparency
-
-- Make header transparent when over the hero video
-- White text/logo on the hero
-- Transition to solid background on scroll (optional enhancement)
+| Feature | Image | Title | Description | CTA |
+|---------|-------|-------|-------------|-----|
+| Structured Learning | online-l.jpg | Structured Learning | Progress through 27 expertly crafted modules | Start Learning |
+| Earn Certificates | cert.jpg | Earn Certificates | Achieve Green, White, Gold, and Blue certifications | View Certificates |
+| Stock Simulator | trading_simulator.jpg | Stock Simulator | Practice trading with $500 in virtual money | Try Simulator |
+| AI-Powered Support | ai-assisted.jpg | AI-Powered Support | Get personalized guidance and instant answers | Learn More |
 
 ---
 
 ## Files to Modify
 
-### 1. Copy Video Asset
-- Copy `user-uploads://money.mp4` to `public/videos/money.mp4`
-- Use public folder since video is referenced directly in HTML/JSX
+### 1. Copy Image Assets
+Copy the 4 uploaded images to `src/assets/features/`:
+- `src/assets/features/online-learning.jpg`
+- `src/assets/features/certificates.jpg`
+- `src/assets/features/trading-simulator.jpg`
+- `src/assets/features/ai-assisted.jpg`
 
-### 2. `index.html`
-Add Google Fonts:
-```html
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-```
-
-### 3. `tailwind.config.ts`
-Add font family configuration:
-```typescript
-fontFamily: {
-  sans: ['Inter', 'system-ui', 'sans-serif'],
-  serif: ['Playfair Display', 'Georgia', 'serif'],
-}
-```
-
-### 4. `src/index.css`
-Update base styles:
-```css
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-}
-```
-
-### 5. `src/pages/Index.tsx`
-Complete hero section rewrite:
-- Video element with background styling
-- Dark gradient overlay
-- 100vh container with flexbox centering
-- Updated typography classes using serif font for headlines
-- Scroll indicator at bottom
-- Transparent header integration
+### 2. Update `src/pages/Index.tsx`
+- Remove the current Card-based features grid
+- Create new tall image cards with:
+  - `aspect-[3/4]` or fixed height for card proportions
+  - Background image using `style={{ backgroundImage: url(...) }}`
+  - Dark gradient overlay (linear-gradient from bottom)
+  - Positioned text content (title, description)
+  - Green CTA button styled to match brand
+- Grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
+- Add hover effect for subtle zoom/brightness change
 
 ---
 
-## Visual Design Details
+## Styling Details
 
-### Video Overlay
-```css
-/* Semi-transparent gradient overlay */
-background: linear-gradient(
-  to bottom,
-  rgba(0, 0, 0, 0.6) 0%,
-  rgba(0, 0, 0, 0.4) 50%,
-  rgba(0, 0, 0, 0.7) 100%
-);
+### Card Structure
+```tsx
+<div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group">
+  {/* Background Image */}
+  <img 
+    src={featureImage} 
+    alt="" 
+    className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105"
+  />
+  
+  {/* Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+  
+  {/* Content */}
+  <div className="relative z-10 h-full flex flex-col justify-end p-6">
+    <h3 className="font-serif text-2xl font-semibold text-white mb-2">
+      Title
+    </h3>
+    <p className="text-white/80 mb-4">
+      Description text here
+    </p>
+    <Button className="w-fit bg-cflp-green hover:bg-cflp-green/90">
+      CTA Text
+    </Button>
+  </div>
+</div>
 ```
 
-### Hero Content Styling
-- White text for maximum contrast against dark overlay
-- Larger, bolder headline with serif font
-- Subtle text shadow for depth
-- Glass-morphism effect on buttons (optional)
-
-### Scroll Indicator
-- Animated chevron or arrow at bottom of hero
-- Subtle bounce animation to encourage scrolling
-- Semi-transparent white
+### Hover Effects
+- Image scales up slightly on hover (`group-hover:scale-105`)
+- Smooth transition for polished feel
+- Optional: Button slides up or becomes more prominent
 
 ---
 
-## Technical Considerations
+## Responsive Behavior
 
-### Video Performance
-- Video will be served from public folder (static asset)
-- `preload="auto"` for faster loading
-- Consider adding a poster image as fallback while video loads
-- Mobile: Video may not autoplay on all devices - fallback to poster image
-
-### Accessibility
-- Video is decorative, so no captions needed
-- Sufficient contrast ratio for text over overlay
-- Reduced motion preference: Can disable video for users who prefer reduced motion
-
-### Mobile Responsiveness
-- Video covers full viewport on all devices
-- Text scales appropriately
-- Buttons stack vertically on mobile
-- Consider hiding video on very slow connections (progressive enhancement)
+| Breakpoint | Layout |
+|------------|--------|
+| Mobile (< 640px) | Single column, cards stack vertically |
+| Tablet (640-1023px) | 2 columns |
+| Desktop (1024px+) | 4 columns in a row |
 
 ---
 
-## Implementation Order
+## Implementation Steps
 
-1. Copy video file to `public/videos/money.mp4`
-2. Add Google Fonts to `index.html`
-3. Update `tailwind.config.ts` with font families
-4. Update `src/index.css` with base font styling
-5. Rewrite hero section in `src/pages/Index.tsx`
-6. Update header styling for transparency on hero
+1. Copy the 4 feature images to `src/assets/features/`
+2. Import images in `Index.tsx`
+3. Replace the features grid section with new image card components
+4. Apply consistent styling with dark overlays and white text
+5. Add hover animations for interactivity
 
