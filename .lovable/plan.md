@@ -1,377 +1,182 @@
 
 
-# CFLP Platform - Complete Implementation Plan
+# Premium Hero Section with Video Background
 
-## Executive Summary
-
-This plan outlines the complete implementation of the Certified Financial Literacy Platform (CFLP) - a scalable learning platform with three user types (Kids, High Schoolers, Adults), certificate-based progression, and an integrated stock trading simulator.
-
-The implementation is organized into **6 phases** to ensure we build a solid foundation before adding complex features.
+## Overview
+Transform the landing page hero section into a full-viewport immersive experience with the uploaded money video as a background, paired with sophisticated typography that conveys professionalism and trust.
 
 ---
 
-## Phase 1: Database Foundation & Core Schema
+## Changes Summary
 
-### 1.1 Database Tables to Create
+### 1. Video Background Hero (100vh)
 
-**Enums:**
+**Current State:**
+- Hero section uses a gradient background with padding-based height
+- Text content is centered with standard spacing
+
+**New Implementation:**
+- Full viewport height (100vh) hero section
+- Video element as background with:
+  - `autoPlay`, `muted`, `loop`, `playsInline` attributes
+  - `object-cover` to fill the entire section
+  - Dark overlay (gradient or semi-transparent black) for text readability
+- Content positioned absolutely over the video
+- Video file copied from `user-uploads://money.mp4` to `public/videos/money.mp4`
+
+**Structure:**
 ```text
-account_type: 'kid' | 'high_schooler' | 'adult'
-certificate_level: 'green' | 'white' | 'gold' | 'blue'
-subscription_status: 'active' | 'cancelled' | 'expired' | 'pending'
++------------------------------------------+
+|  [Fixed Header - transparent on hero]    |
++------------------------------------------+
+|                                          |
+|         VIDEO BACKGROUND (100vh)         |
+|         with dark overlay                |
+|                                          |
+|    +----------------------------+        |
+|    |  Badge: Trusted by 10,000+ |        |
+|    |                            |        |
+|    |  MASTER YOUR               |        |
+|    |  FINANCIAL FUTURE          |        |
+|    |                            |        |
+|    |  [Subtitle text]           |        |
+|    |                            |        |
+|    |  [CTA Buttons]             |        |
+|    +----------------------------+        |
+|                                          |
+|         [Scroll indicator arrow]         |
++------------------------------------------+
 ```
 
-**Core Tables:**
+### 2. Mature Typography
 
-| Table | Purpose |
-|-------|---------|
-| `profiles` | User profile data (account type, DOB, phone, subscription info) |
-| `modules` | Learning content metadata (title, description, certificate level, order) |
-| `module_content` | Video URLs, text content, images for each module |
-| `quizzes` | Quiz questions and answers per module |
-| `user_progress` | Track video completion, quiz scores, simulation completion |
-| `certificates` | Earned certificates per user |
-| `portfolios` | Trading simulator - cash balance, created date |
-| `stock_holdings` | Current stock positions per portfolio |
-| `transactions` | Buy/sell transaction history |
-| `mock_stocks` | Simulated stock data (symbol, name, current price) |
-| `leaderboard` | User rankings based on portfolio performance |
+**Font Selection: Inter or Instrument Serif**
 
-### 1.2 Security Setup
+For a sophisticated, non-AI look, I recommend using **Inter** for body text combined with a serif display font for headings. Options:
 
-- Row Level Security (RLS) on all tables
-- Security definer functions for role checks
-- Profiles table linked to `auth.users` via trigger
+| Font | Style | Use Case |
+|------|-------|----------|
+| **Inter** | Sans-serif | Body text, UI elements - clean, professional |
+| **Playfair Display** | Serif | Headlines - elegant, established feel |
+| **Source Serif Pro** | Serif | Alternative headlines - modern classic |
 
----
+**Implementation:**
+- Add Google Fonts link to `index.html` for Playfair Display + Inter
+- Configure Tailwind with font families
+- Apply serif font to hero headlines
+- Keep Inter for body and UI text
 
-## Phase 2: Authentication System
-
-### 2.1 Three Login Methods
-
-| Method | Implementation |
-|--------|----------------|
-| Email + Password | Native Supabase Auth |
-| Phone + OTP | Simulated OTP for MVP (store in profiles) |
-| Phone + DOB + Mother's Name | Custom verification against profiles table |
-
-### 2.2 Pages to Create
-
-- `/auth` - Main authentication page with login/signup tabs
-- `/auth/register` - Multi-step registration with account type selection
-
-### 2.3 Registration Flow
-
+**Typography Hierarchy:**
 ```text
-Step 1: Select Account Type (Kid/High Schooler/Adult)
-Step 2: Enter Details (name, email/phone, DOB, security questions)
-Step 3: Create Password
-Step 4: Email Verification
-Step 5: Redirect to Subscription Payment
+H1 (Hero):     Playfair Display, 4.5rem-6rem, font-semibold
+H2 (Sections): Playfair Display, 2.5rem-3rem, font-semibold  
+Body:          Inter, 1rem-1.25rem, regular
+Buttons:       Inter, font-medium
 ```
 
-### 2.4 Key Components
+### 3. Header Transparency
 
-- `AuthProvider` context for session management
-- `ProtectedRoute` wrapper for authenticated pages
-- `LoginForm` with method selector tabs
-- `RegisterForm` with multi-step wizard
-
----
-
-## Phase 3: Landing Page & Portal Selection
-
-### 3.1 Landing Page (`/`)
-
-**Sections:**
-- Hero with value proposition
-- Feature highlights (certificates, simulator, learning paths)
-- Testimonials placeholder
-- Dual CTA buttons: "Adult/Teen Portal" and "Kids Portal"
-- Footer with links
-
-**Design Notes:**
-- Professional, clean aesthetic (Coursera/LinkedIn Learning style)
-- Certificate colors featured prominently (Green, White, Gold, Blue)
-
-### 3.2 Kids Portal Entry (`/kids`)
-
-- Colorful, playful design
-- Large friendly buttons
-- Character mascot placeholder
-- Age-appropriate language
+- Make header transparent when over the hero video
+- White text/logo on the hero
+- Transition to solid background on scroll (optional enhancement)
 
 ---
 
-## Phase 4: Dashboard & Learning System
+## Files to Modify
 
-### 4.1 Adult/High School Dashboard (`/dashboard`)
+### 1. Copy Video Asset
+- Copy `user-uploads://money.mp4` to `public/videos/money.mp4`
+- Use public folder since video is referenced directly in HTML/JSX
 
-**Layout:**
-```text
-+------------------+------------------------+
-|    Sidebar       |    Main Content        |
-|  - Dashboard     |  +----------------+    |
-|  - My Courses    |  | Progress Card  |    |
-|  - Simulator     |  +----------------+    |
-|  - Certificates  |  | Current Module |    |
-|  - Profile       |  +----------------+    |
-|                  |  | Leaderboard    |    |
-+------------------+------------------------+
+### 2. `index.html`
+Add Google Fonts:
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 ```
 
-**Components:**
-- `DashboardSidebar` - Navigation
-- `ProgressCard` - Certificate progress visualization
-- `CurrentModuleCard` - Continue learning CTA
-- `ModuleList` - All modules with lock/unlock status
-- `LeaderboardPreview` - Top 5 traders
-
-### 4.2 Kids Dashboard (`/kids/dashboard`)
-
-- Fun, gamified progress display
-- Star/badge collection
-- Current lesson with friendly character prompts
-- Simple, large navigation buttons
-- Colorful progress bar
-
-### 4.3 Module System
-
-**Module Listing Page (`/modules`):**
-- Grid/list of all available modules
-- Visual lock icons for inaccessible modules
-- Certificate grouping (Green, White, Gold, Blue sections)
-- Progress indicators
-
-**Module Player Page (`/modules/:id`):**
-- Video player with completion tracking
-- Reading materials accordion
-- Quiz section (triggered after video completion)
-- Simulation assignment launcher (where applicable)
-
-**Completion Logic:**
-```text
-Module Complete = Video Watched + Quiz Passed + (Simulation Passed if required)
+### 3. `tailwind.config.ts`
+Add font family configuration:
+```typescript
+fontFamily: {
+  sans: ['Inter', 'system-ui', 'sans-serif'],
+  serif: ['Playfair Display', 'Georgia', 'serif'],
+}
 ```
+
+### 4. `src/index.css`
+Update base styles:
+```css
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+```
+
+### 5. `src/pages/Index.tsx`
+Complete hero section rewrite:
+- Video element with background styling
+- Dark gradient overlay
+- 100vh container with flexbox centering
+- Updated typography classes using serif font for headlines
+- Scroll indicator at bottom
+- Transparent header integration
 
 ---
 
-## Phase 5: Stock Trading Simulator
+## Visual Design Details
 
-### 5.1 Simulator Dashboard (`/simulator`)
+### Video Overlay
+```css
+/* Semi-transparent gradient overlay */
+background: linear-gradient(
+  to bottom,
+  rgba(0, 0, 0, 0.6) 0%,
+  rgba(0, 0, 0, 0.4) 50%,
+  rgba(0, 0, 0, 0.7) 100%
+);
+```
 
-**Sections:**
-- Portfolio summary (total value, gains/losses, chart)
-- Cash balance display
-- Holdings table with current values
-- Quick trade panel
+### Hero Content Styling
+- White text for maximum contrast against dark overlay
+- Larger, bolder headline with serif font
+- Subtle text shadow for depth
+- Glass-morphism effect on buttons (optional)
 
-### 5.2 Trading Interface (`/simulator/trade`)
-
-- Stock search/selection
-- Buy/Sell toggle
-- Quantity input with dollar amount preview
-- Order confirmation modal
-- Transaction success/failure feedback
-
-### 5.3 Mock Stock Data
-
-**Initial stocks to seed:**
-| Symbol | Name | Initial Price |
-|--------|------|---------------|
-| AAPL | Apple Inc. | $175.50 |
-| GOOGL | Alphabet Inc. | $140.25 |
-| MSFT | Microsoft Corp. | $378.90 |
-| AMZN | Amazon.com Inc. | $178.15 |
-| TSLA | Tesla Inc. | $245.60 |
-| META | Meta Platforms | $485.30 |
-| NVDA | NVIDIA Corp. | $875.40 |
-| JPM | JPMorgan Chase | $195.20 |
-
-**Price Simulation:**
-- Edge function to randomly adjust prices within realistic ranges
-- Runs on user request or scheduled intervals
-- Ready for real API integration later
-
-### 5.4 Leaderboard (`/simulator/leaderboard`)
-
-- Rankings by portfolio total value
-- Top 10 display with user avatars
-- Current user's rank highlighted
-- Filter by account type (optional)
+### Scroll Indicator
+- Animated chevron or arrow at bottom of hero
+- Subtle bounce animation to encourage scrolling
+- Semi-transparent white
 
 ---
 
-## Phase 6: Certificates & Profile
+## Technical Considerations
 
-### 6.1 Certificate Gallery (`/certificates`)
+### Video Performance
+- Video will be served from public folder (static asset)
+- `preload="auto"` for faster loading
+- Consider adding a poster image as fallback while video loads
+- Mobile: Video may not autoplay on all devices - fallback to poster image
 
-- Visual certificate cards (Green, White, Gold, Blue)
-- Earned vs. locked state
-- Progress percentage toward next certificate
-- Download certificate as image (future)
+### Accessibility
+- Video is decorative, so no captions needed
+- Sufficient contrast ratio for text over overlay
+- Reduced motion preference: Can disable video for users who prefer reduced motion
 
-### 6.2 Profile Page (`/profile`)
-
-- Account details (name, email, account type)
-- Subscription status and management link
-- Learning statistics
-- Settings (password change, notification preferences)
-
----
-
-## Technical Architecture
-
-### File Structure
-
-```text
-src/
-├── components/
-│   ├── auth/
-│   │   ├── AuthProvider.tsx
-│   │   ├── LoginForm.tsx
-│   │   ├── RegisterForm.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── dashboard/
-│   │   ├── DashboardSidebar.tsx
-│   │   ├── ProgressCard.tsx
-│   │   ├── ModuleCard.tsx
-│   │   └── LeaderboardPreview.tsx
-│   ├── kids/
-│   │   ├── KidsHeader.tsx
-│   │   ├── KidsProgressBar.tsx
-│   │   └── KidsModuleCard.tsx
-│   ├── modules/
-│   │   ├── VideoPlayer.tsx
-│   │   ├── QuizComponent.tsx
-│   │   ├── ReadingMaterials.tsx
-│   │   └── SimulationLauncher.tsx
-│   ├── simulator/
-│   │   ├── PortfolioSummary.tsx
-│   │   ├── StockSearch.tsx
-│   │   ├── TradePanel.tsx
-│   │   ├── HoldingsTable.tsx
-│   │   └── TransactionHistory.tsx
-│   ├── certificates/
-│   │   └── CertificateCard.tsx
-│   └── layout/
-│       ├── Header.tsx
-│       ├── Footer.tsx
-│       └── KidsLayout.tsx
-├── hooks/
-│   ├── useAuth.ts
-│   ├── useModules.ts
-│   ├── useProgress.ts
-│   ├── usePortfolio.ts
-│   └── useLeaderboard.ts
-├── lib/
-│   ├── utils.ts
-│   └── constants.ts
-├── pages/
-│   ├── Index.tsx (Landing)
-│   ├── Auth.tsx
-│   ├── Dashboard.tsx
-│   ├── Modules.tsx
-│   ├── ModulePlayer.tsx
-│   ├── Simulator.tsx
-│   ├── Trade.tsx
-│   ├── Leaderboard.tsx
-│   ├── Certificates.tsx
-│   ├── Profile.tsx
-│   ├── kids/
-│   │   ├── KidsLanding.tsx
-│   │   ├── KidsDashboard.tsx
-│   │   └── KidsModulePlayer.tsx
-│   └── NotFound.tsx
-└── types/
-    └── index.ts
-```
-
-### Custom Hooks
-
-| Hook | Purpose |
-|------|---------|
-| `useAuth` | Session, login, logout, user data |
-| `useModules` | Fetch modules, check unlock status |
-| `useProgress` | Track/update user progress |
-| `usePortfolio` | Portfolio data, holdings, transactions |
-| `useLeaderboard` | Fetch leaderboard rankings |
-| `useStocks` | Mock stock prices, price updates |
-
-### Design System Additions
-
-**CSS Variables to Add:**
-```text
---cflp-green: 142 76% 36%
---cflp-white: 0 0% 95%
---cflp-gold: 45 93% 47%
---cflp-blue: 217 91% 60%
---cflp-kids-primary: 280 87% 63%
---cflp-kids-secondary: 45 100% 51%
-```
+### Mobile Responsiveness
+- Video covers full viewport on all devices
+- Text scales appropriately
+- Buttons stack vertically on mobile
+- Consider hiding video on very slow connections (progressive enhancement)
 
 ---
 
 ## Implementation Order
 
-### Sprint 1 (Foundation)
-1. Database migration with all tables and RLS
-2. Design system updates (colors, typography)
-3. Landing page with dual portals
-4. Basic layout components (Header, Footer, Sidebar)
-
-### Sprint 2 (Authentication)
-5. Auth pages (login, register)
-6. AuthProvider and ProtectedRoute
-7. Multi-method login implementation
-8. Registration flow with account type
-
-### Sprint 3 (Learning Core)
-9. Dashboard pages (Adult and Kids versions)
-10. Module listing with lock/unlock logic
-11. Module player (video, reading materials)
-12. Quiz component with scoring
-
-### Sprint 4 (Trading Simulator)
-13. Portfolio and simulator dashboard
-14. Mock stocks data and price simulation
-15. Trade interface (buy/sell)
-16. Holdings and transaction history
-17. Leaderboard
-
-### Sprint 5 (Certificates & Polish)
-18. Certificate gallery and progress tracking
-19. Profile page
-20. Kids portal complete styling
-21. Responsive design pass
-22. Error handling and loading states
-
-### Sprint 6 (Payments - Later)
-23. Stripe integration for subscriptions
-24. Subscription management page
-
----
-
-## Database Migration SQL Preview
-
-The migration will include:
-- 3 custom enums (account_type, certificate_level, subscription_status)
-- 11 tables with proper foreign keys and constraints
-- RLS policies for all tables
-- Trigger to auto-create profile on user signup
-- Security definer functions for role checks
-- Seed data for modules and mock stocks
-
----
-
-## Ready to Build
-
-Upon approval, I will:
-1. Create the complete database schema via migration
-2. Update the design system with CFLP colors
-3. Build the landing page
-4. Implement authentication
-5. Continue through each sprint systematically
-
-This plan ensures a solid, scalable foundation that can handle your first 1,000+ users while maintaining clean code architecture.
+1. Copy video file to `public/videos/money.mp4`
+2. Add Google Fonts to `index.html`
+3. Update `tailwind.config.ts` with font families
+4. Update `src/index.css` with base font styling
+5. Rewrite hero section in `src/pages/Index.tsx`
+6. Update header styling for transparency on hero
 
