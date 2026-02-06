@@ -14,7 +14,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { APP_FULL_NAME } from '@/lib/constants';
-import cflecLogo from '@/assets/cflec-logo.jpg';
+import cflecLogo from '@/assets/cflec-logo.png';
 
 export default function Index() {
   const features = [
@@ -282,9 +282,8 @@ export default function Index() {
       <footer className="border-t py-12 bg-muted/30">
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-primary" />
-              <span className="font-bold">CFLP</span>
+            <div className="flex items-center gap-3">
+              <img src={cflecLogo} alt="CFLEC Logo" className="h-8 w-auto" />
               <span className="text-muted-foreground">© 2024</span>
             </div>
             <nav className="flex gap-6 text-sm text-muted-foreground">

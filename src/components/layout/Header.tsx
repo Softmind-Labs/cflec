@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import cflecLogo from '@/assets/cflec-logo.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,8 +49,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold hidden sm:inline">CFLP</span>
+            <img src={cflecLogo} alt="CFLEC Logo" className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Nav */}
@@ -82,8 +82,7 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-64">
               <div className="flex items-center gap-2 mb-8">
-                <GraduationCap className="h-8 w-8 text-primary" />
-                <span className="text-xl font-bold">CFLP</span>
+                <img src={cflecLogo} alt="CFLEC Logo" className="h-10 w-auto" />
               </div>
               <nav className="flex flex-col gap-2">
                 {navItems.map((item) => (
