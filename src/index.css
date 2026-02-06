@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* CFLP Design System
+   Certificate Colors: Green, White, Gold, Blue
+   Kids Portal: Playful purple/yellow theme
+   Adult Portal: Professional navy/slate theme
 */
 
 @layer base {
@@ -17,7 +19,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -34,25 +36,44 @@ All colors MUST be HSL.
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 217 91% 60%;
 
     --radius: 0.5rem;
 
+    /* CFLP Certificate Colors */
+    --cflp-green: 142 76% 36%;
+    --cflp-green-foreground: 0 0% 100%;
+    --cflp-white: 0 0% 95%;
+    --cflp-white-foreground: 222.2 84% 4.9%;
+    --cflp-gold: 45 93% 47%;
+    --cflp-gold-foreground: 0 0% 100%;
+    --cflp-blue: 217 91% 60%;
+    --cflp-blue-foreground: 0 0% 100%;
+
+    /* Kids Portal Colors */
+    --kids-primary: 280 87% 63%;
+    --kids-primary-foreground: 0 0% 100%;
+    --kids-secondary: 45 100% 51%;
+    --kids-secondary-foreground: 0 0% 0%;
+    --kids-background: 280 100% 97%;
+    --kids-accent: 180 70% 50%;
+
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 60%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Chart Colors */
+    --chart-1: 142 76% 36%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 45 93% 47%;
+    --chart-4: 280 87% 63%;
+    --chart-5: 0 84% 60%;
   }
 
   .dark {
@@ -65,7 +86,7 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217 91% 60%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -82,15 +103,34 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 217 91% 60%;
+
+    /* CFLP Certificate Colors - same in dark mode */
+    --cflp-green: 142 76% 36%;
+    --cflp-green-foreground: 0 0% 100%;
+    --cflp-white: 0 0% 95%;
+    --cflp-white-foreground: 222.2 84% 4.9%;
+    --cflp-gold: 45 93% 47%;
+    --cflp-gold-foreground: 0 0% 100%;
+    --cflp-blue: 217 91% 60%;
+    --cflp-blue-foreground: 0 0% 100%;
+
+    /* Kids Portal Colors */
+    --kids-primary: 280 87% 63%;
+    --kids-primary-foreground: 0 0% 100%;
+    --kids-secondary: 45 100% 51%;
+    --kids-secondary-foreground: 0 0% 0%;
+    --kids-background: 280 50% 10%;
+    --kids-accent: 180 70% 50%;
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 217 91% 60%;
   }
 }
 
@@ -101,5 +141,21 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom utility classes for certificates */
+@layer utilities {
+  .certificate-green {
+    @apply bg-[hsl(var(--cflp-green))] text-[hsl(var(--cflp-green-foreground))];
+  }
+  .certificate-white {
+    @apply bg-[hsl(var(--cflp-white))] text-[hsl(var(--cflp-white-foreground))] border border-gray-300;
+  }
+  .certificate-gold {
+    @apply bg-[hsl(var(--cflp-gold))] text-[hsl(var(--cflp-gold-foreground))];
+  }
+  .certificate-blue {
+    @apply bg-[hsl(var(--cflp-blue))] text-[hsl(var(--cflp-blue-foreground))];
   }
 }
