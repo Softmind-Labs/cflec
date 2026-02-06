@@ -12,6 +12,7 @@ import { Loader2, Mail, Lock, User, Calendar, Phone, Heart, ArrowLeft } from 'lu
 import { z } from 'zod';
 import type { AccountType } from '@/types';
 import { ACCOUNT_TYPE_LABELS, APP_FULL_NAME } from '@/lib/constants';
+import cflecLogo from '@/assets/cflec-logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -150,7 +151,7 @@ export default function Auth() {
       </Link>
 
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-primary">CFLP</h1>
+        <img src={cflecLogo} alt="CFLEC Logo" className="h-16 w-auto mx-auto mb-4" />
         <p className="text-muted-foreground">{APP_FULL_NAME}</p>
       </div>
 
