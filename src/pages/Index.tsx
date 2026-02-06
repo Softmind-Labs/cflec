@@ -17,6 +17,8 @@ import onlineLearningImg from '@/assets/features/online-learning.jpg';
 import certificatesImg from '@/assets/features/certificates.jpg';
 import tradingSimulatorImg from '@/assets/features/trading-simulator.jpg';
 import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
+import adultsImg from '@/assets/portals/adults.jpg';
+import kidsImg from '@/assets/portals/kids.jpg';
 
 export default function Index() {
   const features = [
@@ -227,78 +229,65 @@ export default function Index() {
       </section>
 
       {/* Portal Selection */}
-      <section className="py-20 bg-gradient-to-r from-primary/5 to-kids-primary/5">
+      <section className="py-20 bg-background">
         <div className="container">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <h2 className="font-serif text-3xl font-semibold md:text-4xl">Choose Your Learning Path</h2>
             <p className="mt-4 text-muted-foreground">
               Age-appropriate content designed for every learner
             </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="border-2 hover:border-primary transition-colors cursor-pointer group">
+          
+          {/* Adults & Teens Row - Image Left, Text Right */}
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
+            <div className="relative">
+              <img 
+                src={adultsImg} 
+                alt="Adults and teens learning financial literacy" 
+                className="rounded-xl w-full h-auto object-cover shadow-lg"
+              />
+            </div>
+            <div className="space-y-6">
+              <p className="text-sm font-medium text-primary uppercase tracking-wide">Adults & Teens</p>
+              <h3 className="font-serif text-3xl md:text-4xl font-semibold">
+                Master Financial Literacy
+              </h3>
+              <p className="text-muted-foreground text-lg">
+                High Schoolers (13-17) and Adults (18+) can access our full curriculum with 27 modules, stock trading simulator, and earn all 4 certificate levels.
+              </p>
               <Link to="/auth">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <GraduationCap className="h-8 w-8 text-primary" />
-                  </div>
-                  <CardTitle className="text-2xl">Adults & Teens</CardTitle>
-                  <CardDescription>High Schoolers (13-17) & Adults (18+)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      Full curriculum access
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      Stock trading simulator
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      All 4 certificate levels
-                    </li>
-                  </ul>
-                  <Button className="w-full group-hover:bg-primary/90">
-                    Enter Adult Portal
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardContent>
+                <Button className="bg-cflp-green hover:bg-cflp-green/90 text-cflp-green-foreground" size="lg">
+                  Enter Adult Portal
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
-            </Card>
-
-            <Card className="border-2 hover:border-kids-primary transition-colors cursor-pointer group">
+            </div>
+          </div>
+          
+          {/* Kids Zone Row - Text Left, Image Right */}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6 order-2 md:order-1">
+              <p className="text-sm font-medium text-kids-primary uppercase tracking-wide">Kids Zone</p>
+              <h3 className="font-serif text-3xl md:text-4xl font-semibold">
+                Fun Financial Adventures
+              </h3>
+              <p className="text-muted-foreground text-lg">
+                Young learners (6-12) enjoy interactive lessons, games, rewards, and work toward their Green certificate in a colorful, engaging environment.
+              </p>
               <Link to="/kids">
-                <CardHeader>
-                  <div className="h-16 w-16 rounded-full bg-kids-primary/10 flex items-center justify-center mb-4 group-hover:bg-kids-primary/20 transition-colors">
-                    <Sparkles className="h-8 w-8 text-kids-primary" />
-                  </div>
-                  <CardTitle className="text-2xl">Kids Zone</CardTitle>
-                  <CardDescription>Young Learners (6-12)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 mb-6">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-kids-primary" />
-                      Fun, interactive lessons
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-kids-primary" />
-                      Games & rewards
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-kids-primary" />
-                      Green certificate path
-                    </li>
-                  </ul>
-                  <Button className="w-full bg-kids-primary hover:bg-kids-primary/90 text-kids-primary-foreground">
-                    Enter Kids Zone
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </CardContent>
+                <Button className="bg-kids-primary hover:bg-kids-primary/90 text-kids-primary-foreground" size="lg">
+                  Enter Kids Zone
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
               </Link>
-            </Card>
+            </div>
+            <div className="relative order-1 md:order-2">
+              <img 
+                src={kidsImg} 
+                alt="Kids learning about finance through fun activities" 
+                className="rounded-xl w-full h-auto object-cover shadow-lg"
+              />
+            </div>
           </div>
         </div>
       </section>
