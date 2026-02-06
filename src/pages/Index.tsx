@@ -4,9 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { 
   GraduationCap, 
-  TrendingUp, 
   Award, 
-  Users, 
   PlayCircle, 
   CheckCircle,
   ChevronRight,
@@ -15,28 +13,40 @@ import {
 } from 'lucide-react';
 import { APP_FULL_NAME } from '@/lib/constants';
 import cflecLogo from '@/assets/cflec-logo.png';
+import onlineLearningImg from '@/assets/features/online-learning.jpg';
+import certificatesImg from '@/assets/features/certificates.jpg';
+import tradingSimulatorImg from '@/assets/features/trading-simulator.jpg';
+import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
 
 export default function Index() {
   const features = [
     {
-      icon: GraduationCap,
+      image: onlineLearningImg,
       title: 'Structured Learning',
-      description: 'Progress through 27 expertly crafted modules covering everything from basic budgeting to advanced wealth management.',
+      description: 'Progress through 27 expertly crafted modules',
+      cta: 'Start Learning',
+      link: '/auth',
     },
     {
-      icon: Award,
+      image: certificatesImg,
       title: 'Earn Certificates',
-      description: 'Achieve Green, White, Gold, and Blue certifications as you master each level of financial literacy.',
+      description: 'Achieve Green, White, Gold, and Blue certifications',
+      cta: 'View Certificates',
+      link: '/auth',
     },
     {
-      icon: TrendingUp,
+      image: tradingSimulatorImg,
       title: 'Stock Simulator',
-      description: 'Practice trading with $500 in virtual money. Learn to buy, sell, and build a portfolio risk-free.',
+      description: 'Practice trading with $500 in virtual money',
+      cta: 'Try Simulator',
+      link: '/auth',
     },
     {
-      icon: Users,
-      title: 'Compete & Learn',
-      description: 'Join the leaderboard, compete with other learners, and track your investment performance.',
+      image: aiAssistedImg,
+      title: 'AI-Powered Support',
+      description: 'Get personalized guidance and instant answers',
+      cta: 'Learn More',
+      link: '/auth',
     },
   ];
 
@@ -138,19 +148,34 @@ export default function Index() {
               Comprehensive financial education designed for all ages and skill levels
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title} className="border-0 shadow-lg">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
+              <Link key={feature.title} to={feature.link}>
+                <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer">
+                  {/* Background Image */}
+                  <img 
+                    src={feature.image} 
+                    alt={feature.title}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
+                  
+                  {/* Content */}
+                  <div className="relative z-10 h-full flex flex-col justify-end p-6">
+                    <h3 className="font-serif text-2xl font-semibold text-white mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-white/80 mb-4">
+                      {feature.description}
+                    </p>
+                    <Button className="w-fit bg-cflp-green hover:bg-cflp-green/90 text-cflp-green-foreground">
+                      {feature.cta}
+                    </Button>
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardContent>
-              </Card>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
