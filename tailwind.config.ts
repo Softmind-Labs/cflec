@@ -57,6 +57,39 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // CFLP Certificate Colors
+        "cflp-green": {
+          DEFAULT: "hsl(var(--cflp-green))",
+          foreground: "hsl(var(--cflp-green-foreground))",
+        },
+        "cflp-white": {
+          DEFAULT: "hsl(var(--cflp-white))",
+          foreground: "hsl(var(--cflp-white-foreground))",
+        },
+        "cflp-gold": {
+          DEFAULT: "hsl(var(--cflp-gold))",
+          foreground: "hsl(var(--cflp-gold-foreground))",
+        },
+        "cflp-blue": {
+          DEFAULT: "hsl(var(--cflp-blue))",
+          foreground: "hsl(var(--cflp-blue-foreground))",
+        },
+        // Kids Portal Colors
+        kids: {
+          primary: "hsl(var(--kids-primary))",
+          "primary-foreground": "hsl(var(--kids-primary-foreground))",
+          secondary: "hsl(var(--kids-secondary))",
+          "secondary-foreground": "hsl(var(--kids-secondary-foreground))",
+          background: "hsl(var(--kids-background))",
+          accent: "hsl(var(--kids-accent))",
+        },
+        chart: {
+          "1": "hsl(var(--chart-1))",
+          "2": "hsl(var(--chart-2))",
+          "3": "hsl(var(--chart-3))",
+          "4": "hsl(var(--chart-4))",
+          "5": "hsl(var(--chart-5))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
