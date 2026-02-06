@@ -32,28 +32,49 @@ export default function KidsLanding() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="py-16 md:py-24">
-        <div className="container text-center">
-          <div className="inline-flex items-center gap-2 bg-kids-secondary/20 rounded-full px-4 py-2 mb-6">
+      {/* Hero Section with Video Background */}
+      <section className="relative h-screen w-full overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/videos/kids_money.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Colorful Gradient Overlay */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(139,92,246,0.5) 0%, rgba(139,92,246,0.3) 50%, rgba(249,115,22,0.4) 100%)'
+          }}
+        />
+        
+        {/* Hero Content */}
+        <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
             <Star className="h-5 w-5 text-kids-secondary fill-kids-secondary" />
-            <span className="font-medium">Learning is Fun!</span>
+            <span className="font-medium text-white">Learning is Fun!</span>
             <Star className="h-5 w-5 text-kids-secondary fill-kids-secondary" />
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="text-kids-primary">Learn About</span>{' '}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+            <span className="text-white">Learn About</span>{' '}
             <span className="text-kids-secondary">Money!</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
             Join thousands of kids learning how to save, spend wisely, and become money smart! 
             Earn stars, badges, and your very own Green Certificate! 🌟
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
-              <Button size="lg" className="gap-2 bg-kids-primary hover:bg-kids-primary/90 text-lg px-8 py-6">
+              <Button size="lg" className="gap-2 bg-white text-kids-primary hover:bg-white/90 text-lg px-8 py-6">
                 <Sparkles className="h-6 w-6" />
                 Start Learning!
               </Button>
