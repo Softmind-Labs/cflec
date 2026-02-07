@@ -13,6 +13,10 @@ import Dashboard from "./pages/Dashboard";
 import Modules from "./pages/Modules";
 import ModulePlayer from "./pages/ModulePlayer";
 import Simulator from "./pages/Simulator";
+import SimulatorBanking from "./pages/simulator/SimulatorBanking";
+import SimulatorInvestment from "./pages/simulator/SimulatorInvestment";
+import SimulatorTrading from "./pages/simulator/SimulatorTrading";
+import SimulatorCapitalMarkets from "./pages/simulator/SimulatorCapitalMarkets";
 import Trade from "./pages/Trade";
 import Leaderboard from "./pages/Leaderboard";
 import Certificates from "./pages/Certificates";
@@ -54,6 +58,26 @@ const App = () => (
             <Route path="/simulator" element={
               <ProtectedRoute>
                 <Simulator />
+              </ProtectedRoute>
+            } />
+            <Route path="/simulator/banking" element={
+              <ProtectedRoute>
+                <SimulatorBanking />
+              </ProtectedRoute>
+            } />
+            <Route path="/simulator/investment" element={
+              <ProtectedRoute>
+                <SimulatorInvestment />
+              </ProtectedRoute>
+            } />
+            <Route path="/simulator/trading" element={
+              <ProtectedRoute>
+                <SimulatorTrading />
+              </ProtectedRoute>
+            } />
+            <Route path="/simulator/capital-markets" element={
+              <ProtectedRoute>
+                <SimulatorCapitalMarkets />
               </ProtectedRoute>
             } />
             <Route path="/simulator/trade" element={
