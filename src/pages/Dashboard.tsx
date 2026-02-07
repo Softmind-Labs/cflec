@@ -82,13 +82,15 @@ export default function Dashboard() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="container py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/4" />
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-40 bg-muted rounded-lg" />
-              ))}
+        <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+          <div className="container py-8">
+            <div className="animate-pulse space-y-6">
+              <div className="h-8 bg-muted rounded w-1/4" />
+              <div className="grid md:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="h-40 glass-card rounded-lg" />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -98,278 +100,280 @@ export default function Dashboard() {
 
   return (
     <MainLayout>
-      <div className="container py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">
-            Welcome back, {profile?.full_name?.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Continue your financial literacy journey
-          </p>
-        </div>
+      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+        <div className="container py-8">
+          {/* Welcome Section */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">
+              Welcome back, {profile?.full_name?.split(' ')[0]}! 👋
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Continue your financial literacy journey
+            </p>
+          </div>
 
-        {/* Stats Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Modules Completed</CardDescription>
-              <CardTitle className="text-3xl">{getCompletedModules()}/{modules.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={(getCompletedModules() / modules.length) * 100} className="h-2" />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Current Certificate</CardDescription>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-6 w-6 text-cflp-green" />
-                {CERTIFICATE_INFO[certProgress.current].name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={certProgress.percentage} className="h-2 bg-cflp-green/20" />
-              <p className="text-sm text-muted-foreground mt-2">
-                {certProgress.completed}/{certProgress.total} modules
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Quiz Pass Rate</CardDescription>
-              <CardTitle className="text-3xl">
-                {progress.length > 0 
-                  ? Math.round((progress.filter(p => p.quiz_passed).length / progress.length) * 100)
-                  : 0}%
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {progress.filter(p => p.quiz_passed).length} quizzes passed
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>Learning Streak</CardDescription>
-              <CardTitle className="text-3xl">🔥 3 days</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Keep it going!
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Current Module */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary">Continue Learning</Badge>
-                  <span className="text-sm text-muted-foreground">
-                    Module {currentModule?.module_number}
-                  </span>
-                </div>
-                <CardTitle className="text-2xl mt-2">{currentModule?.title}</CardTitle>
-                <CardDescription>{currentModule?.description}</CardDescription>
+          {/* Stats Overview */}
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            <Card className="glass-card hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription>Modules Completed</CardDescription>
+                <CardTitle className="text-3xl">{getCompletedModules()}/{modules.length}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1">
-                    <PlayCircle className="h-4 w-4" />
-                    {currentModule?.duration_minutes} min
-                  </span>
-                  <Badge className={`certificate-${currentModule?.certificate_level}`}>
-                    {currentModule?.certificate_level?.toUpperCase()}
-                  </Badge>
-                </div>
-                <Link to={`/modules/${currentModule?.id}`}>
-                  <Button className="gap-2">
-                    Continue Learning
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Progress value={(getCompletedModules() / modules.length) * 100} className="h-2" />
               </CardContent>
             </Card>
 
-            {/* Upcoming Modules */}
-            <Card>
-              <CardHeader>
+            <Card className="glass-card hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription>Current Certificate</CardDescription>
                 <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Upcoming Modules
+                  <Award className="h-6 w-6 text-[hsl(var(--cflp-green))]" />
+                  {CERTIFICATE_INFO[certProgress.current].name}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {modules.slice(0, 5).map((module, index) => {
-                    const moduleProgress = progress.find(p => p.module_id === module.id);
-                    const isCompleted = moduleProgress?.video_completed && moduleProgress?.quiz_passed;
-                    const isLocked = index > 0 && !progress.find(p => p.module_id === modules[index - 1]?.id);
+                <Progress value={certProgress.percentage} className="h-2 bg-[hsl(var(--cflp-green)/0.2)]" />
+                <p className="text-sm text-muted-foreground mt-2">
+                  {certProgress.completed}/{certProgress.total} modules
+                </p>
+              </CardContent>
+            </Card>
 
-                    return (
-                      <div 
-                        key={module.id} 
-                        className={`flex items-center justify-between p-3 rounded-lg ${
-                          isLocked ? 'bg-muted/50 opacity-60' : 'bg-muted/30 hover:bg-muted/50'
-                        } transition-colors`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                            isCompleted 
-                              ? 'bg-cflp-green text-white' 
-                              : isLocked 
-                                ? 'bg-muted' 
-                                : 'bg-primary/10'
-                          }`}>
-                            {isCompleted ? (
-                              <CheckCircle className="h-5 w-5" />
-                            ) : isLocked ? (
-                              <Lock className="h-5 w-5" />
-                            ) : (
-                              <span className="font-medium">{module.module_number}</span>
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium">{module.title}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {module.duration_minutes} min
-                            </p>
-                          </div>
-                        </div>
-                        {!isLocked && !isCompleted && (
-                          <Link to={`/modules/${module.id}`}>
-                            <Button size="sm" variant="ghost">
-                              Start
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <Link to="/modules" className="block mt-4">
-                  <Button variant="outline" className="w-full">
-                    View All Modules
-                  </Button>
-                </Link>
+            <Card className="glass-card hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription>Quiz Pass Rate</CardDescription>
+                <CardTitle className="text-3xl">
+                  {progress.length > 0 
+                    ? Math.round((progress.filter(p => p.quiz_passed).length / progress.length) * 100)
+                    : 0}%
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  {progress.filter(p => p.quiz_passed).length} quizzes passed
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card hover:shadow-xl transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription>Learning Streak</CardDescription>
+                <CardTitle className="text-3xl">🔥 3 days</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Keep it going!
+                </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Trading Simulator Card */}
-            <Card className="bg-gradient-to-br from-cflp-blue/10 to-transparent border-cflp-blue/20">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-cflp-blue" />
-                  Trading Simulator
-                </CardTitle>
-                <CardDescription>
-                  Practice trading with $500 in virtual money
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link to="/simulator">
-                  <Button className="w-full" variant="outline">
-                    Open Simulator
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Leaderboard Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-cflp-gold" />
-                  Top Traders
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {leaderboard.length > 0 ? (
-                  <div className="space-y-3">
-                    {leaderboard.map((entry, index) => (
-                      <div key={entry.user_id} className="flex items-center gap-3">
-                        <span className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                          index === 0 ? 'bg-cflp-gold text-white' :
-                          index === 1 ? 'bg-gray-300 text-gray-700' :
-                          index === 2 ? 'bg-amber-600 text-white' :
-                          'bg-muted text-muted-foreground'
-                        }`}>
-                          {index + 1}
-                        </span>
-                        <span className="flex-1 truncate">{entry.full_name}</span>
-                        <span className="text-sm font-medium text-cflp-green">
-                          ${Number(entry.total_value).toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Current Module */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="glass-card-primary border-2 border-primary/30">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">Continue Learning</Badge>
+                    <span className="text-sm text-muted-foreground">
+                      Module {currentModule?.module_number}
+                    </span>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No traders yet. Be the first!
-                  </p>
-                )}
-                <Link to="/simulator/leaderboard" className="block mt-4">
-                  <Button variant="ghost" className="w-full" size="sm">
-                    View Full Leaderboard
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                  <CardTitle className="text-2xl mt-2">{currentModule?.title}</CardTitle>
+                  <CardDescription>{currentModule?.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                    <span className="flex items-center gap-1">
+                      <PlayCircle className="h-4 w-4" />
+                      {currentModule?.duration_minutes} min
+                    </span>
+                    <Badge className={`certificate-${currentModule?.certificate_level}`}>
+                      {currentModule?.certificate_level?.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <Link to={`/modules/${currentModule?.id}`}>
+                    <Button className="gap-2">
+                      Continue Learning
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
 
-            {/* Certificates */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5" />
-                  Your Certificates
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {(['green', 'white', 'gold', 'blue'] as const).map((level) => {
-                    const info = CERTIFICATE_INFO[level];
-                    const isEarned = false; // TODO: Check from certificates table
-                    
-                    return (
-                      <div 
-                        key={level}
-                        className={`flex items-center gap-3 p-2 rounded-lg ${
-                          isEarned ? 'bg-muted/50' : 'opacity-50'
-                        }`}
-                      >
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center certificate-${level}`}>
-                          {isEarned ? (
-                            <CheckCircle className="h-4 w-4" />
-                          ) : (
-                            <Lock className="h-4 w-4" />
+              {/* Upcoming Modules */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    Upcoming Modules
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {modules.slice(0, 5).map((module, index) => {
+                      const moduleProgress = progress.find(p => p.module_id === module.id);
+                      const isCompleted = moduleProgress?.video_completed && moduleProgress?.quiz_passed;
+                      const isLocked = index > 0 && !progress.find(p => p.module_id === modules[index - 1]?.id);
+
+                      return (
+                        <div 
+                          key={module.id} 
+                          className={`flex items-center justify-between p-3 rounded-lg ${
+                            isLocked ? 'bg-muted/50 opacity-60' : 'bg-muted/30 hover:bg-muted/50'
+                          } transition-colors`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                              isCompleted 
+                                ? 'bg-[hsl(var(--cflp-green))] text-white' 
+                                : isLocked 
+                                  ? 'bg-muted' 
+                                  : 'bg-primary/10'
+                            }`}>
+                              {isCompleted ? (
+                                <CheckCircle className="h-5 w-5" />
+                              ) : isLocked ? (
+                                <Lock className="h-5 w-5" />
+                              ) : (
+                                <span className="font-medium">{module.module_number}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{module.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {module.duration_minutes} min
+                              </p>
+                            </div>
+                          </div>
+                          {!isLocked && !isCompleted && (
+                            <Link to={`/modules/${module.id}`}>
+                              <Button size="sm" variant="ghost">
+                                Start
+                              </Button>
+                            </Link>
                           )}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{info.name}</p>
-                          <p className="text-xs text-muted-foreground">{info.description}</p>
+                      );
+                    })}
+                  </div>
+                  <Link to="/modules" className="block mt-4">
+                    <Button variant="outline" className="w-full">
+                      View All Modules
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              {/* Trading Simulator Card */}
+              <Card className="glass-card-primary">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    Trading Simulator
+                  </CardTitle>
+                  <CardDescription>
+                    Practice trading with $500 in virtual money
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link to="/simulator">
+                    <Button className="w-full" variant="outline">
+                      Open Simulator
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Leaderboard Preview */}
+              <Card className="glass-card-gold">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-[hsl(var(--cflp-gold))]" />
+                    Top Traders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {leaderboard.length > 0 ? (
+                    <div className="space-y-3">
+                      {leaderboard.map((entry, index) => (
+                        <div key={entry.user_id} className="flex items-center gap-3">
+                          <span className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-[hsl(var(--cflp-gold))] text-white' :
+                            index === 1 ? 'bg-gray-300 text-gray-700' :
+                            index === 2 ? 'bg-amber-600 text-white' :
+                            'bg-muted text-muted-foreground'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <span className="flex-1 truncate">{entry.full_name}</span>
+                          <span className="text-sm font-medium text-[hsl(var(--cflp-green))]">
+                            ${Number(entry.total_value).toLocaleString()}
+                          </span>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <Link to="/certificates" className="block mt-4">
-                  <Button variant="ghost" className="w-full" size="sm">
-                    View All Certificates
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No traders yet. Be the first!
+                    </p>
+                  )}
+                  <Link to="/simulator/leaderboard" className="block mt-4">
+                    <Button variant="ghost" className="w-full" size="sm">
+                      View Full Leaderboard
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Certificates */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Award className="h-5 w-5" />
+                    Your Certificates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(['green', 'white', 'gold', 'blue'] as const).map((level) => {
+                      const info = CERTIFICATE_INFO[level];
+                      const isEarned = false; // TODO: Check from certificates table
+                      
+                      return (
+                        <div 
+                          key={level}
+                          className={`flex items-center gap-3 p-2 rounded-lg ${
+                            isEarned ? 'bg-muted/50' : 'opacity-50'
+                          }`}
+                        >
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center certificate-${level}`}>
+                            {isEarned ? (
+                              <CheckCircle className="h-4 w-4" />
+                            ) : (
+                              <Lock className="h-4 w-4" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{info.name}</p>
+                            <p className="text-xs text-muted-foreground">{info.description}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <Link to="/certificates" className="block mt-4">
+                    <Button variant="ghost" className="w-full" size="sm">
+                      View All Certificates
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>

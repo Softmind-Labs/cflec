@@ -3,6 +3,9 @@
 export type AccountType = 'kid' | 'high_schooler' | 'adult';
 export type CertificateLevel = 'green' | 'white' | 'gold' | 'blue';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'pending';
+export type GhanaianBank = 'absa' | 'fidelity' | 'ecobank' | 'gcb' | 'access' | 'umb' | 'uba';
+export type MarketCategory = 'banking' | 'investment' | 'trading' | 'capital_markets';
+export type LeaderboardScope = 'ghana' | 'west_africa' | 'global';
 
 export interface Profile {
   id: string;
@@ -16,8 +19,40 @@ export interface Profile {
   avatar_url: string | null;
   subscription_status: SubscriptionStatus;
   subscription_expires_at: string | null;
+  country?: string;
+  region?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BankAccountInfo {
+  hasExistingAccount: boolean;
+  selectedBank?: GhanaianBank;
+  ghanaCardNumber?: string;
+  ghanaCardExpiry?: string;
+  occupation?: string;
+  sourceOfIncome?: string;
+}
+
+export interface SignupFormData {
+  // Step 1: Credentials
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  accountType: AccountType;
+  dateOfBirth: string;
+  phone: string;
+  mothersFirstName: string;
+  country: string;
+  region: string;
+  
+  // Step 2: Bank Account
+  bankInfo: BankAccountInfo;
+  
+  // Step 3: Checkout
+  subscriptionPlan: 'yearly';
+  paymentMethod: 'mobile_money' | 'card';
 }
 
 export interface Module {
@@ -128,9 +163,34 @@ export interface LeaderboardEntry {
   full_name: string;
   avatar_url: string | null;
   account_type: AccountType;
+  country?: string;
+  region?: string | null;
   cash_balance: number;
   holdings_value: number;
   total_value: number;
+}
+
+// Banking simulation types
+export interface TreasuryBill {
+  id: string;
+  term_days: 91 | 182 | 364;
+  interest_rate: number;
+  min_investment: number;
+}
+
+export interface FixedDeposit {
+  id: string;
+  bank: GhanaianBank;
+  term_months: number;
+  interest_rate: number;
+  min_amount: number;
+}
+
+export interface SavingsAccount {
+  id: string;
+  bank: GhanaianBank;
+  interest_rate: number;
+  balance: number;
 }
 
 // Certificate requirements mapping

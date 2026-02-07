@@ -1,379 +1,177 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { 
+  Building2, 
   TrendingUp, 
-  TrendingDown, 
-  DollarSign, 
-  BarChart3,
-  ArrowUpRight,
-  ArrowDownRight,
-  Wallet,
-  PieChart
+  CandlestickChart, 
+  Landmark,
+  ArrowRight,
+  Trophy,
+  Wallet
 } from 'lucide-react';
-import type { Portfolio, StockHolding, MockStock, Transaction } from '@/types';
-import { STARTING_PORTFOLIO_BALANCE } from '@/lib/constants';
+
+const marketCategories = [
+  {
+    id: 'banking',
+    title: 'Banking',
+    description: 'Treasury Bills, Fixed Deposits, Savings Accounts',
+    icon: Building2,
+    color: 'primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/20',
+    textColor: 'text-primary',
+    features: ['91, 182, 364-day T-Bills', 'Fixed Deposits up to 22% p.a.', 'High-yield Savings'],
+    route: '/simulator/banking',
+  },
+  {
+    id: 'investment',
+    title: 'Investment',
+    description: 'Ghana Stock Exchange & World Stock Markets',
+    icon: TrendingUp,
+    color: 'cflp-green',
+    bgColor: 'bg-[hsl(var(--cflp-green)/0.1)]',
+    borderColor: 'border-[hsl(var(--cflp-green)/0.2)]',
+    textColor: 'text-[hsl(var(--cflp-green))]',
+    features: ['GSE Listed Stocks', 'NYSE & NASDAQ', 'Portfolio Tracking'],
+    route: '/simulator/investment',
+  },
+  {
+    id: 'trading',
+    title: 'Trading',
+    description: 'Forex, Commodities, and Crypto Demo',
+    icon: CandlestickChart,
+    color: 'cflp-gold',
+    bgColor: 'bg-[hsl(var(--cflp-gold)/0.1)]',
+    borderColor: 'border-[hsl(var(--cflp-gold)/0.2)]',
+    textColor: 'text-[hsl(var(--cflp-gold))]',
+    features: ['GHS/USD, EUR/GHS Pairs', 'Gold, Cocoa, Oil', 'Bitcoin & Ethereum Demo'],
+    route: '/simulator/trading',
+  },
+  {
+    id: 'capital_markets',
+    title: 'Capital Markets',
+    description: 'Bonds, Mutual Funds, and ETFs',
+    icon: Landmark,
+    color: 'cflp-blue',
+    bgColor: 'bg-[hsl(var(--cflp-blue)/0.1)]',
+    borderColor: 'border-[hsl(var(--cflp-blue)/0.2)]',
+    textColor: 'text-[hsl(var(--cflp-blue))]',
+    features: ['Government Bonds', 'Databank, Fidelity Funds', 'Gold & Equity ETFs'],
+    route: '/simulator/capital-markets',
+  },
+];
 
 export default function Simulator() {
-  const { user } = useAuth();
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [holdings, setHoldings] = useState<(StockHolding & { stock: MockStock })[]>([]);
-  const [stocks, setStocks] = useState<MockStock[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
-
-      // Fetch stocks first
-      const { data: stocksData } = await supabase
-        .from('mock_stocks')
-        .select('*')
-        .order('symbol');
-      
-      if (stocksData) setStocks(stocksData as MockStock[]);
-
-      // Fetch or create portfolio
-      let { data: portfolioData } = await supabase
-        .from('portfolios')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!portfolioData) {
-        // Create new portfolio
-        const { data: newPortfolio } = await supabase
-          .from('portfolios')
-          .insert({ user_id: user.id, cash_balance: STARTING_PORTFOLIO_BALANCE })
-          .select()
-          .single();
-        portfolioData = newPortfolio;
-      }
-
-      if (portfolioData) {
-        setPortfolio(portfolioData as Portfolio);
-
-        // Fetch holdings with stock data
-        const { data: holdingsData } = await supabase
-          .from('stock_holdings')
-          .select('*')
-          .eq('portfolio_id', portfolioData.id);
-
-        if (holdingsData && stocksData) {
-          const holdingsWithStocks = holdingsData.map(h => ({
-            ...h,
-            stock: stocksData.find(s => s.id === h.stock_id)!
-          }));
-          setHoldings(holdingsWithStocks as (StockHolding & { stock: MockStock })[]);
-        }
-
-        // Fetch recent transactions
-        const { data: txData } = await supabase
-          .from('transactions')
-          .select('*')
-          .eq('portfolio_id', portfolioData.id)
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        if (txData && stocksData) {
-          const txWithStocks = txData.map(t => ({
-            ...t,
-            stock: stocksData.find(s => s.id === t.stock_id)
-          }));
-          setTransactions(txWithStocks as Transaction[]);
-        }
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [user]);
-
-  const calculateTotalValue = () => {
-    const holdingsValue = holdings.reduce((sum, h) => 
-      sum + (h.quantity * Number(h.stock.current_price)), 0
-    );
-    return Number(portfolio?.cash_balance || 0) + holdingsValue;
-  };
-
-  const calculateGainLoss = () => {
-    const total = calculateTotalValue();
-    const initial = STARTING_PORTFOLIO_BALANCE;
-    return {
-      amount: total - initial,
-      percentage: ((total - initial) / initial) * 100
-    };
-  };
-
-  const gainLoss = calculateGainLoss();
-
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="container py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/4" />
-            <div className="grid md:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-muted rounded-lg" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
   return (
     <MainLayout>
-      <div className="container py-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <BarChart3 className="h-8 w-8" />
-              Trading Simulator
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Practice trading with virtual money - no risk involved!
+      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+        <div className="container py-8">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4">Practice Trading</Badge>
+            <h1 className="text-4xl font-bold mb-4">Market Simulator</h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Learn to invest with virtual money. Choose a market category to start practicing your trading skills risk-free.
             </p>
           </div>
-          <Link to="/simulator/trade">
-            <Button size="lg" className="mt-4 md:mt-0 gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Trade Now
-            </Button>
-          </Link>
-        </div>
 
-        {/* Portfolio Overview */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1">
-                <PieChart className="h-4 w-4" />
-                Total Value
-              </CardDescription>
-              <CardTitle className="text-3xl">
-                ${calculateTotalValue().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`flex items-center gap-1 text-sm ${gainLoss.amount >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                {gainLoss.amount >= 0 ? (
-                  <ArrowUpRight className="h-4 w-4" />
-                ) : (
-                  <ArrowDownRight className="h-4 w-4" />
-                )}
-                {gainLoss.amount >= 0 ? '+' : ''}${gainLoss.amount.toFixed(2)} ({gainLoss.percentage.toFixed(2)}%)
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1">
-                <Wallet className="h-4 w-4" />
-                Cash Balance
-              </CardDescription>
-              <CardTitle className="text-3xl">
-                ${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Available to trade
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4" />
-                Holdings Value
-              </CardDescription>
-              <CardTitle className="text-3xl">
-                ${holdings.reduce((sum, h) => sum + (h.quantity * Number(h.stock.current_price)), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {holdings.length} positions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
-                Total Trades
-              </CardDescription>
-              <CardTitle className="text-3xl">{transactions.length}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Transactions made
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Holdings */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Holdings</CardTitle>
-                <CardDescription>Current stock positions in your portfolio</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {holdings.length > 0 ? (
-                  <div className="space-y-4">
-                    {holdings.map((holding) => {
-                      const currentValue = holding.quantity * Number(holding.stock.current_price);
-                      const costBasis = holding.quantity * Number(holding.average_cost);
-                      const gain = currentValue - costBasis;
-                      const gainPercent = (gain / costBasis) * 100;
-
-                      return (
-                        <div key={holding.id} className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-                          <div className="flex items-center gap-4">
-                            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
-                              {holding.stock.symbol.slice(0, 2)}
-                            </div>
-                            <div>
-                              <p className="font-semibold">{holding.stock.symbol}</p>
-                              <p className="text-sm text-muted-foreground">{holding.stock.name}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">
-                              ${currentValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </p>
-                            <p className={`text-sm ${gain >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                              {gain >= 0 ? '+' : ''}{gainPercent.toFixed(2)}%
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">{holding.quantity} shares</p>
-                            <p className="text-sm text-muted-foreground">
-                              @ ${Number(holding.stock.current_price).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No holdings yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Start trading to build your portfolio!
-                    </p>
-                    <Link to="/simulator/trade">
-                      <Button>Make Your First Trade</Button>
-                    </Link>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Market Overview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Market Overview</CardTitle>
-                <CardDescription>Available stocks to trade</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {stocks.slice(0, 5).map((stock) => {
-                    const change = Number(stock.current_price) - Number(stock.previous_close || stock.current_price);
-                    const changePercent = (change / Number(stock.previous_close || stock.current_price)) * 100;
-
-                    return (
-                      <div key={stock.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{stock.symbol}</p>
-                          <p className="text-xs text-muted-foreground">{stock.name}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">${Number(stock.current_price).toFixed(2)}</p>
-                          <p className={`text-xs ${change >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                            {change >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <Link to="/simulator/trade" className="block mt-4">
-                  <Button variant="outline" className="w-full">View All Stocks</Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Recent Transactions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Transactions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {transactions.length > 0 ? (
-                  <div className="space-y-3">
-                    {transactions.map((tx) => (
-                      <div key={tx.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge variant={tx.transaction_type === 'buy' ? 'default' : 'secondary'}>
-                            {tx.transaction_type.toUpperCase()}
-                          </Badge>
-                          <span className="text-sm">{tx.stock?.symbol}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">${Number(tx.total_amount).toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">{tx.quantity} shares</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No transactions yet
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Leaderboard CTA */}
-            <Card className="bg-gradient-to-br from-cflp-gold/10 to-transparent">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  🏆 Leaderboard
-                </CardTitle>
-                <CardDescription>
-                  See how you rank against other traders
+          {/* Quick Stats */}
+          <div className="grid md:grid-cols-2 gap-6 mb-12 max-w-2xl mx-auto">
+            <Card className="glass-card">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  Starting Balance
                 </CardDescription>
+                <CardTitle className="text-3xl text-cflp-green">$500.00</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">Virtual funds to practice with</p>
+              </CardContent>
+            </Card>
+
+            <Card className="glass-card-gold">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Leaderboard
+                </CardDescription>
+                <CardTitle className="text-2xl">Compete & Win</CardTitle>
               </CardHeader>
               <CardContent>
                 <Link to="/simulator/leaderboard">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" size="sm" className="gap-2">
                     View Rankings
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </CardContent>
             </Card>
           </div>
+
+          {/* Market Categories Grid */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {marketCategories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <Card 
+                  key={category.id}
+                  className={`relative overflow-hidden hover:shadow-xl transition-all duration-300 border-2 ${category.borderColor} group`}
+                >
+                  <div className={`absolute inset-0 ${category.bgColor} opacity-50`} />
+                  <CardHeader className="relative">
+                    <div className="flex items-center justify-between">
+                      <div className={`h-14 w-14 rounded-xl ${category.bgColor} flex items-center justify-center`}>
+                        <Icon className={`h-7 w-7 ${category.textColor}`} />
+                      </div>
+                      <Badge variant="secondary">4 Markets</Badge>
+                    </div>
+                    <CardTitle className="text-2xl mt-4">{category.title}</CardTitle>
+                    <CardDescription className="text-base">{category.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative">
+                    <ul className="space-y-2 mb-6">
+                      {category.features.map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className={`h-1.5 w-1.5 rounded-full ${category.bgColor.replace('/0.1', '')}`} />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link to={category.route}>
+                      <Button className="w-full gap-2 group-hover:gap-3 transition-all">
+                        Enter {category.title}
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Info Banner */}
+          <Card className="mt-12 glass-card-primary">
+            <CardContent className="py-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-semibold text-lg">Ready to compete?</h3>
+                  <p className="text-muted-foreground">
+                    Grow your virtual portfolio and climb the leaderboard in your region!
+                  </p>
+                </div>
+                <Link to="/simulator/leaderboard">
+                  <Button variant="secondary" className="gap-2">
+                    <Trophy className="h-4 w-4" />
+                    View Leaderboard
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </MainLayout>
