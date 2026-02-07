@@ -1,191 +1,330 @@
 
 
-# Fix Color Scheme, Add Sidebar Navigation, and Improve Auth Page
+# Complete Feature Implementation Plan
 
 ## Overview
-This plan addresses three key improvements:
-1. Update the color scheme from green to blue/gold to match the CFLEC logo
-2. Replace the top header navigation with a professional left sidebar for authenticated pages
-3. Improve the Auth page to default to signup when coming from "Start Learning Free"
+
+This consolidated plan implements all requested features:
+1. **3-Step Signup Wizard** - Credentials, Bank Account Setup (Ghanaian KYC), and Checkout (GHS 312/year)
+2. **4-Category Market Simulator** - Banking, Investment, Trading, and Capital Markets
+3. **Region-Based Leaderboard** - Country and regional rankings (Ghana regions)
+4. **Glassmorphic Dashboard** - Modern glass-effect UI styling
 
 ---
 
-## 1. Color Scheme Update (Blue & Gold)
+## 1. Three-Step Signup Wizard
 
-### Current Issue
-The primary color is set to green (`142 76% 36%`), but the CFLEC logo features blue and gold colors.
-
-### Changes to `src/index.css`
-
-**Update the following CSS variables in both light and dark modes:**
-
-| Variable | Current (Green) | New (Blue) |
-|----------|-----------------|------------|
-| `--primary` | `142 76% 36%` | `217 91% 60%` |
-| `--primary-foreground` | `0 0% 100%` | `0 0% 100%` |
-| `--ring` | `142 76% 36%` | `217 91% 60%` |
-| `--sidebar-primary` | `142 76% 36%` | `217 91% 60%` |
-| `--sidebar-ring` | `142 76% 36%` | `217 91% 60%` |
-
-The gold accent (`--cflp-gold: 45 93% 47%`) is already defined and will be used for highlights and special elements.
-
-### Button Color Updates
-
-Update CTA buttons throughout the app:
-- Change `bg-cflp-green` to `bg-cflp-blue` for primary actions
-- Use `bg-cflp-gold` for accent/highlight buttons
-- Keep `bg-cflp-green` only for the Green certificate level indicator
-
-**Files affected:**
-- `src/index.css` - CSS variables
-- `src/pages/Index.tsx` - Feature card buttons, portal buttons
-- `src/pages/Dashboard.tsx` - Certificate and progress indicators
-
----
-
-## 2. Left Sidebar Navigation
-
-### Current Architecture
-- Top header navigation in `src/components/layout/Header.tsx`
-- `MainLayout` wraps authenticated pages with Header + Footer
-
-### New Architecture
-- Create `AppSidebar.tsx` component with left sidebar navigation
-- Update `MainLayout.tsx` to use `SidebarProvider` + `Sidebar` instead of top Header
-- Keep Header for mobile hamburger menu trigger
-- Add logo, navigation items, and user profile to sidebar
-
-### New File: `src/components/layout/AppSidebar.tsx`
+### Step Flow
 
 ```text
-+---------------------------+
-|     CFLEC Logo            |
-+---------------------------+
-|                           |
-|  📊 Dashboard             |
-|  📚 Modules               |
-|  📈 Simulator             |
-|  🏆 Certificates          |
-|                           |
-+---------------------------+
-|  [User Avatar]            |
-|  User Name                |
-|  [Profile] [Logout]       |
-+---------------------------+
+Step 1: Credentials          Step 2: Bank Account         Step 3: Checkout
++--------------------+       +--------------------+       +--------------------+
+| Full Name          |       | Have bank account? |       | Plan: GHS 312/year |
+| Email              |       | [Yes] [No]         |       |                    |
+| Account Type       |       |                    |       | - All 27 modules   |
+| Date of Birth      |       | If NO, select bank:|       | - Trading simulator|
+| Phone              |       | [ABSA, Fidelity,   |       | - 4 certificates   |
+| Country            |       |  Ecobank, GCB,     |       | - Leaderboard      |
+| Region             |       |  Access, UMB, UBA] |       |                    |
+| Mother's Name      |       |                    |       | Payment Method:    |
+| Password           |       | KYC Information:   |       | [Mobile Money]     |
+| Confirm Password   |       | - Ghana Card #     |       | [Card]             |
+|                    |       | - Expiry Date      |       |                    |
+| [Next Step ->]     |       | - Occupation       |       | [Complete Signup]  |
++--------------------+       | - Source of Income |       +--------------------+
+                             | - Upload Documents |
+                             |                    |
+                             | [<- Back] [Next ->]|
+                             +--------------------+
 ```
 
-**Navigation Items:**
-- Dashboard (`/dashboard`) - LayoutDashboard icon
-- Modules (`/modules`) - BookOpen icon
-- Simulator (`/simulator`) - TrendingUp icon
-- Certificates (`/certificates`) - Award icon
+### Ghanaian Banks List
+| Bank Code | Full Name |
+|-----------|-----------|
+| `absa` | Absa Bank Ghana |
+| `fidelity` | Fidelity Bank Ghana |
+| `ecobank` | Ecobank Ghana |
+| `gcb` | GCB Bank |
+| `access` | Access Bank Ghana |
+| `umb` | Universal Merchant Bank |
+| `uba` | United Bank for Africa Ghana |
 
-### Updated `src/components/layout/MainLayout.tsx`
+### Ghana Regions
+Greater Accra, Ashanti, Western, Central, Eastern, Volta, Northern, Upper East, Upper West, Bono, Bono East, Ahafo, Western North, Oti, North East, Savannah
 
-```tsx
-<SidebarProvider>
-  <div className="min-h-screen flex w-full">
-    <AppSidebar />
-    <SidebarInset>
-      <header className="flex h-16 items-center border-b px-4 md:px-6">
-        <SidebarTrigger className="md:hidden" />
-        {/* Page title or breadcrumbs */}
-      </header>
-      <main className="flex-1 p-4 md:p-6">
-        {children}
-      </main>
-      <Footer />
-    </SidebarInset>
-  </div>
-</SidebarProvider>
-```
-
-### Sidebar Features
-- Collapsible on desktop (icon-only mode)
-- Sheet/drawer on mobile
-- Active route highlighting using NavLink
-- Logo at top
-- User profile and logout at bottom
+### Subscription Pricing
+- **Annual Plan**: GHS 312/year
+- This replaces the previously planned GHS 99/month
 
 ---
 
-## 3. Auth Page Improvements
+## 2. Four-Category Market Simulator
 
-### Current Issue
-The "Start Learning Free" button on the landing page links to `/auth`, which defaults to the Login tab.
+### Simulator Hub Layout
 
-### Solution
-Pass a query parameter to indicate signup mode: `/auth?mode=signup`
-
-### Changes
-
-**1. Update `src/pages/Index.tsx`:**
-```tsx
-<Link to="/auth?mode=signup">
-  <Button>Start Learning Free</Button>
-</Link>
+```text
+/simulator (Hub Page)
++----------------------------------------------------------+
+|  Choose Your Market Category                              |
++----------------------------------------------------------+
+|                                                           |
+|  +------------------+    +------------------+              |
+|  | BANKING          |    | INVESTMENT       |              |
+|  | Treasury Bills   |    | Ghana Stock      |              |
+|  | Fixed Deposits   |    |   Exchange       |              |
+|  | Savings Accounts |    | World Stock      |              |
+|  | [Enter ->]       |    |   Market         |              |
+|  +------------------+    | [Enter ->]       |              |
+|                          +------------------+              |
+|                                                           |
+|  +------------------+    +------------------+              |
+|  | TRADING          |    | CAPITAL MARKETS  |              |
+|  | Forex            |    | Bonds            |              |
+|  | Commodities      |    | Mutual Funds     |              |
+|  | Crypto (Demo)    |    | ETFs             |              |
+|  | [Enter ->]       |    | [Enter ->]       |              |
+|  +------------------+    +------------------+              |
+|                                                           |
++----------------------------------------------------------+
 ```
 
-**2. Update `src/pages/Auth.tsx`:**
-- Read the `mode` query parameter from URL
-- Set initial tab based on the parameter
-- Default to 'login' if no parameter
+### Market Categories Detail
 
-```tsx
-const [searchParams] = useSearchParams();
-const initialTab = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
-const [activeTab, setActiveTab] = useState<'login' | 'signup'>(initialTab);
-```
+| Category | Sub-Markets | Description |
+|----------|-------------|-------------|
+| **Banking** | Treasury Bills (91, 182, 364 days), Fixed Deposits, Savings | Low-risk, guaranteed returns simulation |
+| **Investment** | GSE Stocks (Ghana Stock Exchange), World Stocks (NYSE, NASDAQ) | Stock trading with real company names |
+| **Trading** | Forex (GHS/USD, EUR/GHS), Commodities (Gold, Cocoa), Crypto Demo | Short-term trading simulation |
+| **Capital Markets** | Government Bonds, Mutual Funds, ETFs | Long-term investment vehicles |
+
+### New Routes
+
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/simulator` | `Simulator.tsx` | Hub with 4 category cards |
+| `/simulator/banking` | `SimulatorBanking.tsx` | T-Bills, FD, Savings |
+| `/simulator/investment` | `SimulatorInvestment.tsx` | Stock exchanges |
+| `/simulator/trading` | `SimulatorTrading.tsx` | Forex, Commodities |
+| `/simulator/capital-markets` | `SimulatorCapitalMarkets.tsx` | Bonds, Funds |
 
 ---
 
-## 4. Footer Logo Update
+## 3. Region-Based Leaderboard
 
-### Changes to `src/components/layout/Footer.tsx`
-- Replace the `GraduationCap` icon with the actual CFLEC logo image
-- Import `cflecLogo` from assets
+### Leaderboard Scope Tabs
+
+```text
++----------------------------------------------------------+
+|  Leaderboard                                              |
+|  [Ghana] [West Africa] [Global]                           |
++----------------------------------------------------------+
+|                                                           |
+|  Filter by Region: [Greater Accra v]                      |
+|                                                           |
+|  Your Rankings:                                           |
+|  #12 in Greater Accra | #45 in Ghana | #234 Global        |
+|                                                           |
++----------------------------------------------------------+
+|  Top 3 Podium (for selected scope)                        |
++----------------------------------------------------------+
+|  Full Rankings List                                       |
++----------------------------------------------------------+
+```
+
+### User Profile Fields (New)
+- `country` - Default: 'Ghana'
+- `region` - Selected Ghana region (Greater Accra, Ashanti, etc.)
+
+### West African Countries
+Ghana, Nigeria, Senegal, Cote d'Ivoire, Cameroon, Mali, Burkina Faso, Niger, Guinea, Benin, Togo, Sierra Leone, Liberia, Mauritania, Gambia, Guinea-Bissau, Cape Verde
 
 ---
 
-## Implementation Order
+## 4. Glassmorphic Dashboard Design
 
-1. **Color Scheme** - Update CSS variables in `index.css`
-2. **Landing Page Colors** - Update button colors in `Index.tsx`
-3. **Auth Page** - Add query param support for signup mode
-4. **Create AppSidebar** - New sidebar component
-5. **Update MainLayout** - Integrate sidebar
-6. **Update Footer** - Add logo
-7. **Dashboard Colors** - Update progress indicators
+### Glass Card Styles
+
+| Class | Effect | Usage |
+|-------|--------|-------|
+| `glass-card` | White/80 blur, subtle shadow | Stats, lists |
+| `glass-card-primary` | Blue/10 tint, blur | Primary actions |
+| `glass-card-gold` | Gold/10 tint, blur | Achievements, leaderboard |
+
+### Dashboard Visual Updates
+
+```text
++----------------------------------------------------------+
+| Background: gradient from-primary/5 via-bg to-gold/5      |
++----------------------------------------------------------+
+|                                                           |
+|  +-------------+ +-------------+ +-------------+ +-------+|
+|  | GLASS CARD  | | GLASS CARD  | | GLASS CARD  | | GLASS ||
+|  | Modules     | | Certificate | | Quiz Rate   | | Streak||
+|  | Completed   | | Progress    | |             | |       ||
+|  +-------------+ +-------------+ +-------------+ +-------+|
+|                                                           |
+|  +--------------------------------+ +--------------------+|
+|  | GLASS-CARD-PRIMARY             | | GLASS-CARD-PRIMARY ||
+|  | Continue Learning              | | Trading Simulator  ||
+|  | Current Module                 | |                    ||
+|  +--------------------------------+ +--------------------+|
+|                                                           |
+|  +--------------------------------+ +--------------------+|
+|  | GLASS-CARD                     | | GLASS-CARD-GOLD    ||
+|  | Upcoming Modules               | | Top Traders        ||
+|  |                                | | Leaderboard        ||
+|  +--------------------------------+ +--------------------+|
+|                                                           |
++----------------------------------------------------------+
+```
 
 ---
 
 ## Files to Create
-- `src/components/layout/AppSidebar.tsx`
+
+| File | Purpose |
+|------|---------|
+| `src/components/auth/SignupWizard.tsx` | Main wizard container with step management |
+| `src/components/auth/steps/CredentialsStep.tsx` | Step 1: Account credentials + country/region |
+| `src/components/auth/steps/BankAccountStep.tsx` | Step 2: Bank selection and KYC |
+| `src/components/auth/steps/CheckoutStep.tsx` | Step 3: GHS 312/year checkout |
+| `src/pages/simulator/SimulatorBanking.tsx` | Banking products simulation |
+| `src/pages/simulator/SimulatorInvestment.tsx` | Stock trading (GSE + World) |
+| `src/pages/simulator/SimulatorTrading.tsx` | Forex, Commodities, Crypto |
+| `src/pages/simulator/SimulatorCapitalMarkets.tsx` | Bonds, Mutual Funds, ETFs |
 
 ## Files to Modify
-- `src/index.css`
-- `src/pages/Index.tsx`
-- `src/pages/Auth.tsx`
-- `src/pages/Dashboard.tsx`
-- `src/components/layout/MainLayout.tsx`
-- `src/components/layout/Footer.tsx`
+
+| File | Changes |
+|------|---------|
+| `src/lib/constants.ts` | Add banks, regions, countries, subscription price |
+| `src/types/index.ts` | Add new types (banks, KYC, markets, regions) |
+| `src/index.css` | Add glassmorphic utility classes |
+| `src/pages/Auth.tsx` | Replace signup form with SignupWizard |
+| `src/pages/Dashboard.tsx` | Apply glassmorphic styling, gradient background |
+| `src/pages/Simulator.tsx` | Redesign as market category hub |
+| `src/pages/Leaderboard.tsx` | Add tabs (Ghana/West Africa/Global), region filter |
+| `src/App.tsx` | Add new simulator routes |
 
 ---
 
 ## Technical Details
 
-### Color Values Reference
+### New Type Definitions
 
-| Color | HSL Value | Usage |
-|-------|-----------|-------|
-| Blue (Primary) | `217 91% 60%` | Primary buttons, links, sidebar accents |
-| Gold | `45 93% 47%` | Highlights, special CTAs, accent elements |
-| Green | `142 76% 36%` | Green certificate level only |
-| White | `0 0% 95%` | White certificate level |
+```typescript
+// Ghanaian Banks
+export type GhanaianBank = 'absa' | 'fidelity' | 'ecobank' | 'gcb' | 'access' | 'umb' | 'uba';
 
-### Sidebar Configuration
-- Width expanded: 16rem (256px)
-- Width collapsed: 3rem (48px)
-- Collapsible mode: icon
-- Mobile: Sheet/drawer from left
+// Bank Account Info
+export interface BankAccountInfo {
+  hasExistingAccount: boolean;
+  selectedBank?: GhanaianBank;
+  ghanaCardNumber?: string;
+  ghanaCardExpiry?: string;
+  occupation?: string;
+  sourceOfIncome?: string;
+}
+
+// Market Categories
+export type MarketCategory = 'banking' | 'investment' | 'trading' | 'capital_markets';
+
+// Treasury Bill
+export interface TreasuryBill {
+  id: string;
+  term_days: 91 | 182 | 364;
+  interest_rate: number;
+  min_investment: number;
+}
+
+// Extended Leaderboard Entry
+export interface LeaderboardEntry {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  account_type: AccountType;
+  country: string;
+  region: string | null;
+  cash_balance: number;
+  holdings_value: number;
+  total_value: number;
+}
+```
+
+### Constants to Add
+
+```typescript
+export const SUBSCRIPTION_PRICE = {
+  amount: 312,
+  currency: 'GHS',
+  period: 'year',
+  formatted: 'GHS 312/year',
+} as const;
+
+export const GHANAIAN_BANKS = {
+  absa: 'Absa Bank Ghana',
+  fidelity: 'Fidelity Bank Ghana',
+  ecobank: 'Ecobank Ghana',
+  gcb: 'GCB Bank',
+  access: 'Access Bank Ghana',
+  umb: 'Universal Merchant Bank',
+  uba: 'United Bank for Africa Ghana',
+} as const;
+
+export const GHANA_REGIONS = [
+  'Greater Accra', 'Ashanti', 'Western', 'Central', 
+  'Eastern', 'Volta', 'Northern', 'Upper East', 
+  'Upper West', 'Bono', 'Bono East', 'Ahafo', 
+  'Western North', 'Oti', 'North East', 'Savannah',
+] as const;
+```
+
+### Glassmorphic CSS Classes
+
+```css
+@layer utilities {
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl 
+           border border-white/30 dark:border-gray-700/30 
+           shadow-lg shadow-black/5 rounded-lg;
+  }
+  .glass-card-primary {
+    @apply bg-primary/10 backdrop-blur-xl 
+           border border-primary/20 
+           shadow-lg shadow-primary/5 rounded-lg;
+  }
+  .glass-card-gold {
+    @apply bg-cflp-gold/10 backdrop-blur-xl 
+           border border-cflp-gold/20 
+           shadow-lg shadow-cflp-gold/5 rounded-lg;
+  }
+}
+```
+
+---
+
+## Implementation Order
+
+1. **Phase 1: Foundation**
+   - Update `src/lib/constants.ts` with banks, regions, pricing
+   - Update `src/types/index.ts` with new type definitions
+   - Add glassmorphic utilities to `src/index.css`
+
+2. **Phase 2: Dashboard Enhancement**
+   - Apply glassmorphic styling to `src/pages/Dashboard.tsx`
+   - Add gradient background
+
+3. **Phase 3: Signup Wizard**
+   - Create step components (Credentials, Bank, Checkout)
+   - Create SignupWizard container
+   - Integrate into `src/pages/Auth.tsx`
+
+4. **Phase 4: Simulator Hub**
+   - Redesign `src/pages/Simulator.tsx` as category hub
+   - Create 4 new simulator pages
+   - Update routes in `src/App.tsx`
+
+5. **Phase 5: Leaderboard**
+   - Update `src/pages/Leaderboard.tsx` with scope tabs
+   - Add region filter
 
