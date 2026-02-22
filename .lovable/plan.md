@@ -1,132 +1,145 @@
 
 
-# UI/UX Restructuring: Coursera-Inspired Design System
+# Fix and Expand Market-Data Edge Function
 
-## Coursera Design Analysis
+## Overview
 
-After examining Coursera's homepage, browse/catalog page, course detail page, and certificate program page, here are the key design patterns worth adopting:
+Comprehensive overhaul of the `market-data` edge function: remove all `Math.random()`, add API key validation, expand coverage across all asset classes, add T-Bills, add `_meta` data quality fields, and update the frontend hook types to match.
 
-### What Coursera Does Well
+## Changes
 
-1. **Top navigation bar** -- Clean horizontal top bar with logo, search, and CTA buttons. No sidebar on public/browse pages. Sidebar only appears inside the learner dashboard.
+### 1. Edge Function (`supabase/functions/market-data/index.ts`)
 
-2. **Course cards** -- Thumbnail image on top, provider logo + name below, course title in bold, metadata (type, rating) in small muted text. Cards are simple, scannable, and uniform.
+**Cache TTLs** -- Replace the two constants with per-type TTLs:
 
-3. **Course detail page** -- A "hero banner" with breadcrumbs, provider branding, large title, instructor row, and a prominent CTA button ("Enroll for free"). Below that, a horizontal stats bar (modules count, rating, level, schedule, approval %). Then tabbed content (About, Outcomes, Modules, Reviews).
+| Type | TTL |
+|------|-----|
+| Crypto | 60s |
+| Stocks | 120s |
+| Forex | 60s |
+| GSE | 600s |
+| Commodities | 120s |
+| T-Bills | 86400s |
 
-4. **Browse/catalog page** -- Category chips at top with icons, then filter tabs (All, Business, Data Science...), then a grid of course cards. Clean information hierarchy.
+**API Key Validation** -- Each fetch function checks for its required key at the top. If missing, logs `console.warn()` and returns fallback data immediately with `_meta.source: "fallback"`.
 
-5. **Stats bar** -- A horizontally divided row of key metrics displayed in a lightly shaded container. Each metric has a bold number/label and a smaller description below.
+**fetchCrypto()** changes:
+- Expand IDs to: bitcoin, ethereum, solana, cardano, binancecoin, ripple, dogecoin, avalanche-2, chainlink, polkadot, uniswap, litecoin, stellar, algorand
+- Expand nameMap with all 14 coins
+- Add `_meta` field to response
 
-6. **Visual hierarchy** -- Coursera uses very little color. Primary blue is reserved for CTAs and links only. Everything else is neutral grays and white. This makes the important actions pop.
+**fetchStocks(symbols)** changes:
+- Default symbols expanded to ~60 stocks covering US Tech, Finance, Healthcare, Energy, Consumer, and ETFs
+- Expand nameMap with all new symbols and proper company names
+- Add `sector` field to each stock object using a sectorMap
+- Add `_meta` field
 
-7. **Typography** -- Large, confident headings with significant whitespace. Body text is well-spaced and readable.
+**fetchForex()** changes:
+- Remove `Math.random()` for `change_percent`
+- Fetch real previous close from Finnhub's quote endpoint (`/api/v1/quote?symbol=OANDA:USD_GHS`) for each pair to compute real change
+- If quote endpoint fails, set `change_percent: 0` and `simulated: true`
+- Expand pairs: USD/GHS, EUR/GHS, GBP/GHS, USD/NGN, USD/ZAR, EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, EUR/GBP, XAU/USD
+- Add `_meta` field
 
-8. **Breadcrumbs** -- Present on detail pages for clear wayfinding.
+**fetchGSE()** changes:
+- Update fallback with 15 stocks at current approximate prices: MTN (2.20), GCB (6.50), GOIL (2.10), SCB (25.00), TOTAL (4.50), FML (1.80), ECOBANK (9.50), GGBL (1.15), CAL (1.60), EGL (3.40), BOPP (3.80), UNIL (12.00), SOGEGH (1.05), ACCESS (4.20), MTNGH (2.20)
+- Add `_meta` field
+
+**fetchCommodities()** changes:
+- Remove `Math.random()` for `change_percent`
+- For metals (XAU, XAG): fetch current rate and use a second call or stored previous rate to compute real change. If unavailable, set `change_percent: 0` and `simulated: true`
+- Expand to 10 commodities with `category` field: Gold (metal), Silver (metal), Crude Oil WTI (energy), Brent Crude (energy), Natural Gas (energy), Cocoa (agricultural), Coffee (agricultural), Corn (agricultural), Wheat (agricultural), Copper (metal)
+- Non-metal commodities use Finnhub commodity candle endpoint where possible, fallback with `simulated: true`
+- Add `_meta` field
+
+**New fetchTBills() function:**
+- Returns Bank of Ghana T-Bill rates as static data
+- Structure: `{ tenor: "91-day", rate: 27.5, type: "Treasury Bill", currency: "GHS", updated: "2025-02-22", source: "Bank of Ghana" }`
+- Three entries: 91-day, 182-day, 364-day
+- Uses 86400s cache TTL
+- Add `_meta` field with source: "bog" (Bank of Ghana)
+
+**Switch/case update:**
+- Add `case "tbills"` calling `fetchTBills()`
+- Update error message to include "tbills" in valid types list
+
+**Response wrapper:**
+- Every response includes `_meta: { source, cached, simulated }` per item
+- The `getCached` function is updated to return `{ data, cached: true }` when cache hit
+- Each fetch function wraps items with `_meta` before returning
+
+### 2. Frontend Hook (`src/hooks/useMarketData.ts`)
+
+- Add `'tbills'` to the `MarketType` union
+- Add `TBillData` interface: `{ tenor, rate, type, currency, updated, source }`
+- Add `sector` field to `StockData`
+- Add `simulated?: boolean` and `_meta?: { source: string; cached: boolean; simulated: boolean }` to all data interfaces
+- Add `category?: string` to `CommodityData`
+- Update `MarketDataMap` to include `tbills: TBillData[]`
+
+### 3. Frontend Type (`src/types/index.ts`)
+
+No changes needed -- the existing types are for DB mock stocks, not market data API.
 
 ---
 
-## What to Change in CFLEC (Without Changing Layout/Routing/Colors)
+## Technical Details
 
-Since the constraint is "no layout, routing, or color changes," this plan focuses on adopting Coursera's visual communication patterns within the existing structure.
+### Files Modified
 
-### 1. Modules Page (`src/pages/Modules.tsx`) -- Coursera Catalog Style
-
-**Current**: Tab triggers with colored dots + badge counts, then a grid of cards with colored top bars.
-
-**Proposed changes**:
-- Add a stats summary row above the tabs (like Coursera's stats bar): total modules, completed, current streak -- displayed in a horizontal container with dividers
-- Module cards: Add a subtle thumbnail/icon area at the top of each card (a colored gradient header with the module number prominently displayed, similar to Coursera course thumbnails)
-- Add a progress indicator inside each card (thin progress bar at bottom showing video + quiz completion)
-- Add breadcrumbs at the top: Dashboard > Modules > [Certificate Level]
-
-### 2. ModulePlayer Page (`src/pages/ModulePlayer.tsx`) -- Coursera Course Detail Style
-
-**Current**: Back button + badge + title, then progress card, then 2-column layout (video + quiz on left, info sidebar on right).
-
-**Proposed changes**:
-- Add a Coursera-style hero section at the top: light blue/gray background band containing the certificate level badge, module title (larger), description, and a horizontal stats bar (duration, certificate level, has simulation, completion status)
-- Add breadcrumbs: Dashboard > Modules > [Module Title]
-- The tabbed content idea from Coursera: instead of showing video and quiz simultaneously, add subtle tab navigation (Lesson, Quiz, Resources) -- but this is a layout change so we'll skip it
-- Improve the "Module Info" sidebar card to look more like Coursera's side panel with clearer visual separation between info items
-
-### 3. Dashboard Page (`src/pages/Dashboard.tsx`) -- Coursera My Learning Style
-
-**Current**: Welcome heading, 4 stat cards, then 2-column layout with current module + upcoming modules on left, sidebar with simulator/leaderboard/certificates on right.
-
-**Proposed changes**:
-- Replace the `glass-card`, `glass-card-primary`, `glass-card-gold` class references (these were removed in the CSS but still referenced in Dashboard/Simulator) with clean standard card styling
-- Add a "Continue Learning" section styled like Coursera's course rows: horizontal card with thumbnail, title, progress bar, and a "Resume" button
-- Make the stat cards more Coursera-like: less decorative, more informational with clear number + label pairs
-
-### 4. Simulator Page (`src/pages/Simulator.tsx`) -- Clean Up Glass References
-
-**Current**: Uses `glass-card`, `glass-card-gold`, `glass-card-primary` classes that were removed from CSS.
-
-**Proposed changes**:
-- Remove all `glass-card*` class references (they no longer exist in CSS)
-- Apply standard card styling consistently
-
-### 5. Landing Page (`src/index.tsx`) -- Minor Refinements
-
-**Current**: Video hero with serif headings, feature cards, certificate grid, portal selection.
-
-**Proposed changes**:
-- The `font-serif` class used on headings doesn't have a serif font imported -- either import one or remove it for consistency with Inter
-- Add a horizontal "trust bar" similar to Coursera's "Learn from 350+ leading universities" -- show partner logos or credential badges in a horizontal scroll
-
-### 6. Auth Page (`src/pages/Auth.tsx`) -- Already Clean
-
-Minimal changes needed. The current login/signup flow is already well-structured.
-
----
-
-## Technical Changes
-
-### Files to Modify
-
-| File | Changes |
+| File | Summary |
 |------|---------|
-| `src/pages/Dashboard.tsx` | Remove `glass-card*` classes, refine stat cards, improve "Continue Learning" card |
-| `src/pages/Modules.tsx` | Add stats summary bar above tabs, improve module card design with gradient header + progress bar, add breadcrumbs |
-| `src/pages/ModulePlayer.tsx` | Add hero section with stats bar, add breadcrumbs, improve sidebar styling |
-| `src/pages/Simulator.tsx` | Remove `glass-card*` references, clean up card styling |
-| `src/pages/Certificates.tsx` | Minor: remove any glass references, ensure consistent card styling |
-| `src/pages/Index.tsx` | Remove `font-serif` references (no serif font is loaded), replace with standard heading weight |
-| `src/pages/kids/KidsLanding.tsx` | Remove backdrop-blur (conflicts with "no glassmorphism"), minor consistency fixes |
-| `src/index.css` | Add Inter font import from Google Fonts, add breadcrumb utility styles, add stats-bar utility |
+| `supabase/functions/market-data/index.ts` | Full rewrite of function body (same structure, CORS, serve pattern preserved) |
+| `src/hooks/useMarketData.ts` | Add TBillData interface, update MarketType union, add sector/simulated/category fields |
 
-### Key Design Patterns to Implement
+### Math.random() Removal Strategy
 
-**A. Breadcrumbs Component**
-Create a simple breadcrumb component used on Modules, ModulePlayer, Certificates pages. Matches Coursera's breadcrumb row with chevron separators.
+| Function | Current | New Approach |
+|----------|---------|-------------|
+| fetchForex | `Math.random() * 0.6 - 0.3` | Fetch Finnhub quote for forex symbol, compute `(current - previousClose) / previousClose * 100`. Fallback: `change_percent: 0, simulated: true` |
+| fetchCommodities | `Math.random() * 2 - 1` | For metals: use Finnhub forex/rates twice (current vs cached previous) or candle endpoint. For others: use candle endpoint. Fallback: `change_percent: 0, simulated: true` |
 
-**B. Stats Bar**
-A horizontal row of 3-5 metrics in a lightly shaded container with vertical dividers. Used on:
-- Modules page (total modules, completed, pass rate)
-- ModulePlayer page (duration, level, quiz status)
-- Dashboard (replaces current stat cards with a more compact version -- or keeps cards but adds a summary bar)
+### _meta Field Structure
 
-**C. Course Card Refresh**
-Module cards get a colored gradient header area (using the certificate level color at low opacity) with the module number displayed prominently, then the title, description, and a bottom section with duration + action button.
+Each data item gets an `_meta` object:
+```text
+{
+  source: "alpaca" | "coingecko" | "finnhub" | "gse" | "bog" | "fallback",
+  cached: true | false,
+  simulated: true | false
+}
+```
 
-**D. Clean Up Dead CSS Classes**
-Remove all references to `glass-card`, `glass-card-primary`, `glass-card-gold` across all pages since these utility classes were removed from `index.css`.
+The top-level response also includes a global `_meta`:
+```text
+{
+  data: [...items with _meta...],
+  timestamp: 1234567890,
+  _meta: { source: "alpaca", cached: false, simulated: false }
+}
+```
 
-### Files to Create
+### Default Stock Symbols (60 total)
 
-| File | Purpose |
-|------|---------|
-| `src/components/ui/breadcrumb-nav.tsx` | Reusable breadcrumb navigation component |
-| `src/components/ui/stats-bar.tsx` | Horizontal stats row component (like Coursera's module/rating/level bar) |
+US Tech (15): AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, INTC, CRM, ORCL, ADBE, NFLX, UBER, PYPL
+
+Finance (10): JPM, BAC, GS, V, MA, BRK.B, C, WFC, AXP, MS
+
+Healthcare (8): JNJ, PFE, UNH, ABBV, MRK, LLY, BMY, AMGN
+
+Energy (5): XOM, CVX, COP, SLB, EOG
+
+Consumer (8): WMT, MCD, KO, PEP, NKE, SBUX, DIS, HD
+
+ETFs (10): SPY, QQQ, GLD, VTI, IVV, AGG, VEA, EEM, IAU, SLV
+
+### Expanded Crypto (14 coins)
+
+bitcoin (BTC), ethereum (ETH), solana (SOL), cardano (ADA), binancecoin (BNB), ripple (XRP), dogecoin (DOGE), avalanche-2 (AVAX), chainlink (LINK), polkadot (DOT), uniswap (UNI), litecoin (LTC), stellar (XLM), algorand (ALGO)
 
 ### Implementation Order
 
-1. Create shared components (breadcrumb-nav, stats-bar)
-2. Add Inter font import to index.css and remove font-serif references
-3. Clean up all glass-card references across pages
-4. Update Modules page with stats bar + improved cards
-5. Update ModulePlayer page with hero section + breadcrumbs
-6. Update Dashboard with cleaner card styling
-7. Update Simulator and remaining pages for consistency
-
+1. Rewrite the edge function with all expansions
+2. Update the frontend hook types
+3. Deploy the edge function
+4. Test each endpoint type via curl
