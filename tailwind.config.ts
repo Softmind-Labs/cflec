@@ -96,8 +96,8 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
+        lg: "0.875rem",
+        md: "0.5rem",
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
