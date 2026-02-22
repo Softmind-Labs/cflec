@@ -1,7 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
-export type MarketType = 'crypto' | 'stocks' | 'forex' | 'gse' | 'commodities';
+export type MarketType = 'crypto' | 'stocks' | 'forex' | 'gse' | 'commodities' | 'tbills';
+
+export interface MetaInfo {
+  source: string;
+  cached: boolean;
+  simulated: boolean;
+}
 
 export interface CryptoData {
   id: string;
@@ -10,16 +15,19 @@ export interface CryptoData {
   price: number;
   change_24h: number;
   market_cap: number;
+  _meta?: MetaInfo;
 }
 
 export interface StockData {
   symbol: string;
   name: string;
+  sector: string;
   price: number;
   previous_close: number;
   change_percent: number;
   day_high: number;
   day_low: number;
+  _meta?: MetaInfo;
 }
 
 export interface ForexData {
@@ -27,6 +35,8 @@ export interface ForexData {
   bid: number;
   ask: number;
   change_percent: number;
+  simulated?: boolean;
+  _meta?: MetaInfo;
 }
 
 export interface GSEData {
@@ -35,6 +45,7 @@ export interface GSEData {
   price: number;
   change: number;
   volume: number;
+  _meta?: MetaInfo;
 }
 
 export interface CommodityData {
@@ -43,6 +54,19 @@ export interface CommodityData {
   price: number;
   change_percent: number;
   unit: string;
+  category?: string;
+  simulated?: boolean;
+  _meta?: MetaInfo;
+}
+
+export interface TBillData {
+  tenor: string;
+  rate: number;
+  type: string;
+  currency: string;
+  updated: string;
+  source: string;
+  _meta?: MetaInfo;
 }
 
 type MarketDataMap = {
@@ -51,12 +75,13 @@ type MarketDataMap = {
   forex: ForexData[];
   gse: GSEData[];
   commodities: CommodityData[];
+  tbills: TBillData[];
 };
 
 async function fetchMarketData<T extends MarketType>(
   type: T,
   params?: Record<string, string>
-): Promise<{ data: MarketDataMap[T]; timestamp: number }> {
+): Promise<{ data: MarketDataMap[T]; timestamp: number; _meta?: MetaInfo }> {
   const searchParams = new URLSearchParams({ type, ...params });
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
