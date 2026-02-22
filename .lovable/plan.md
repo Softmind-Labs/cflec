@@ -1,95 +1,132 @@
 
 
-# Visual Polish: Premium UI Refinement
+# UI/UX Restructuring: Coursera-Inspired Design System
 
-## Overview
+## Coursera Design Analysis
 
-A comprehensive visual quality pass across the shared UI primitives and global styles. No layouts, routes, or component structures change -- only the CSS/class values that control how things look and feel.
+After examining Coursera's homepage, browse/catalog page, course detail page, and certificate program page, here are the key design patterns worth adopting:
 
-## What Changes
+### What Coursera Does Well
 
-### 1. Global Styles (`src/index.css`)
+1. **Top navigation bar** -- Clean horizontal top bar with logo, search, and CTA buttons. No sidebar on public/browse pages. Sidebar only appears inside the learner dashboard.
 
-- Update `--radius` from `0.5rem` to `0.875rem` (14px) so all components using `rounded-lg` inherit the new card radius
-- Add global base styles for typography: minimum font size 14px, heading weights/line-heights, body line-height 1.6
-- Add smooth global transition on all interactive elements
-- Add `cursor-pointer` on all clickable elements
-- Remove glassmorphism utility classes (`.glass-card*`) per the "no glassmorphism" directive
-- Add table row hover highlight utility
+2. **Course cards** -- Thumbnail image on top, provider logo + name below, course title in bold, metadata (type, rating) in small muted text. Cards are simple, scannable, and uniform.
 
-### 2. Card Component (`src/components/ui/card.tsx`)
+3. **Course detail page** -- A "hero banner" with breadcrumbs, provider branding, large title, instructor row, and a prominent CTA button ("Enroll for free"). Below that, a horizontal stats bar (modules count, rating, level, schedule, approval %). Then tabbed content (About, Outcomes, Modules, Reviews).
 
-- `Card`: Change to `rounded-[14px]` border-radius, new box-shadow `0 2px 16px rgba(0,0,0,0.07)`, hover state with `translateY(-2px)` and deeper shadow, `transition-all duration-250 ease-out`, internal padding increase
-- `CardHeader`: Increase padding to `p-7`
-- `CardContent`: Increase padding to `px-7 pb-7`
-- `CardFooter`: Match padding `px-7 pb-7`
+4. **Browse/catalog page** -- Category chips at top with icons, then filter tabs (All, Business, Data Science...), then a grid of course cards. Clean information hierarchy.
 
-### 3. Button Component (`src/components/ui/button.tsx`)
+5. **Stats bar** -- A horizontally divided row of key metrics displayed in a lightly shaded container. Each metric has a bold number/label and a smaller description below.
 
-- Base: `rounded-lg` (8px), `transition-all duration-200 ease-out`, add `active:scale-[0.98]` for press feedback, `cursor-pointer`
-- Default size: `h-11 min-h-[44px] px-5` (44px min height, 20px+ horizontal padding)
-- `sm` size: `h-10 min-h-[40px] px-4`
-- `lg` size: `h-12 px-8`
-- Default variant: add `shadow-sm hover:shadow-md hover:bg-primary/85`
-- Outline variant: use brand color border `border-primary/30 text-primary hover:bg-primary/5 hover:border-primary`
-- Destructive: add `shadow-sm hover:shadow-md`
+6. **Visual hierarchy** -- Coursera uses very little color. Primary blue is reserved for CTAs and links only. Everything else is neutral grays and white. This makes the important actions pop.
 
-### 4. Input Component (`src/components/ui/input.tsx`)
+7. **Typography** -- Large, confident headings with significant whitespace. Body text is well-spaced and readable.
 
-- `rounded-lg` (8px), `h-11 min-h-[44px]`, padding `px-4 py-3`
-- Border: `border-[1.5px] border-primary/30`
-- Focus: `focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]`
-- Ensure `text-sm` minimum (14px with base size adjustment)
+8. **Breadcrumbs** -- Present on detail pages for clear wayfinding.
 
-### 5. Textarea Component (`src/components/ui/textarea.tsx`)
+---
 
-- Same border/focus treatment as Input: `rounded-lg`, `border-[1.5px] border-primary/30`, focus glow
-- Increase padding to `px-4 py-3`
+## What to Change in CFLEC (Without Changing Layout/Routing/Colors)
 
-### 6. Select Trigger (`src/components/ui/select.tsx`)
+Since the constraint is "no layout, routing, or color changes," this plan focuses on adopting Coursera's visual communication patterns within the existing structure.
 
-- Match Input styling: `rounded-lg`, `h-11 min-h-[44px]`, `border-[1.5px] border-primary/30`, matching focus states
+### 1. Modules Page (`src/pages/Modules.tsx`) -- Coursera Catalog Style
 
-### 7. Table Component (`src/components/ui/table.tsx`)
+**Current**: Tab triggers with colored dots + badge counts, then a grid of cards with colored top bars.
 
-- `TableRow`: Ensure hover highlight is visible: `hover:bg-muted/60`
-- `TableCell`: Ensure minimum text size
+**Proposed changes**:
+- Add a stats summary row above the tabs (like Coursera's stats bar): total modules, completed, current streak -- displayed in a horizontal container with dividers
+- Module cards: Add a subtle thumbnail/icon area at the top of each card (a colored gradient header with the module number prominently displayed, similar to Coursera course thumbnails)
+- Add a progress indicator inside each card (thin progress bar at bottom showing video + quiz completion)
+- Add breadcrumbs at the top: Dashboard > Modules > [Certificate Level]
 
-### 8. Sidebar Navigation (`src/components/layout/AppSidebar.tsx`)
+### 2. ModulePlayer Page (`src/pages/ModulePlayer.tsx`) -- Coursera Course Detail Style
 
-- Active nav item: add `border-l-[3px] border-primary bg-primary/10` styling
-- Hover: `hover:bg-primary/5`
-- Consistent padding `py-3 px-4`
-- Smooth transition on nav items
+**Current**: Back button + badge + title, then progress card, then 2-column layout (video + quiz on left, info sidebar on right).
 
-### 9. Tailwind Config (`tailwind.config.ts`)
+**Proposed changes**:
+- Add a Coursera-style hero section at the top: light blue/gray background band containing the certificate level badge, module title (larger), description, and a horizontal stats bar (duration, certificate level, has simulation, completion status)
+- Add breadcrumbs: Dashboard > Modules > [Module Title]
+- The tabbed content idea from Coursera: instead of showing video and quiz simultaneously, add subtle tab navigation (Lesson, Quiz, Resources) -- but this is a layout change so we'll skip it
+- Improve the "Module Info" sidebar card to look more like Coursera's side panel with clearer visual separation between info items
 
-- Update `--radius` usage: `lg: "0.875rem"` (14px), `md: "0.5rem"` (8px)
-- No other config changes needed since colors/fonts are already correct
+### 3. Dashboard Page (`src/pages/Dashboard.tsx`) -- Coursera My Learning Style
 
-## Technical Details
+**Current**: Welcome heading, 4 stat cards, then 2-column layout with current module + upcoming modules on left, sidebar with simulator/leaderboard/certificates on right.
 
-### Files Modified (7 files)
+**Proposed changes**:
+- Replace the `glass-card`, `glass-card-primary`, `glass-card-gold` class references (these were removed in the CSS but still referenced in Dashboard/Simulator) with clean standard card styling
+- Add a "Continue Learning" section styled like Coursera's course rows: horizontal card with thumbnail, title, progress bar, and a "Resume" button
+- Make the stat cards more Coursera-like: less decorative, more informational with clear number + label pairs
 
-| File | Change Summary |
-|------|---------------|
-| `src/index.css` | Global typography, min font size, radius variable, remove glass utilities, add smooth transitions |
-| `src/components/ui/card.tsx` | Radius 14px, new shadows, hover lift, increased padding |
-| `src/components/ui/button.tsx` | Radius 8px, min-height 44px, padding 20px+, active press, shadow states |
-| `src/components/ui/input.tsx` | Radius 8px, height 44px, brand border, focus glow |
-| `src/components/ui/textarea.tsx` | Match input styling |
-| `src/components/ui/select.tsx` | Match input styling on trigger |
-| `src/components/ui/table.tsx` | Row hover highlight |
+### 4. Simulator Page (`src/pages/Simulator.tsx`) -- Clean Up Glass References
 
-### Files NOT Modified
+**Current**: Uses `glass-card`, `glass-card-gold`, `glass-card-primary` classes that were removed from CSS.
 
-- No page files changed (Dashboard, Modules, Simulator, etc.)
-- No layout files changed (MainLayout, Footer, Header)
-- No routing changes
-- No color/branding changes
-- `tailwind.config.ts` -- only the `borderRadius.lg` value updates
+**Proposed changes**:
+- Remove all `glass-card*` class references (they no longer exist in CSS)
+- Apply standard card styling consistently
 
-### Approach
+### 5. Landing Page (`src/index.tsx`) -- Minor Refinements
 
-All changes happen at the primitive/component level so every screen in the app benefits automatically. The existing Tailwind color system and CSS variables remain untouched.
+**Current**: Video hero with serif headings, feature cards, certificate grid, portal selection.
+
+**Proposed changes**:
+- The `font-serif` class used on headings doesn't have a serif font imported -- either import one or remove it for consistency with Inter
+- Add a horizontal "trust bar" similar to Coursera's "Learn from 350+ leading universities" -- show partner logos or credential badges in a horizontal scroll
+
+### 6. Auth Page (`src/pages/Auth.tsx`) -- Already Clean
+
+Minimal changes needed. The current login/signup flow is already well-structured.
+
+---
+
+## Technical Changes
+
+### Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/pages/Dashboard.tsx` | Remove `glass-card*` classes, refine stat cards, improve "Continue Learning" card |
+| `src/pages/Modules.tsx` | Add stats summary bar above tabs, improve module card design with gradient header + progress bar, add breadcrumbs |
+| `src/pages/ModulePlayer.tsx` | Add hero section with stats bar, add breadcrumbs, improve sidebar styling |
+| `src/pages/Simulator.tsx` | Remove `glass-card*` references, clean up card styling |
+| `src/pages/Certificates.tsx` | Minor: remove any glass references, ensure consistent card styling |
+| `src/pages/Index.tsx` | Remove `font-serif` references (no serif font is loaded), replace with standard heading weight |
+| `src/pages/kids/KidsLanding.tsx` | Remove backdrop-blur (conflicts with "no glassmorphism"), minor consistency fixes |
+| `src/index.css` | Add Inter font import from Google Fonts, add breadcrumb utility styles, add stats-bar utility |
+
+### Key Design Patterns to Implement
+
+**A. Breadcrumbs Component**
+Create a simple breadcrumb component used on Modules, ModulePlayer, Certificates pages. Matches Coursera's breadcrumb row with chevron separators.
+
+**B. Stats Bar**
+A horizontal row of 3-5 metrics in a lightly shaded container with vertical dividers. Used on:
+- Modules page (total modules, completed, pass rate)
+- ModulePlayer page (duration, level, quiz status)
+- Dashboard (replaces current stat cards with a more compact version -- or keeps cards but adds a summary bar)
+
+**C. Course Card Refresh**
+Module cards get a colored gradient header area (using the certificate level color at low opacity) with the module number displayed prominently, then the title, description, and a bottom section with duration + action button.
+
+**D. Clean Up Dead CSS Classes**
+Remove all references to `glass-card`, `glass-card-primary`, `glass-card-gold` across all pages since these utility classes were removed from `index.css`.
+
+### Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/components/ui/breadcrumb-nav.tsx` | Reusable breadcrumb navigation component |
+| `src/components/ui/stats-bar.tsx` | Horizontal stats row component (like Coursera's module/rating/level bar) |
+
+### Implementation Order
+
+1. Create shared components (breadcrumb-nav, stats-bar)
+2. Add Inter font import to index.css and remove font-serif references
+3. Clean up all glass-card references across pages
+4. Update Modules page with stats bar + improved cards
+5. Update ModulePlayer page with hero section + breadcrumbs
+6. Update Dashboard with cleaner card styling
+7. Update Simulator and remaining pages for consistency
 
