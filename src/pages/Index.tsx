@@ -107,7 +107,7 @@ export default function Index() {
             Trusted by 10,000+ learners
           </Badge>
           
-          <h1 className="font-serif text-5xl font-semibold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+          <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
             Master Your
             <br />
             <span className="text-cflp-gold">Financial Future</span>
@@ -145,7 +145,7 @@ export default function Index() {
       <section className="py-20 bg-muted/50">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Everything You Need to Succeed</h2>
+            <h2 className="text-3xl font-bold md:text-4xl">Everything You Need to Succeed</h2>
             <p className="mt-4 text-muted-foreground">
               Comprehensive financial education designed for all ages and skill levels
             </p>
@@ -166,7 +166,7 @@ export default function Index() {
                   
                   {/* Content */}
                   <div className="relative z-10 h-full flex flex-col justify-end p-6">
-                    <h3 className="font-serif text-2xl font-semibold text-white mb-2">
+                    <h3 className="text-2xl font-bold text-white mb-2">
                       {feature.title}
                     </h3>
                     <p className="text-white/80 mb-4">
@@ -187,7 +187,7 @@ export default function Index() {
       <section className="py-20">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Earn Recognized Certificates</h2>
+            <h2 className="text-3xl font-bold md:text-4xl">Earn Recognized Certificates</h2>
             <p className="mt-4 text-muted-foreground">
               Progress through four levels of mastery and earn certificates to showcase your skills
             </p>
@@ -232,7 +232,7 @@ export default function Index() {
       <section className="py-20 bg-background">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-3xl font-semibold md:text-4xl">Choose Your Learning Path</h2>
+            <h2 className="text-3xl font-bold md:text-4xl">Choose Your Learning Path</h2>
             <p className="mt-4 text-muted-foreground">
               Age-appropriate content designed for every learner
             </p>
@@ -249,7 +249,7 @@ export default function Index() {
             </div>
             <div className="space-y-6">
               <p className="text-sm font-medium text-primary uppercase tracking-wide">Adults & Teens</p>
-              <h3 className="font-serif text-3xl md:text-4xl font-semibold">
+              <h3 className="text-3xl md:text-4xl font-bold">
                 Master Financial Literacy
               </h3>
               <p className="text-muted-foreground text-lg">
@@ -268,7 +268,7 @@ export default function Index() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 md:order-1">
               <p className="text-sm font-medium text-kids-primary uppercase tracking-wide">Kids Zone</p>
-              <h3 className="font-serif text-3xl md:text-4xl font-semibold">
+              <h3 className="text-3xl md:text-4xl font-bold">
                 Fun Financial Adventures
               </h3>
               <p className="text-muted-foreground text-lg">

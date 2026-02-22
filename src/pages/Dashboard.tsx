@@ -82,13 +82,13 @@ export default function Dashboard() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+        <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
           <div className="container py-8">
             <div className="animate-pulse space-y-6">
               <div className="h-8 bg-muted rounded w-1/4" />
               <div className="grid md:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-40 glass-card rounded-lg" />
+                  <div key={i} className="h-40 bg-muted rounded-lg" />
                 ))}
               </div>
             </div>
@@ -100,7 +100,7 @@ export default function Dashboard() {
 
   return (
     <MainLayout>
-      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
         <div className="container py-8">
           {/* Welcome Section */}
           <div className="mb-8">
@@ -114,7 +114,7 @@ export default function Dashboard() {
 
           {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
-            <Card className="glass-card hover:shadow-xl transition-shadow">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Modules Completed</CardDescription>
                 <CardTitle className="text-3xl">{getCompletedModules()}/{modules.length}</CardTitle>
@@ -124,7 +124,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:shadow-xl transition-shadow">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Current Certificate</CardDescription>
                 <CardTitle className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:shadow-xl transition-shadow">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Quiz Pass Rate</CardDescription>
                 <CardTitle className="text-3xl">
@@ -156,7 +156,7 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="glass-card hover:shadow-xl transition-shadow">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Learning Streak</CardDescription>
                 <CardTitle className="text-3xl">🔥 3 days</CardTitle>
@@ -172,7 +172,7 @@ export default function Dashboard() {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Current Module */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="glass-card-primary border-2 border-primary/30">
+              <Card className="border-2 border-primary/20">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary">Continue Learning</Badge>
@@ -203,7 +203,7 @@ export default function Dashboard() {
               </Card>
 
               {/* Upcoming Modules */}
-              <Card className="glass-card">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
@@ -270,7 +270,7 @@ export default function Dashboard() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Trading Simulator Card */}
-              <Card className="glass-card-primary">
+              <Card className="border-2 border-primary/20">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
@@ -290,7 +290,7 @@ export default function Dashboard() {
               </Card>
 
               {/* Leaderboard Preview */}
-              <Card className="glass-card-gold">
+              <Card className="border-2 border-[hsl(var(--cflp-gold)/0.3)]">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-[hsl(var(--cflp-gold))]" />
@@ -331,7 +331,7 @@ export default function Dashboard() {
               </Card>
 
               {/* Certificates */}
-              <Card className="glass-card">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Award className="h-5 w-5" />
