@@ -1,330 +1,163 @@
 
 
-# Complete Feature Implementation Plan
+# Real Market Data Integration for CFLEC Simulator
 
 ## Overview
 
-This consolidated plan implements all requested features:
-1. **3-Step Signup Wizard** - Credentials, Bank Account Setup (Ghanaian KYC), and Checkout (GHS 312/year)
-2. **4-Category Market Simulator** - Banking, Investment, Trading, and Capital Markets
-3. **Region-Based Leaderboard** - Country and regional rankings (Ghana regions)
-4. **Glassmorphic Dashboard** - Modern glass-effect UI styling
+Replace all hardcoded mock data across the 4 simulator categories with live market data from free APIs. An edge function acts as a unified proxy, fetching from multiple providers and caching results to stay within free-tier limits.
 
----
+## API Strategy
 
-## 1. Three-Step Signup Wizard
+| Data Need | API Provider | Cost | Auth Required | Rate Limits (Free) |
+|-----------|-------------|------|---------------|-------------------|
+| US Stocks (NYSE/NASDAQ) | Alpaca Markets | Free | API Key + Secret | 200 req/min |
+| Forex rates | Finnhub | Free | API Key | 60 req/min |
+| Crypto prices | CoinGecko | Free | API Key (Demo) | 30 req/min, 10k/month |
+| GSE (Ghana stocks) | GSE-API (kwayisi.org) | Free | None | No documented limit |
+| Commodities (Gold, Oil) | Finnhub | Free | API Key | Shared with forex |
 
-### Step Flow
-
-```text
-Step 1: Credentials          Step 2: Bank Account         Step 3: Checkout
-+--------------------+       +--------------------+       +--------------------+
-| Full Name          |       | Have bank account? |       | Plan: GHS 312/year |
-| Email              |       | [Yes] [No]         |       |                    |
-| Account Type       |       |                    |       | - All 27 modules   |
-| Date of Birth      |       | If NO, select bank:|       | - Trading simulator|
-| Phone              |       | [ABSA, Fidelity,   |       | - 4 certificates   |
-| Country            |       |  Ecobank, GCB,     |       | - Leaderboard      |
-| Region             |       |  Access, UMB, UBA] |       |                    |
-| Mother's Name      |       |                    |       | Payment Method:    |
-| Password           |       | KYC Information:   |       | [Mobile Money]     |
-| Confirm Password   |       | - Ghana Card #     |       | [Card]             |
-|                    |       | - Expiry Date      |       |                    |
-| [Next Step ->]     |       | - Occupation       |       | [Complete Signup]  |
-+--------------------+       | - Source of Income |       +--------------------+
-                             | - Upload Documents |
-                             |                    |
-                             | [<- Back] [Next ->]|
-                             +--------------------+
-```
-
-### Ghanaian Banks List
-| Bank Code | Full Name |
-|-----------|-----------|
-| `absa` | Absa Bank Ghana |
-| `fidelity` | Fidelity Bank Ghana |
-| `ecobank` | Ecobank Ghana |
-| `gcb` | GCB Bank |
-| `access` | Access Bank Ghana |
-| `umb` | Universal Merchant Bank |
-| `uba` | United Bank for Africa Ghana |
-
-### Ghana Regions
-Greater Accra, Ashanti, Western, Central, Eastern, Volta, Northern, Upper East, Upper West, Bono, Bono East, Ahafo, Western North, Oti, North East, Savannah
-
-### Subscription Pricing
-- **Annual Plan**: GHS 312/year
-- This replaces the previously planned GHS 99/month
-
----
-
-## 2. Four-Category Market Simulator
-
-### Simulator Hub Layout
+## Architecture
 
 ```text
-/simulator (Hub Page)
-+----------------------------------------------------------+
-|  Choose Your Market Category                              |
-+----------------------------------------------------------+
-|                                                           |
-|  +------------------+    +------------------+              |
-|  | BANKING          |    | INVESTMENT       |              |
-|  | Treasury Bills   |    | Ghana Stock      |              |
-|  | Fixed Deposits   |    |   Exchange       |              |
-|  | Savings Accounts |    | World Stock      |              |
-|  | [Enter ->]       |    |   Market         |              |
-|  +------------------+    | [Enter ->]       |              |
-|                          +------------------+              |
-|                                                           |
-|  +------------------+    +------------------+              |
-|  | TRADING          |    | CAPITAL MARKETS  |              |
-|  | Forex            |    | Bonds            |              |
-|  | Commodities      |    | Mutual Funds     |              |
-|  | Crypto (Demo)    |    | ETFs             |              |
-|  | [Enter ->]       |    | [Enter ->]       |              |
-|  +------------------+    +------------------+              |
-|                                                           |
-+----------------------------------------------------------+
+Browser (React)
+    |
+    v
+Supabase Edge Function: "market-data"
+    |
+    +---> /crypto    --> CoinGecko API
+    +---> /stocks    --> Alpaca Markets API
+    +---> /forex     --> Finnhub API
+    +---> /gse       --> GSE-API (kwayisi.org)
+    +---> /commodities --> Finnhub API
 ```
 
-### Market Categories Detail
+The edge function will:
+- Route requests by market type (query param)
+- Cache responses in-memory (60-second TTL for trading data, 5-minute for stocks)
+- Normalize all responses to a consistent format
+- Handle CORS for browser calls
 
-| Category | Sub-Markets | Description |
-|----------|-------------|-------------|
-| **Banking** | Treasury Bills (91, 182, 364 days), Fixed Deposits, Savings | Low-risk, guaranteed returns simulation |
-| **Investment** | GSE Stocks (Ghana Stock Exchange), World Stocks (NYSE, NASDAQ) | Stock trading with real company names |
-| **Trading** | Forex (GHS/USD, EUR/GHS), Commodities (Gold, Cocoa), Crypto Demo | Short-term trading simulation |
-| **Capital Markets** | Government Bonds, Mutual Funds, ETFs | Long-term investment vehicles |
+## Secrets Required
 
-### New Routes
+Before building, three API keys need to be added:
 
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/simulator` | `Simulator.tsx` | Hub with 4 category cards |
-| `/simulator/banking` | `SimulatorBanking.tsx` | T-Bills, FD, Savings |
-| `/simulator/investment` | `SimulatorInvestment.tsx` | Stock exchanges |
-| `/simulator/trading` | `SimulatorTrading.tsx` | Forex, Commodities |
-| `/simulator/capital-markets` | `SimulatorCapitalMarkets.tsx` | Bonds, Funds |
+| Secret Name | Where to Get It | Free Tier |
+|-------------|----------------|-----------|
+| `ALPACA_API_KEY` | https://app.alpaca.markets/signup (paper trading account) | Free, unlimited paper trading |
+| `ALPACA_API_SECRET` | Same as above (key + secret pair) | Free |
+| `FINNHUB_API_KEY` | https://finnhub.io/register | Free, 60 calls/min |
+| `COINGECKO_API_KEY` | https://www.coingecko.com/en/api (Demo plan) | Free, 10k calls/month |
 
----
+GSE-API requires no key.
 
-## 3. Region-Based Leaderboard
+## Edge Function: `market-data`
 
-### Leaderboard Scope Tabs
+### Endpoints
 
-```text
-+----------------------------------------------------------+
-|  Leaderboard                                              |
-|  [Ghana] [West Africa] [Global]                           |
-+----------------------------------------------------------+
-|                                                           |
-|  Filter by Region: [Greater Accra v]                      |
-|                                                           |
-|  Your Rankings:                                           |
-|  #12 in Greater Accra | #45 in Ghana | #234 Global        |
-|                                                           |
-+----------------------------------------------------------+
-|  Top 3 Podium (for selected scope)                        |
-+----------------------------------------------------------+
-|  Full Rankings List                                       |
-+----------------------------------------------------------+
+**GET /market-data?type=crypto**
+- Fetches BTC, ETH, SOL, ADA prices from CoinGecko `/simple/price`
+- Returns: `{ id, name, symbol, price, change_24h, market_cap }`
+
+**GET /market-data?type=stocks&symbols=AAPL,MSFT,GOOGL**
+- Fetches latest quotes from Alpaca `/v2/stocks/snapshots`
+- Returns: `{ symbol, name, price, previous_close, change_percent, day_high, day_low }`
+
+**GET /market-data?type=forex**
+- Fetches forex rates from Finnhub `/forex/rates?base=USD`
+- Plus specific pairs: USD/GHS, EUR/GHS, GBP/GHS, EUR/USD, GBP/USD
+- Returns: `{ pair, bid, ask, change_percent }`
+
+**GET /market-data?type=gse**
+- Fetches all GSE listed stocks from `https://dev.kwayisi.org/apis/gse`
+- Returns: `{ symbol, name, price, change, volume }`
+
+**GET /market-data?type=commodities**
+- Fetches Gold (XAU), Silver (XAG), Oil from Finnhub commodity endpoints
+- Returns: `{ name, symbol, price, change_percent, unit }`
+
+### Caching Strategy
+- In-memory Map with TTL per data type
+- Crypto/Forex/Commodities: 60-second cache (fast-moving markets)
+- Stocks/GSE: 5-minute cache (less volatile, saves API calls)
+- This keeps CoinGecko well under 10k calls/month even with heavy usage
+
+## Frontend Changes
+
+### New: `src/hooks/useMarketData.ts`
+A React Query hook that calls the edge function:
+
+```typescript
+// Usage examples:
+const { data: cryptos } = useMarketData('crypto');
+const { data: forex } = useMarketData('forex');
+const { data: gseStocks } = useMarketData('gse');
+const { data: stocks } = useMarketData('stocks', { symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA,META' });
+const { data: commodities } = useMarketData('commodities');
 ```
 
-### User Profile Fields (New)
-- `country` - Default: 'Ghana'
-- `region` - Selected Ghana region (Greater Accra, Ashanti, etc.)
+- Uses `@tanstack/react-query` with `staleTime: 30000` (30s) and `refetchInterval: 60000` (1min auto-refresh)
+- Shows loading skeletons while fetching
+- Falls back to cached/stale data on error
 
-### West African Countries
-Ghana, Nigeria, Senegal, Cote d'Ivoire, Cameroon, Mali, Burkina Faso, Niger, Guinea, Benin, Togo, Sierra Leone, Liberia, Mauritania, Gambia, Guinea-Bissau, Cape Verde
+### SimulatorTrading.tsx Updates
+- **Forex tab**: Live bid/ask from Finnhub, auto-refreshing
+- **Commodities tab**: Live Gold, Cocoa, Oil, Silver prices from Finnhub
+- **Crypto tab**: Live BTC, ETH, SOL, ADA from CoinGecko (remove "Demo" label)
 
----
+### SimulatorInvestment.tsx Updates
+- **GSE tab**: Live prices from GSE-API replacing hardcoded `gseStocks` array
+- **World Markets tab**: Live US stock prices from Alpaca replacing Supabase `mock_stocks` query
+- Show "Last updated: X seconds ago" indicator
 
-## 4. Glassmorphic Dashboard Design
+### SimulatorCapitalMarkets.tsx Updates
+- **Bonds**: Keep mock data (no free API for Ghana bonds)
+- **Mutual Funds**: Keep mock data (no free API for Ghana mutual funds)
+- **ETFs**: Fetch ETF prices from Alpaca (GLD, SPY, etc.)
 
-### Glass Card Styles
+### SimulatorBanking.tsx Updates
+- **Treasury Bills**: Keep current mock rates (Bank of Ghana rates don't have a free API; these can be manually updated)
+- **Fixed Deposits**: Keep mock data (bank-specific, no API)
+- **Savings**: No change needed
 
-| Class | Effect | Usage |
-|-------|--------|-------|
-| `glass-card` | White/80 blur, subtle shadow | Stats, lists |
-| `glass-card-primary` | Blue/10 tint, blur | Primary actions |
-| `glass-card-gold` | Gold/10 tint, blur | Achievements, leaderboard |
-
-### Dashboard Visual Updates
-
-```text
-+----------------------------------------------------------+
-| Background: gradient from-primary/5 via-bg to-gold/5      |
-+----------------------------------------------------------+
-|                                                           |
-|  +-------------+ +-------------+ +-------------+ +-------+|
-|  | GLASS CARD  | | GLASS CARD  | | GLASS CARD  | | GLASS ||
-|  | Modules     | | Certificate | | Quiz Rate   | | Streak||
-|  | Completed   | | Progress    | |             | |       ||
-|  +-------------+ +-------------+ +-------------+ +-------+|
-|                                                           |
-|  +--------------------------------+ +--------------------+|
-|  | GLASS-CARD-PRIMARY             | | GLASS-CARD-PRIMARY ||
-|  | Continue Learning              | | Trading Simulator  ||
-|  | Current Module                 | |                    ||
-|  +--------------------------------+ +--------------------+|
-|                                                           |
-|  +--------------------------------+ +--------------------+|
-|  | GLASS-CARD                     | | GLASS-CARD-GOLD    ||
-|  | Upcoming Modules               | | Top Traders        ||
-|  |                                | | Leaderboard        ||
-|  +--------------------------------+ +--------------------+|
-|                                                           |
-+----------------------------------------------------------+
-```
-
----
+### UI Enhancements
+- Add a small "Live" badge with a pulsing green dot next to real-time data
+- Add "Last updated" timestamp on each market section
+- Show skeleton loaders during initial fetch
+- Graceful error state: "Market data temporarily unavailable" with retry button
 
 ## Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/components/auth/SignupWizard.tsx` | Main wizard container with step management |
-| `src/components/auth/steps/CredentialsStep.tsx` | Step 1: Account credentials + country/region |
-| `src/components/auth/steps/BankAccountStep.tsx` | Step 2: Bank selection and KYC |
-| `src/components/auth/steps/CheckoutStep.tsx` | Step 3: GHS 312/year checkout |
-| `src/pages/simulator/SimulatorBanking.tsx` | Banking products simulation |
-| `src/pages/simulator/SimulatorInvestment.tsx` | Stock trading (GSE + World) |
-| `src/pages/simulator/SimulatorTrading.tsx` | Forex, Commodities, Crypto |
-| `src/pages/simulator/SimulatorCapitalMarkets.tsx` | Bonds, Mutual Funds, ETFs |
+| `supabase/functions/market-data/index.ts` | Edge function proxy for all market APIs |
+| `src/hooks/useMarketData.ts` | React Query hook for fetching market data |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/lib/constants.ts` | Add banks, regions, countries, subscription price |
-| `src/types/index.ts` | Add new types (banks, KYC, markets, regions) |
-| `src/index.css` | Add glassmorphic utility classes |
-| `src/pages/Auth.tsx` | Replace signup form with SignupWizard |
-| `src/pages/Dashboard.tsx` | Apply glassmorphic styling, gradient background |
-| `src/pages/Simulator.tsx` | Redesign as market category hub |
-| `src/pages/Leaderboard.tsx` | Add tabs (Ghana/West Africa/Global), region filter |
-| `src/App.tsx` | Add new simulator routes |
-
----
-
-## Technical Details
-
-### New Type Definitions
-
-```typescript
-// Ghanaian Banks
-export type GhanaianBank = 'absa' | 'fidelity' | 'ecobank' | 'gcb' | 'access' | 'umb' | 'uba';
-
-// Bank Account Info
-export interface BankAccountInfo {
-  hasExistingAccount: boolean;
-  selectedBank?: GhanaianBank;
-  ghanaCardNumber?: string;
-  ghanaCardExpiry?: string;
-  occupation?: string;
-  sourceOfIncome?: string;
-}
-
-// Market Categories
-export type MarketCategory = 'banking' | 'investment' | 'trading' | 'capital_markets';
-
-// Treasury Bill
-export interface TreasuryBill {
-  id: string;
-  term_days: 91 | 182 | 364;
-  interest_rate: number;
-  min_investment: number;
-}
-
-// Extended Leaderboard Entry
-export interface LeaderboardEntry {
-  user_id: string;
-  full_name: string;
-  avatar_url: string | null;
-  account_type: AccountType;
-  country: string;
-  region: string | null;
-  cash_balance: number;
-  holdings_value: number;
-  total_value: number;
-}
-```
-
-### Constants to Add
-
-```typescript
-export const SUBSCRIPTION_PRICE = {
-  amount: 312,
-  currency: 'GHS',
-  period: 'year',
-  formatted: 'GHS 312/year',
-} as const;
-
-export const GHANAIAN_BANKS = {
-  absa: 'Absa Bank Ghana',
-  fidelity: 'Fidelity Bank Ghana',
-  ecobank: 'Ecobank Ghana',
-  gcb: 'GCB Bank',
-  access: 'Access Bank Ghana',
-  umb: 'Universal Merchant Bank',
-  uba: 'United Bank for Africa Ghana',
-} as const;
-
-export const GHANA_REGIONS = [
-  'Greater Accra', 'Ashanti', 'Western', 'Central', 
-  'Eastern', 'Volta', 'Northern', 'Upper East', 
-  'Upper West', 'Bono', 'Bono East', 'Ahafo', 
-  'Western North', 'Oti', 'North East', 'Savannah',
-] as const;
-```
-
-### Glassmorphic CSS Classes
-
-```css
-@layer utilities {
-  .glass-card {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl 
-           border border-white/30 dark:border-gray-700/30 
-           shadow-lg shadow-black/5 rounded-lg;
-  }
-  .glass-card-primary {
-    @apply bg-primary/10 backdrop-blur-xl 
-           border border-primary/20 
-           shadow-lg shadow-primary/5 rounded-lg;
-  }
-  .glass-card-gold {
-    @apply bg-cflp-gold/10 backdrop-blur-xl 
-           border border-cflp-gold/20 
-           shadow-lg shadow-cflp-gold/5 rounded-lg;
-  }
-}
-```
-
----
+| `supabase/config.toml` | Add `[functions.market-data]` with `verify_jwt = false` |
+| `src/pages/simulator/SimulatorTrading.tsx` | Replace mock arrays with live data hook |
+| `src/pages/simulator/SimulatorInvestment.tsx` | Replace mock GSE + use Alpaca for world stocks |
+| `src/pages/simulator/SimulatorCapitalMarkets.tsx` | Use Alpaca for ETFs, keep bonds/funds as mock |
+| `src/pages/simulator/SimulatorBanking.tsx` | Minor: add "rates as of" note, no API change |
 
 ## Implementation Order
 
-1. **Phase 1: Foundation**
-   - Update `src/lib/constants.ts` with banks, regions, pricing
-   - Update `src/types/index.ts` with new type definitions
-   - Add glassmorphic utilities to `src/index.css`
+1. **Secrets Setup** - Request user to add Alpaca, Finnhub, and CoinGecko API keys
+2. **Edge Function** - Create `market-data` edge function with all 5 endpoints
+3. **React Hook** - Create `useMarketData` hook with React Query
+4. **Update Simulator Pages** - Wire up each page to live data
+5. **Test** - Verify all data loads correctly and fallbacks work
 
-2. **Phase 2: Dashboard Enhancement**
-   - Apply glassmorphic styling to `src/pages/Dashboard.tsx`
-   - Add gradient background
+## What Stays as Mock Data
 
-3. **Phase 3: Signup Wizard**
-   - Create step components (Credentials, Bank, Checkout)
-   - Create SignupWizard container
-   - Integrate into `src/pages/Auth.tsx`
+Some categories don't have free APIs:
+- Ghana Treasury Bill rates (Bank of Ghana publishes weekly, no API)
+- Ghana Fixed Deposit rates (bank-specific)
+- Ghana Bonds (no free API)
+- Ghana Mutual Fund NAVs (no free API)
+- Savings account rates
 
-4. **Phase 4: Simulator Hub**
-   - Redesign `src/pages/Simulator.tsx` as category hub
-   - Create 4 new simulator pages
-   - Update routes in `src/App.tsx`
-
-5. **Phase 5: Leaderboard**
-   - Update `src/pages/Leaderboard.tsx` with scope tabs
-   - Add region filter
+These will keep their current mock values with a note saying "Rates as of [date]" to be periodically updated manually.
 
