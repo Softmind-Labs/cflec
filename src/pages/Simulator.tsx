@@ -19,7 +19,6 @@ const marketCategories = [
     title: 'Banking',
     description: 'Treasury Bills, Fixed Deposits, Savings Accounts',
     icon: Building2,
-    color: 'primary',
     bgColor: 'bg-primary/10',
     borderColor: 'border-primary/20',
     textColor: 'text-primary',
@@ -31,7 +30,6 @@ const marketCategories = [
     title: 'Investment',
     description: 'Ghana Stock Exchange & World Stock Markets',
     icon: TrendingUp,
-    color: 'cflp-green',
     bgColor: 'bg-[hsl(var(--cflp-green)/0.1)]',
     borderColor: 'border-[hsl(var(--cflp-green)/0.2)]',
     textColor: 'text-[hsl(var(--cflp-green))]',
@@ -43,7 +41,6 @@ const marketCategories = [
     title: 'Trading',
     description: 'Forex, Commodities, and Crypto Demo',
     icon: CandlestickChart,
-    color: 'cflp-gold',
     bgColor: 'bg-[hsl(var(--cflp-gold)/0.1)]',
     borderColor: 'border-[hsl(var(--cflp-gold)/0.2)]',
     textColor: 'text-[hsl(var(--cflp-gold))]',
@@ -55,7 +52,6 @@ const marketCategories = [
     title: 'Capital Markets',
     description: 'Bonds, Mutual Funds, and ETFs',
     icon: Landmark,
-    color: 'cflp-blue',
     bgColor: 'bg-[hsl(var(--cflp-blue)/0.1)]',
     borderColor: 'border-[hsl(var(--cflp-blue)/0.2)]',
     textColor: 'text-[hsl(var(--cflp-blue))]',
@@ -67,7 +63,7 @@ const marketCategories = [
 export default function Simulator() {
   return (
     <MainLayout>
-      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-cflp-gold/5">
+      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
         <div className="container py-8">
           {/* Header */}
           <div className="text-center mb-12">
@@ -80,20 +76,20 @@ export default function Simulator() {
 
           {/* Quick Stats */}
           <div className="grid md:grid-cols-2 gap-6 mb-12 max-w-2xl mx-auto">
-            <Card className="glass-card">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2">
                   <Wallet className="h-4 w-4" />
                   Starting Balance
                 </CardDescription>
-                <CardTitle className="text-3xl text-cflp-green">$500.00</CardTitle>
+                <CardTitle className="text-3xl text-[hsl(var(--cflp-green))]">$500.00</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Virtual funds to practice with</p>
               </CardContent>
             </Card>
 
-            <Card className="glass-card-gold">
+            <Card className="border-2 border-[hsl(var(--cflp-gold)/0.3)]">
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2">
                   <Trophy className="h-4 w-4" />
@@ -154,7 +150,7 @@ export default function Simulator() {
           </div>
 
           {/* Info Banner */}
-          <Card className="mt-12 glass-card-primary">
+          <Card className="mt-12 border-2 border-primary/20">
             <CardContent className="py-6">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>

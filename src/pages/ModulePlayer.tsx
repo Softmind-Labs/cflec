@@ -6,19 +6,24 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
+import { StatsBar } from '@/components/ui/stats-bar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  ArrowLeft,
   PlayCircle, 
   CheckCircle,
   BookOpen,
   HelpCircle,
   ChevronRight,
-  Award
+  Award,
+  Clock,
+  Layers,
+  Cpu
 } from 'lucide-react';
 import type { Module, ModuleContent, Quiz, UserProgress } from '@/types';
+import { CERTIFICATE_INFO } from '@/types';
 
 export default function ModulePlayer() {
   const { id } = useParams<{ id: string }>();
@@ -144,45 +149,66 @@ export default function ModulePlayer() {
 
   const quizScore = progress?.quiz_score || 0;
   const quizPassed = progress?.quiz_passed || false;
+  const certInfo = CERTIFICATE_INFO[module.certificate_level];
+  const completedSteps = [progress?.video_completed, quizPassed].filter(Boolean).length;
 
   return (
     <MainLayout>
-      <div className="container py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link to="/modules">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <Badge className={`certificate-${module.certificate_level}`}>
-                {module.certificate_level.toUpperCase()}
-              </Badge>
-              <span className="text-sm text-muted-foreground">Module {module.module_number}</span>
-            </div>
-            <h1 className="text-2xl font-bold">{module.title}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {progress?.video_completed && <CheckCircle className="h-5 w-5 text-cflp-green" />}
-            {quizPassed && <Award className="h-5 w-5 text-cflp-gold" />}
-          </div>
-        </div>
+      {/* Hero Section */}
+      <div className="bg-muted/50 border-b">
+        <div className="container py-6">
+          {/* Breadcrumbs */}
+          <BreadcrumbNav
+            items={[
+              { label: 'Dashboard', href: '/dashboard' },
+              { label: 'Modules', href: '/modules' },
+              { label: module.title },
+            ]}
+          />
 
-        {/* Progress */}
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge className={`certificate-${module.certificate_level}`}>
+                  {module.certificate_level.toUpperCase()}
+                </Badge>
+                <span className="text-sm text-muted-foreground">Module {module.module_number}</span>
+              </div>
+              <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
+              {module.description && (
+                <p className="text-muted-foreground max-w-2xl">{module.description}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {progress?.video_completed && <CheckCircle className="h-6 w-6 text-[hsl(var(--cflp-green))]" />}
+              {quizPassed && <Award className="h-6 w-6 text-[hsl(var(--cflp-gold))]" />}
+            </div>
+          </div>
+
+          {/* Stats Bar */}
+          <StatsBar
+            items={[
+              { label: 'Duration', value: `${module.duration_minutes} min`, icon: <Clock className="h-4 w-4" /> },
+              { label: 'Certificate', value: certInfo.name, icon: <Award className="h-4 w-4" /> },
+              { label: 'Simulation', value: module.has_simulation ? 'Included' : 'None', icon: <Cpu className="h-4 w-4" /> },
+              { label: 'Progress', value: `${completedSteps}/2 complete`, icon: <Layers className="h-4 w-4" /> },
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="container py-8">
+        {/* Progress Bar */}
         <Card className="mb-8">
           <CardContent className="py-4">
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex items-center justify-between text-sm mb-2">
                   <span>Module Progress</span>
-                  <span>
-                    {[progress?.video_completed, quizPassed].filter(Boolean).length}/2 complete
-                  </span>
+                  <span>{completedSteps}/2 complete</span>
                 </div>
                 <Progress 
-                  value={([progress?.video_completed, quizPassed].filter(Boolean).length / 2) * 100} 
+                  value={(completedSteps / 2) * 100} 
                   className="h-2"
                 />
               </div>
@@ -220,7 +246,7 @@ export default function ModulePlayer() {
                       </Button>
                     ) : (
                       <Button onClick={() => setShowQuiz(true)} className="w-full" variant="outline">
-                        <CheckCircle className="mr-2 h-4 w-4 text-cflp-green" />
+                        <CheckCircle className="mr-2 h-4 w-4 text-[hsl(var(--cflp-green))]" />
                         Video Completed - Go to Quiz
                       </Button>
                     )}
@@ -272,10 +298,10 @@ export default function ModulePlayer() {
                     quizSubmitted ? (
                       <div className="text-center py-8">
                         <div className={`h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                          quizPassed ? 'bg-cflp-green/20' : 'bg-destructive/20'
+                          quizPassed ? 'bg-[hsl(var(--cflp-green)/0.2)]' : 'bg-destructive/20'
                         }`}>
                           {quizPassed ? (
-                            <CheckCircle className="h-10 w-10 text-cflp-green" />
+                            <CheckCircle className="h-10 w-10 text-[hsl(var(--cflp-green))]" />
                           ) : (
                             <HelpCircle className="h-10 w-10 text-destructive" />
                           )}
@@ -357,20 +383,20 @@ export default function ModulePlayer() {
               <CardHeader>
                 <CardTitle>Module Info</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+              <CardContent className="space-y-0 p-0">
+                <div className="flex items-center justify-between px-7 py-4 border-b">
                   <span className="text-muted-foreground">Duration</span>
-                  <span>{module.duration_minutes} minutes</span>
+                  <span className="font-medium">{module.duration_minutes} min</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-7 py-4 border-b">
                   <span className="text-muted-foreground">Certificate</span>
                   <Badge className={`certificate-${module.certificate_level}`}>
                     {module.certificate_level.toUpperCase()}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Has Simulation</span>
-                  <span>{module.has_simulation ? 'Yes' : 'No'}</span>
+                <div className="flex items-center justify-between px-7 py-4">
+                  <span className="text-muted-foreground">Simulation</span>
+                  <span className="font-medium">{module.has_simulation ? 'Yes' : 'No'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -382,7 +408,7 @@ export default function ModulePlayer() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   {progress?.video_completed ? (
-                    <CheckCircle className="h-5 w-5 text-cflp-green" />
+                    <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2" />
                   )}
@@ -390,7 +416,7 @@ export default function ModulePlayer() {
                 </div>
                 <div className="flex items-center gap-3">
                   {quizPassed ? (
-                    <CheckCircle className="h-5 w-5 text-cflp-green" />
+                    <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2" />
                   )}
@@ -399,7 +425,7 @@ export default function ModulePlayer() {
                 {module.has_simulation && (
                   <div className="flex items-center gap-3">
                     {progress?.simulation_completed ? (
-                      <CheckCircle className="h-5 w-5 text-cflp-green" />
+                      <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
                     ) : (
                       <div className="h-5 w-5 rounded-full border-2" />
                     )}

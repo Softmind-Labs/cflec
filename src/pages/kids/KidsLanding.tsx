@@ -14,7 +14,7 @@ export default function KidsLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-kids-background via-background to-kids-secondary/10">
       {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur sticky top-0 z-50">
+      <header className="border-b bg-white/95 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
