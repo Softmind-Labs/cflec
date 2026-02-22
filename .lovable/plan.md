@@ -1,163 +1,95 @@
 
 
-# Real Market Data Integration for CFLEC Simulator
+# Visual Polish: Premium UI Refinement
 
 ## Overview
 
-Replace all hardcoded mock data across the 4 simulator categories with live market data from free APIs. An edge function acts as a unified proxy, fetching from multiple providers and caching results to stay within free-tier limits.
+A comprehensive visual quality pass across the shared UI primitives and global styles. No layouts, routes, or component structures change -- only the CSS/class values that control how things look and feel.
 
-## API Strategy
+## What Changes
 
-| Data Need | API Provider | Cost | Auth Required | Rate Limits (Free) |
-|-----------|-------------|------|---------------|-------------------|
-| US Stocks (NYSE/NASDAQ) | Alpaca Markets | Free | API Key + Secret | 200 req/min |
-| Forex rates | Finnhub | Free | API Key | 60 req/min |
-| Crypto prices | CoinGecko | Free | API Key (Demo) | 30 req/min, 10k/month |
-| GSE (Ghana stocks) | GSE-API (kwayisi.org) | Free | None | No documented limit |
-| Commodities (Gold, Oil) | Finnhub | Free | API Key | Shared with forex |
+### 1. Global Styles (`src/index.css`)
 
-## Architecture
+- Update `--radius` from `0.5rem` to `0.875rem` (14px) so all components using `rounded-lg` inherit the new card radius
+- Add global base styles for typography: minimum font size 14px, heading weights/line-heights, body line-height 1.6
+- Add smooth global transition on all interactive elements
+- Add `cursor-pointer` on all clickable elements
+- Remove glassmorphism utility classes (`.glass-card*`) per the "no glassmorphism" directive
+- Add table row hover highlight utility
 
-```text
-Browser (React)
-    |
-    v
-Supabase Edge Function: "market-data"
-    |
-    +---> /crypto    --> CoinGecko API
-    +---> /stocks    --> Alpaca Markets API
-    +---> /forex     --> Finnhub API
-    +---> /gse       --> GSE-API (kwayisi.org)
-    +---> /commodities --> Finnhub API
-```
+### 2. Card Component (`src/components/ui/card.tsx`)
 
-The edge function will:
-- Route requests by market type (query param)
-- Cache responses in-memory (60-second TTL for trading data, 5-minute for stocks)
-- Normalize all responses to a consistent format
-- Handle CORS for browser calls
+- `Card`: Change to `rounded-[14px]` border-radius, new box-shadow `0 2px 16px rgba(0,0,0,0.07)`, hover state with `translateY(-2px)` and deeper shadow, `transition-all duration-250 ease-out`, internal padding increase
+- `CardHeader`: Increase padding to `p-7`
+- `CardContent`: Increase padding to `px-7 pb-7`
+- `CardFooter`: Match padding `px-7 pb-7`
 
-## Secrets Required
+### 3. Button Component (`src/components/ui/button.tsx`)
 
-Before building, three API keys need to be added:
+- Base: `rounded-lg` (8px), `transition-all duration-200 ease-out`, add `active:scale-[0.98]` for press feedback, `cursor-pointer`
+- Default size: `h-11 min-h-[44px] px-5` (44px min height, 20px+ horizontal padding)
+- `sm` size: `h-10 min-h-[40px] px-4`
+- `lg` size: `h-12 px-8`
+- Default variant: add `shadow-sm hover:shadow-md hover:bg-primary/85`
+- Outline variant: use brand color border `border-primary/30 text-primary hover:bg-primary/5 hover:border-primary`
+- Destructive: add `shadow-sm hover:shadow-md`
 
-| Secret Name | Where to Get It | Free Tier |
-|-------------|----------------|-----------|
-| `ALPACA_API_KEY` | https://app.alpaca.markets/signup (paper trading account) | Free, unlimited paper trading |
-| `ALPACA_API_SECRET` | Same as above (key + secret pair) | Free |
-| `FINNHUB_API_KEY` | https://finnhub.io/register | Free, 60 calls/min |
-| `COINGECKO_API_KEY` | https://www.coingecko.com/en/api (Demo plan) | Free, 10k calls/month |
+### 4. Input Component (`src/components/ui/input.tsx`)
 
-GSE-API requires no key.
+- `rounded-lg` (8px), `h-11 min-h-[44px]`, padding `px-4 py-3`
+- Border: `border-[1.5px] border-primary/30`
+- Focus: `focus-visible:border-primary focus-visible:ring-primary/20 focus-visible:shadow-[0_0_0_3px_hsl(var(--primary)/0.1)]`
+- Ensure `text-sm` minimum (14px with base size adjustment)
 
-## Edge Function: `market-data`
+### 5. Textarea Component (`src/components/ui/textarea.tsx`)
 
-### Endpoints
+- Same border/focus treatment as Input: `rounded-lg`, `border-[1.5px] border-primary/30`, focus glow
+- Increase padding to `px-4 py-3`
 
-**GET /market-data?type=crypto**
-- Fetches BTC, ETH, SOL, ADA prices from CoinGecko `/simple/price`
-- Returns: `{ id, name, symbol, price, change_24h, market_cap }`
+### 6. Select Trigger (`src/components/ui/select.tsx`)
 
-**GET /market-data?type=stocks&symbols=AAPL,MSFT,GOOGL**
-- Fetches latest quotes from Alpaca `/v2/stocks/snapshots`
-- Returns: `{ symbol, name, price, previous_close, change_percent, day_high, day_low }`
+- Match Input styling: `rounded-lg`, `h-11 min-h-[44px]`, `border-[1.5px] border-primary/30`, matching focus states
 
-**GET /market-data?type=forex**
-- Fetches forex rates from Finnhub `/forex/rates?base=USD`
-- Plus specific pairs: USD/GHS, EUR/GHS, GBP/GHS, EUR/USD, GBP/USD
-- Returns: `{ pair, bid, ask, change_percent }`
+### 7. Table Component (`src/components/ui/table.tsx`)
 
-**GET /market-data?type=gse**
-- Fetches all GSE listed stocks from `https://dev.kwayisi.org/apis/gse`
-- Returns: `{ symbol, name, price, change, volume }`
+- `TableRow`: Ensure hover highlight is visible: `hover:bg-muted/60`
+- `TableCell`: Ensure minimum text size
 
-**GET /market-data?type=commodities**
-- Fetches Gold (XAU), Silver (XAG), Oil from Finnhub commodity endpoints
-- Returns: `{ name, symbol, price, change_percent, unit }`
+### 8. Sidebar Navigation (`src/components/layout/AppSidebar.tsx`)
 
-### Caching Strategy
-- In-memory Map with TTL per data type
-- Crypto/Forex/Commodities: 60-second cache (fast-moving markets)
-- Stocks/GSE: 5-minute cache (less volatile, saves API calls)
-- This keeps CoinGecko well under 10k calls/month even with heavy usage
+- Active nav item: add `border-l-[3px] border-primary bg-primary/10` styling
+- Hover: `hover:bg-primary/5`
+- Consistent padding `py-3 px-4`
+- Smooth transition on nav items
 
-## Frontend Changes
+### 9. Tailwind Config (`tailwind.config.ts`)
 
-### New: `src/hooks/useMarketData.ts`
-A React Query hook that calls the edge function:
+- Update `--radius` usage: `lg: "0.875rem"` (14px), `md: "0.5rem"` (8px)
+- No other config changes needed since colors/fonts are already correct
 
-```typescript
-// Usage examples:
-const { data: cryptos } = useMarketData('crypto');
-const { data: forex } = useMarketData('forex');
-const { data: gseStocks } = useMarketData('gse');
-const { data: stocks } = useMarketData('stocks', { symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA,META' });
-const { data: commodities } = useMarketData('commodities');
-```
+## Technical Details
 
-- Uses `@tanstack/react-query` with `staleTime: 30000` (30s) and `refetchInterval: 60000` (1min auto-refresh)
-- Shows loading skeletons while fetching
-- Falls back to cached/stale data on error
+### Files Modified (7 files)
 
-### SimulatorTrading.tsx Updates
-- **Forex tab**: Live bid/ask from Finnhub, auto-refreshing
-- **Commodities tab**: Live Gold, Cocoa, Oil, Silver prices from Finnhub
-- **Crypto tab**: Live BTC, ETH, SOL, ADA from CoinGecko (remove "Demo" label)
+| File | Change Summary |
+|------|---------------|
+| `src/index.css` | Global typography, min font size, radius variable, remove glass utilities, add smooth transitions |
+| `src/components/ui/card.tsx` | Radius 14px, new shadows, hover lift, increased padding |
+| `src/components/ui/button.tsx` | Radius 8px, min-height 44px, padding 20px+, active press, shadow states |
+| `src/components/ui/input.tsx` | Radius 8px, height 44px, brand border, focus glow |
+| `src/components/ui/textarea.tsx` | Match input styling |
+| `src/components/ui/select.tsx` | Match input styling on trigger |
+| `src/components/ui/table.tsx` | Row hover highlight |
 
-### SimulatorInvestment.tsx Updates
-- **GSE tab**: Live prices from GSE-API replacing hardcoded `gseStocks` array
-- **World Markets tab**: Live US stock prices from Alpaca replacing Supabase `mock_stocks` query
-- Show "Last updated: X seconds ago" indicator
+### Files NOT Modified
 
-### SimulatorCapitalMarkets.tsx Updates
-- **Bonds**: Keep mock data (no free API for Ghana bonds)
-- **Mutual Funds**: Keep mock data (no free API for Ghana mutual funds)
-- **ETFs**: Fetch ETF prices from Alpaca (GLD, SPY, etc.)
+- No page files changed (Dashboard, Modules, Simulator, etc.)
+- No layout files changed (MainLayout, Footer, Header)
+- No routing changes
+- No color/branding changes
+- `tailwind.config.ts` -- only the `borderRadius.lg` value updates
 
-### SimulatorBanking.tsx Updates
-- **Treasury Bills**: Keep current mock rates (Bank of Ghana rates don't have a free API; these can be manually updated)
-- **Fixed Deposits**: Keep mock data (bank-specific, no API)
-- **Savings**: No change needed
+### Approach
 
-### UI Enhancements
-- Add a small "Live" badge with a pulsing green dot next to real-time data
-- Add "Last updated" timestamp on each market section
-- Show skeleton loaders during initial fetch
-- Graceful error state: "Market data temporarily unavailable" with retry button
-
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `supabase/functions/market-data/index.ts` | Edge function proxy for all market APIs |
-| `src/hooks/useMarketData.ts` | React Query hook for fetching market data |
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `supabase/config.toml` | Add `[functions.market-data]` with `verify_jwt = false` |
-| `src/pages/simulator/SimulatorTrading.tsx` | Replace mock arrays with live data hook |
-| `src/pages/simulator/SimulatorInvestment.tsx` | Replace mock GSE + use Alpaca for world stocks |
-| `src/pages/simulator/SimulatorCapitalMarkets.tsx` | Use Alpaca for ETFs, keep bonds/funds as mock |
-| `src/pages/simulator/SimulatorBanking.tsx` | Minor: add "rates as of" note, no API change |
-
-## Implementation Order
-
-1. **Secrets Setup** - Request user to add Alpaca, Finnhub, and CoinGecko API keys
-2. **Edge Function** - Create `market-data` edge function with all 5 endpoints
-3. **React Hook** - Create `useMarketData` hook with React Query
-4. **Update Simulator Pages** - Wire up each page to live data
-5. **Test** - Verify all data loads correctly and fallbacks work
-
-## What Stays as Mock Data
-
-Some categories don't have free APIs:
-- Ghana Treasury Bill rates (Bank of Ghana publishes weekly, no API)
-- Ghana Fixed Deposit rates (bank-specific)
-- Ghana Bonds (no free API)
-- Ghana Mutual Fund NAVs (no free API)
-- Savings account rates
-
-These will keep their current mock values with a note saying "Rates as of [date]" to be periodically updated manually.
+All changes happen at the primitive/component level so every screen in the app benefits automatically. The existing Tailwind color system and CSS variables remain untouched.
 
