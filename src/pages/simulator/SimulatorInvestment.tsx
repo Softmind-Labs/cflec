@@ -1,38 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
+import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  ArrowLeft, 
-  TrendingUp, 
+import {
+  ArrowLeft,
+  TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   Wallet,
   Globe,
-  Building
+  Building,
+  Search,
 } from 'lucide-react';
 import type { MockStock, Portfolio, StockHolding } from '@/types';
 import { STARTING_PORTFOLIO_BALANCE } from '@/lib/constants';
+
+const SECTOR_COLORS: Record<string, string> = {
+  Technology: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+  Finance: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300',
+  Healthcare: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300',
+  Energy: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+  Consumer: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+  ETF: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+  Other: 'bg-muted text-muted-foreground',
+};
+
+const SECTOR_TABS = ['All', 'Technology', 'Finance', 'Healthcare', 'Energy', 'Consumer', 'ETF'];
 
 export default function SimulatorInvestment() {
   const { user } = useAuth();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [holdings, setHoldings] = useState<(StockHolding & { stock: MockStock })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sectorTab, setSectorTab] = useState('All');
 
   const { data: gseResult, dataUpdatedAt: gseUpdated, isLoading: gseLoading, isError: gseError, refetch: refetchGse } = useMarketDataWithTimestamp('gse');
-  const { data: stocksResult, dataUpdatedAt: stocksUpdated, isLoading: stocksLoading, isError: stocksError, refetch: refetchStocks } = useMarketDataWithTimestamp('stocks', { symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA,META' });
+  const { data: stocksResult, dataUpdatedAt: stocksUpdated, isLoading: stocksLoading, isError: stocksError, refetch: refetchStocks } = useMarketDataWithTimestamp('stocks');
 
   const gseStocks = gseResult?.data ?? [];
   const worldStocks = stocksResult?.data ?? [];
+
+  const filteredStocks = useMemo(() => {
+    let list = worldStocks;
+    if (sectorTab !== 'All') {
+      list = list.filter(s => s.sector === sectorTab);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(s => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+    }
+    return list;
+  }, [worldStocks, sectorTab, searchQuery]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,7 +108,7 @@ export default function SimulatorInvestment() {
   }, [user]);
 
   const calculateTotalValue = () => {
-    const holdingsValue = holdings.reduce((sum, h) => 
+    const holdingsValue = holdings.reduce((sum, h) =>
       sum + (h.quantity * Number(h.stock.current_price)), 0
     );
     return Number(portfolio?.cash_balance || 0) + holdingsValue;
@@ -129,21 +159,21 @@ export default function SimulatorInvestment() {
 
         {/* Portfolio Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="glass-card-green">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Total Portfolio Value</CardDescription>
               <CardTitle className="text-3xl">${calculateTotalValue().toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent><div className="flex items-center gap-1 text-sm text-cflp-green"><ArrowUpRight className="h-4 w-4" />+5.2% all time</div></CardContent>
+            <CardContent><div className="flex items-center gap-1 text-sm text-green-600"><ArrowUpRight className="h-4 w-4" />+5.2% all time</div></CardContent>
           </Card>
-          <Card className="glass-card">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>Cash Balance</CardDescription>
               <CardTitle className="text-3xl">${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Available to invest</p></CardContent>
           </Card>
-          <Card className="glass-card">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>Holdings Value</CardDescription>
               <CardTitle className="text-3xl">${holdings.reduce((sum, h) => sum + (h.quantity * Number(h.stock.current_price)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
@@ -179,7 +209,7 @@ export default function SimulatorInvestment() {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold">GHS {Number(stock.price).toFixed(2)}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
+                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                             {stock.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                             {stock.change >= 0 ? '+' : ''}{Number(stock.change).toFixed(2)}%
                           </p>
@@ -202,28 +232,68 @@ export default function SimulatorInvestment() {
                   <LiveBadge timestamp={stocksResult?.timestamp} />
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by symbol or company name..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Sector Tabs */}
+                <div className="flex flex-wrap gap-2">
+                  {SECTOR_TABS.map(tab => (
+                    <Button
+                      key={tab}
+                      variant={sectorTab === tab ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSectorTab(tab)}
+                    >
+                      {tab === 'ETF' ? 'ETFs' : tab}
+                    </Button>
+                  ))}
+                </div>
+
                 {stocksLoading ? <SkeletonRows /> : stocksError ? <MarketError onRetry={() => refetchStocks()} /> : (
                   <div className="space-y-2">
-                    {worldStocks.map((stock) => (
-                      <div key={stock.symbol} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-cflp-blue/10 flex items-center justify-center font-bold text-cflp-blue">{stock.symbol.slice(0, 2)}</div>
-                          <div><p className="font-semibold">{stock.symbol}</p><p className="text-sm text-muted-foreground">{stock.name}</p></div>
+                    {filteredStocks.map((stock) => (
+                      <div key={stock.symbol} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors gap-3">
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary shrink-0">{stock.symbol.slice(0, 2)}</div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold">{stock.symbol}</p>
+                              <Badge variant="secondary" className={`text-xs ${SECTOR_COLORS[stock.sector] || SECTOR_COLORS.Other}`}>
+                                {stock.sector}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground truncate">{stock.name}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right shrink-0">
                           <p className="font-semibold">${Number(stock.price).toFixed(2)}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change_percent >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
+                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                             {stock.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                             {stock.change_percent >= 0 ? '+' : ''}{Number(stock.change_percent).toFixed(2)}%
                           </p>
                         </div>
+                        <div className="text-right text-sm text-muted-foreground shrink-0 hidden md:block">
+                          <p>H: ${Number(stock.day_high).toFixed(2)}</p>
+                          <p>L: ${Number(stock.day_low).toFixed(2)}</p>
+                        </div>
+                        <DataBadge meta={stock._meta} />
                         <Link to="/simulator/trade"><Button size="sm">Trade</Button></Link>
                       </div>
                     ))}
+                    {filteredStocks.length === 0 && (
+                      <p className="text-center text-muted-foreground py-8">No stocks found matching your search.</p>
+                    )}
                   </div>
                 )}
-                <Link to="/simulator/trade" className="block mt-4"><Button variant="outline" className="w-full">View All Stocks</Button></Link>
               </CardContent>
             </Card>
           </TabsContent>

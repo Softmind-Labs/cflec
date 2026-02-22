@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
+import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   ArrowUpRight,
   ArrowDownRight,
   Wallet,
@@ -16,35 +18,75 @@ import {
   Coins,
   Bitcoin,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
 } from 'lucide-react';
 import { useState } from 'react';
+
+function formatMarketCap(value: number): string {
+  if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
+  if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+  return `$${value.toLocaleString()}`;
+}
+
+const AFRICAN_PAIRS = ['USD/GHS', 'EUR/GHS', 'GBP/GHS', 'USD/NGN', 'USD/ZAR'];
 
 export default function SimulatorTrading() {
   const [tradingBalance] = useState(10000);
 
-  const { data: forexData, dataUpdatedAt: forexUpdated, isLoading: forexLoading, isError: forexError, refetch: refetchForex } = useMarketDataWithTimestamp('forex');
-  const { data: commoditiesData, dataUpdatedAt: commoditiesUpdated, isLoading: commoditiesLoading, isError: commoditiesError, refetch: refetchCommodities } = useMarketDataWithTimestamp('commodities');
-  const { data: cryptoData, dataUpdatedAt: cryptoUpdated, isLoading: cryptoLoading, isError: cryptoError, refetch: refetchCrypto } = useMarketDataWithTimestamp('crypto');
+  const { data: forexData, isLoading: forexLoading, isError: forexError, refetch: refetchForex } = useMarketDataWithTimestamp('forex');
+  const { data: commoditiesData, isLoading: commoditiesLoading, isError: commoditiesError, refetch: refetchCommodities } = useMarketDataWithTimestamp('commodities');
+  const { data: cryptoData, isLoading: cryptoLoading, isError: cryptoError, refetch: refetchCrypto } = useMarketDataWithTimestamp('crypto');
 
   const forex = forexData?.data ?? [];
   const commodities = commoditiesData?.data ?? [];
   const cryptos = cryptoData?.data ?? [];
 
-  const SkeletonRows = () => (
-    <div className="space-y-2">
-      {[1, 2, 3, 4].map(i => (
-        <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-12 w-12 rounded-lg" />
-            <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-16" /></div>
-          </div>
-          <Skeleton className="h-4 w-16" />
+  const africanForex = useMemo(() => forex.filter(p => AFRICAN_PAIRS.includes(p.pair)), [forex]);
+  const majorForex = useMemo(() => forex.filter(p => !AFRICAN_PAIRS.includes(p.pair)), [forex]);
+
+  const metalCommodities = useMemo(() => commodities.filter(c => c.category === 'metal'), [commodities]);
+  const energyCommodities = useMemo(() => commodities.filter(c => c.category === 'energy'), [commodities]);
+  const agriCommodities = useMemo(() => commodities.filter(c => c.category === 'agricultural'), [commodities]);
+
+  const SkeletonGrid = () => (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[1, 2, 3, 4, 5, 6].map(i => (
+        <Card key={i}><CardContent className="pt-6 space-y-3">
+          <Skeleton className="h-5 w-24" />
           <Skeleton className="h-8 w-20" />
-        </div>
+          <Skeleton className="h-4 w-16" />
+        </CardContent></Card>
       ))}
     </div>
   );
+
+  const ForexRow = ({ pair }: { pair: typeof forex[0] }) => {
+    const spread = (pair.ask - pair.bid);
+    const spreadStr = spread < 1 ? spread.toFixed(4) : spread.toFixed(2);
+    return (
+      <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors gap-3">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><DollarSign className="h-5 w-5 text-primary" /></div>
+          <div>
+            <p className="font-semibold">{pair.pair}</p>
+            <p className={`text-sm flex items-center gap-1 ${pair.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+              {pair.change_percent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {pair.change_percent >= 0 ? '+' : ''}{pair.change_percent}%
+            </p>
+          </div>
+        </div>
+        <div className="text-center"><p className="text-xs text-muted-foreground">Bid</p><p className="font-semibold text-sm">{pair.bid}</p></div>
+        <div className="text-center"><p className="text-xs text-muted-foreground">Ask</p><p className="font-semibold text-sm">{pair.ask}</p></div>
+        <div className="text-center hidden sm:block"><p className="text-xs text-muted-foreground">Spread</p><p className="text-sm">{spreadStr}</p></div>
+        <DataBadge meta={pair._meta} />
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white">Buy</Button>
+          <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <MainLayout>
@@ -65,147 +107,140 @@ export default function SimulatorTrading() {
 
         {/* Trading Balance */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="glass-card-gold">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Trading Balance</CardDescription>
               <CardTitle className="text-3xl">${tradingBalance.toLocaleString()}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Virtual funds for trading</p></CardContent>
           </Card>
-          <Card className="glass-card">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>Open Positions</CardDescription>
               <CardTitle className="text-3xl">3</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-cflp-green">+$125.50 unrealized P/L</p></CardContent>
+            <CardContent><p className="text-sm text-green-600">+$125.50 unrealized P/L</p></CardContent>
           </Card>
-          <Card className="glass-card">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>Today's P/L</CardDescription>
-              <CardTitle className="text-3xl text-cflp-green">+$85.20</CardTitle>
+              <CardTitle className="text-3xl text-green-600">+$85.20</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">5 trades completed</p></CardContent>
           </Card>
         </div>
 
         {/* Market Tabs */}
-        <Tabs defaultValue="forex" className="space-y-6">
+        <Tabs defaultValue="crypto" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="crypto" className="gap-2"><Bitcoin className="h-4 w-4" />Crypto</TabsTrigger>
             <TabsTrigger value="forex" className="gap-2"><DollarSign className="h-4 w-4" />Forex</TabsTrigger>
             <TabsTrigger value="commodities" className="gap-2"><Coins className="h-4 w-4" />Commodities</TabsTrigger>
-            <TabsTrigger value="crypto" className="gap-2"><Bitcoin className="h-4 w-4" />Crypto</TabsTrigger>
           </TabsList>
+
+          {/* Crypto */}
+          <TabsContent value="crypto">
+            <div className="flex items-center justify-between mb-4">
+              <div><h2 className="text-xl font-semibold">Crypto Trading</h2><p className="text-sm text-muted-foreground">Trade Bitcoin, Ethereum, and more</p></div>
+              <LiveBadge timestamp={cryptoData?.timestamp} />
+            </div>
+            {cryptoLoading ? <SkeletonGrid /> : cryptoError ? <MarketError onRetry={() => refetchCrypto()} /> : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {cryptos.map((crypto) => (
+                  <Card key={crypto.symbol} className="hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="font-semibold text-lg">{crypto.name}</p>
+                          <p className="text-sm text-muted-foreground">{crypto.symbol}</p>
+                        </div>
+                        <DataBadge meta={crypto._meta} />
+                      </div>
+                      <p className="text-2xl font-bold mb-1">${crypto.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                      <div className="flex items-center justify-between">
+                        <p className={`text-sm flex items-center gap-1 ${crypto.change_24h >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                          {crypto.change_24h >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                          {crypto.change_24h >= 0 ? '+' : ''}{crypto.change_24h.toFixed(2)}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">{formatMarketCap(crypto.market_cap)}</p>
+                      </div>
+                      <Button size="sm" className="w-full mt-3">Trade</Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           {/* Forex */}
           <TabsContent value="forex">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div><CardTitle>Forex Trading</CardTitle><CardDescription>Trade major and GHS currency pairs</CardDescription></div>
-                  <LiveBadge timestamp={forexData?.timestamp} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                {forexLoading ? <SkeletonRows /> : forexError ? <MarketError onRetry={() => refetchForex()} /> : (
-                  <div className="space-y-2">
-                    {forex.map((pair) => (
-                      <div key={pair.pair} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-cflp-blue/10 flex items-center justify-center"><DollarSign className="h-6 w-6 text-cflp-blue" /></div>
-                          <div>
-                            <p className="font-semibold">{pair.pair}</p>
-                            <p className={`text-sm flex items-center gap-1 ${pair.change_percent >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                              {pair.change_percent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                              {pair.change_percent >= 0 ? '+' : ''}{pair.change_percent}%
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-center"><p className="text-sm text-muted-foreground">Bid</p><p className="font-semibold">{pair.bid}</p></div>
-                        <div className="text-center"><p className="text-sm text-muted-foreground">Ask</p><p className="font-semibold">{pair.ask}</p></div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="text-cflp-green border-cflp-green hover:bg-cflp-green hover:text-white">Buy</Button>
-                          <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
-                        </div>
-                      </div>
-                    ))}
+            <div className="flex items-center justify-between mb-4">
+              <div><h2 className="text-xl font-semibold">Forex Trading</h2><p className="text-sm text-muted-foreground">Trade major and GHS currency pairs</p></div>
+              <LiveBadge timestamp={forexData?.timestamp} />
+            </div>
+            {forexLoading ? <SkeletonGrid /> : forexError ? <MarketError onRetry={() => refetchForex()} /> : (
+              <div className="space-y-6">
+                {africanForex.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">African Pairs</h3>
+                    <div className="space-y-2">
+                      {africanForex.map(pair => <ForexRow key={pair.pair} pair={pair} />)}
+                    </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+                {majorForex.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Major Pairs</h3>
+                    <div className="space-y-2">
+                      {majorForex.map(pair => <ForexRow key={pair.pair} pair={pair} />)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           {/* Commodities */}
           <TabsContent value="commodities">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div><CardTitle>Commodities Trading</CardTitle><CardDescription>Trade Gold, Cocoa, Oil, and more</CardDescription></div>
-                  <LiveBadge timestamp={commoditiesData?.timestamp} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                {commoditiesLoading ? <SkeletonRows /> : commoditiesError ? <MarketError onRetry={() => refetchCommodities()} /> : (
-                  <div className="space-y-2">
-                    {commodities.map((c) => (
-                      <div key={c.symbol} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-cflp-gold/10 flex items-center justify-center"><Coins className="h-6 w-6 text-cflp-gold" /></div>
-                          <div><p className="font-semibold">{c.name}</p><p className="text-sm text-muted-foreground">{c.symbol}</p></div>
+            <div className="flex items-center justify-between mb-4">
+              <div><h2 className="text-xl font-semibold">Commodities Trading</h2><p className="text-sm text-muted-foreground">Trade Gold, Cocoa, Oil, and more</p></div>
+              <LiveBadge timestamp={commoditiesData?.timestamp} />
+            </div>
+            {commoditiesLoading ? <SkeletonGrid /> : commoditiesError ? <MarketError onRetry={() => refetchCommodities()} /> : (
+              <div className="space-y-6">
+                {[
+                  { title: 'Metals', items: metalCommodities },
+                  { title: 'Energy', items: energyCommodities },
+                  { title: 'Agricultural', items: agriCommodities },
+                ].map(group => group.items.length > 0 && (
+                  <div key={group.title}>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">{group.title}</h3>
+                    <div className="space-y-2">
+                      {group.items.map(c => (
+                        <div key={c.symbol} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors gap-3">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center"><Coins className="h-5 w-5 text-amber-700 dark:text-amber-400" /></div>
+                            <div><p className="font-semibold">{c.name}</p><p className="text-sm text-muted-foreground">{c.symbol}</p></div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">${c.price.toLocaleString()}{c.unit}</p>
+                            <p className={`text-sm flex items-center justify-end gap-1 ${c.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                              {c.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                              {c.change_percent >= 0 ? '+' : ''}{c.change_percent}%
+                            </p>
+                          </div>
+                          <DataBadge meta={c._meta} />
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white">Buy</Button>
+                            <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold">${c.price.toLocaleString()}{c.unit}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${c.change_percent >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                            {c.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                            {c.change_percent >= 0 ? '+' : ''}{c.change_percent}%
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="text-cflp-green border-cflp-green hover:bg-cflp-green hover:text-white">Buy</Button>
-                          <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Crypto */}
-          <TabsContent value="crypto">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div><CardTitle>Crypto Trading</CardTitle><CardDescription>Trade Bitcoin, Ethereum, and more</CardDescription></div>
-                  <LiveBadge timestamp={cryptoData?.timestamp} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                {cryptoLoading ? <SkeletonRows /> : cryptoError ? <MarketError onRetry={() => refetchCrypto()} /> : (
-                  <div className="space-y-2">
-                    {cryptos.map((crypto) => (
-                      <div key={crypto.symbol} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center"><Bitcoin className="h-6 w-6 text-primary" /></div>
-                          <div><p className="font-semibold">{crypto.name}</p><p className="text-sm text-muted-foreground">{crypto.symbol}</p></div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">${crypto.price.toLocaleString()}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${crypto.change_24h >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                            {crypto.change_24h >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                            {crypto.change_24h >= 0 ? '+' : ''}{crypto.change_24h.toFixed(2)}%
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="text-cflp-green border-cflp-green hover:bg-cflp-green hover:text-white">Buy</Button>
-                          <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
