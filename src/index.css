@@ -38,7 +38,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem;
 
     /* CFLP Certificate Colors */
     --cflp-green: 142 76% 36%;
@@ -141,6 +141,30 @@
 
   body {
     @apply bg-background text-foreground;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+  }
+
+  h1, h2 {
+    font-weight: 700;
+  }
+
+  /* Smooth transitions on all interactive elements */
+  button, a, input, select, textarea,
+  [role="button"], [tabindex] {
+    transition: all 0.25s ease;
+  }
+
+  /* Pointer cursor on clickable elements */
+  button, a, [role="button"], [tabindex="0"],
+  label[for], select, summary {
+    cursor: pointer;
   }
 }
 
@@ -157,27 +181,5 @@
   }
   .certificate-blue {
     @apply bg-[hsl(var(--cflp-blue))] text-[hsl(var(--cflp-blue-foreground))];
-  }
-  
-  /* Glassmorphic card utilities */
-  .glass-card {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl 
-           border border-white/30 dark:border-gray-700/30 
-           shadow-lg shadow-black/5 rounded-lg;
-  }
-  .glass-card-primary {
-    @apply bg-[hsl(var(--primary)/0.1)] backdrop-blur-xl 
-           border border-[hsl(var(--primary)/0.2)] 
-           shadow-lg shadow-[hsl(var(--primary)/0.05)] rounded-lg;
-  }
-  .glass-card-gold {
-    @apply bg-[hsl(var(--cflp-gold)/0.1)] backdrop-blur-xl 
-           border border-[hsl(var(--cflp-gold)/0.2)] 
-           shadow-lg shadow-[hsl(var(--cflp-gold)/0.05)] rounded-lg;
-  }
-  .glass-card-green {
-    @apply bg-[hsl(var(--cflp-green)/0.1)] backdrop-blur-xl 
-           border border-[hsl(var(--cflp-green)/0.2)] 
-           shadow-lg shadow-[hsl(var(--cflp-green)/0.05)] rounded-lg;
   }
 }
