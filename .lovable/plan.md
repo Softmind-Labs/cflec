@@ -1,145 +1,165 @@
 
 
-# Fix and Expand Market-Data Edge Function
+# Comprehensive Market Data & Simulator Pages Update
 
 ## Overview
 
-Comprehensive overhaul of the `market-data` edge function: remove all `Math.random()`, add API key validation, expand coverage across all asset classes, add T-Bills, add `_meta` data quality fields, and update the frontend hook types to match.
-
-## Changes
-
-### 1. Edge Function (`supabase/functions/market-data/index.ts`)
-
-**Cache TTLs** -- Replace the two constants with per-type TTLs:
-
-| Type | TTL |
-|------|-----|
-| Crypto | 60s |
-| Stocks | 120s |
-| Forex | 60s |
-| GSE | 600s |
-| Commodities | 120s |
-| T-Bills | 86400s |
-
-**API Key Validation** -- Each fetch function checks for its required key at the top. If missing, logs `console.warn()` and returns fallback data immediately with `_meta.source: "fallback"`.
-
-**fetchCrypto()** changes:
-- Expand IDs to: bitcoin, ethereum, solana, cardano, binancecoin, ripple, dogecoin, avalanche-2, chainlink, polkadot, uniswap, litecoin, stellar, algorand
-- Expand nameMap with all 14 coins
-- Add `_meta` field to response
-
-**fetchStocks(symbols)** changes:
-- Default symbols expanded to ~60 stocks covering US Tech, Finance, Healthcare, Energy, Consumer, and ETFs
-- Expand nameMap with all new symbols and proper company names
-- Add `sector` field to each stock object using a sectorMap
-- Add `_meta` field
-
-**fetchForex()** changes:
-- Remove `Math.random()` for `change_percent`
-- Fetch real previous close from Finnhub's quote endpoint (`/api/v1/quote?symbol=OANDA:USD_GHS`) for each pair to compute real change
-- If quote endpoint fails, set `change_percent: 0` and `simulated: true`
-- Expand pairs: USD/GHS, EUR/GHS, GBP/GHS, USD/NGN, USD/ZAR, EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, EUR/GBP, XAU/USD
-- Add `_meta` field
-
-**fetchGSE()** changes:
-- Update fallback with 15 stocks at current approximate prices: MTN (2.20), GCB (6.50), GOIL (2.10), SCB (25.00), TOTAL (4.50), FML (1.80), ECOBANK (9.50), GGBL (1.15), CAL (1.60), EGL (3.40), BOPP (3.80), UNIL (12.00), SOGEGH (1.05), ACCESS (4.20), MTNGH (2.20)
-- Add `_meta` field
-
-**fetchCommodities()** changes:
-- Remove `Math.random()` for `change_percent`
-- For metals (XAU, XAG): fetch current rate and use a second call or stored previous rate to compute real change. If unavailable, set `change_percent: 0` and `simulated: true`
-- Expand to 10 commodities with `category` field: Gold (metal), Silver (metal), Crude Oil WTI (energy), Brent Crude (energy), Natural Gas (energy), Cocoa (agricultural), Coffee (agricultural), Corn (agricultural), Wheat (agricultural), Copper (metal)
-- Non-metal commodities use Finnhub commodity candle endpoint where possible, fallback with `simulated: true`
-- Add `_meta` field
-
-**New fetchTBills() function:**
-- Returns Bank of Ghana T-Bill rates as static data
-- Structure: `{ tenor: "91-day", rate: 27.5, type: "Treasury Bill", currency: "GHS", updated: "2025-02-22", source: "Bank of Ghana" }`
-- Three entries: 91-day, 182-day, 364-day
-- Uses 86400s cache TTL
-- Add `_meta` field with source: "bog" (Bank of Ghana)
-
-**Switch/case update:**
-- Add `case "tbills"` calling `fetchTBills()`
-- Update error message to include "tbills" in valid types list
-
-**Response wrapper:**
-- Every response includes `_meta: { source, cached, simulated }` per item
-- The `getCached` function is updated to return `{ data, cached: true }` when cache hit
-- Each fetch function wraps items with `_meta` before returning
-
-### 2. Frontend Hook (`src/hooks/useMarketData.ts`)
-
-- Add `'tbills'` to the `MarketType` union
-- Add `TBillData` interface: `{ tenor, rate, type, currency, updated, source }`
-- Add `sector` field to `StockData`
-- Add `simulated?: boolean` and `_meta?: { source: string; cached: boolean; simulated: boolean }` to all data interfaces
-- Add `category?: string` to `CommodityData`
-- Update `MarketDataMap` to include `tbills: TBillData[]`
-
-### 3. Frontend Type (`src/types/index.ts`)
-
-No changes needed -- the existing types are for DB mock stocks, not market data API.
+Six-part update: switch forex to Alpaca, rebuild Banking page with live T-Bills, enhance Investment page with sector tabs and search, expand Trading page with grouped data, create a reusable DataBadge component, and verify all env keys.
 
 ---
 
-## Technical Details
+## Part 1: Switch Forex to Alpaca (Edge Function)
 
-### Files Modified
+**File:** `supabase/functions/market-data/index.ts`
 
-| File | Summary |
-|------|---------|
-| `supabase/functions/market-data/index.ts` | Full rewrite of function body (same structure, CORS, serve pattern preserved) |
-| `src/hooks/useMarketData.ts` | Add TBillData interface, update MarketType union, add sector/simulated/category fields |
+Replace the `fetchForex()` function (lines 187-280):
 
-### Math.random() Removal Strategy
+- Remove all Finnhub-based forex fetching logic and the `forexPairsConfig` array
+- New implementation uses Alpaca endpoint: `https://data.alpaca.markets/v1beta3/forex/latest/rates`
+- Auth via existing `ALPACA_API_KEY` and `ALPACA_API_SECRET` headers (`APCA-API-KEY-ID`, `APCA-API-SECRET-KEY`)
+- Alpaca-supported pairs: USD/GHS, EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, EUR/GBP, XAU/USD
+- For each pair, fetch the rate, compute bid/ask with a small spread, and use previous close if available for `change_percent`
+- African pairs not on Alpaca (USD/NGN, USD/ZAR, EUR/GHS, GBP/GHS) remain in `forexFallback` with `simulated: true` and `_meta.source: "fallback"`
+- Keep `forexFallback` array but update `_meta` source to `"alpaca"` for Alpaca-sourced items
+- Cache TTL remains 60s
+- Response structure unchanged: `{ pair, bid, ask, change_percent, simulated, _meta }`
 
-| Function | Current | New Approach |
-|----------|---------|-------------|
-| fetchForex | `Math.random() * 0.6 - 0.3` | Fetch Finnhub quote for forex symbol, compute `(current - previousClose) / previousClose * 100`. Fallback: `change_percent: 0, simulated: true` |
-| fetchCommodities | `Math.random() * 2 - 1` | For metals: use Finnhub forex/rates twice (current vs cached previous) or candle endpoint. For others: use candle endpoint. Fallback: `change_percent: 0, simulated: true` |
+---
 
-### _meta Field Structure
+## Part 2: Rebuild Banking Simulator Page
 
-Each data item gets an `_meta` object:
-```text
-{
-  source: "alpaca" | "coingecko" | "finnhub" | "gse" | "bog" | "fallback",
-  cached: true | false,
-  simulated: true | false
+**File:** `src/pages/simulator/SimulatorBanking.tsx` -- full rewrite of content (same MainLayout wrapper)
+
+### Section 1: T-Bills (Live Data)
+- Import and use `useMarketData('tbills')` hook
+- Display 3 cards in a responsive grid (1 col mobile, 3 col desktop)
+- Each card shows: tenor heading ("91-Day T-Bill"), rate as large bold number, "Annual Yield" label, "Bank of Ghana" source in muted text, updated date, "Simulated Investment" button
+- Show loading skeleton while fetching
+- Show DataBadge per card based on `_meta`
+
+### Section 2: Fixed Deposit Calculator
+- Single calculator Card with inputs:
+  - Principal Amount (GHS) -- number input
+  - Interest Rate (% p.a.) -- number input, default 22
+  - Tenure -- Select dropdown: 3, 6, 9, 12, 24 months
+  - Institution -- Select dropdown: GCB Bank, Ecobank, Absa Bank, Fidelity Bank, Stanbic Bank
+- "Calculate" button triggers client-side computation
+- Formula: `Interest = Principal x Rate/100 x Tenure/12`
+- Results section (conditionally rendered after calculate):
+  - Maturity Amount, Interest Earned, Effective Monthly Rate
+  - Visual bar showing Principal vs Interest proportions
+
+### Section 3: Savings Account Rates
+- Static Card with a table of 5 banks:
+  - GCB Bank 8.5% GHS 50, Ecobank 9.0% GHS 100, Absa 8.0% GHS 200, Fidelity 10.5% GHS 50, Stanbic 9.5% GHS 100
+- Disclaimer note: "Rates are indicative. Contact your bank for current offers."
+- DataBadge showing "Simulated"
+
+### Remove
+- Remove old `glass-card` and `glass-card-primary` class references
+- Remove the old portfolio overview cards (they showed hardcoded mock values)
+
+---
+
+## Part 3: Update Investment Page -- Stock Sector Tabs
+
+**File:** `src/pages/simulator/SimulatorInvestment.tsx`
+
+Changes to the World Markets tab content:
+
+- Remove the hardcoded `symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA,META'` param -- fetch all default symbols instead
+- Add a search bar above the sector tabs to filter by symbol or company name
+- Add sector sub-tabs inside the World Markets tab: All | Technology | Finance | Healthcare | Energy | Consumer | ETFs
+- Default tab: All
+- Each stock row/card shows:
+  - Symbol (bold) + Company name (muted)
+  - Sector badge (small colored pill)
+  - Current price (bold)
+  - Change % with green/red color and arrow icon
+  - Day high / Day low
+  - "Trade" button
+  - DataBadge per item based on `_meta.simulated`
+- Remove `glass-card-green` and `glass-card` class references on portfolio overview cards
+- GSE section remains unchanged
+
+---
+
+## Part 4: Update Trading Page
+
+**File:** `src/pages/simulator/SimulatorTrading.tsx`
+
+### Crypto Section
+- Already fetches via `useMarketData('crypto')` -- enhance display
+- Switch to a card grid layout (2 cols on md, 3 on lg)
+- Each card shows: coin name + symbol, price in USD, 24h change % (green/red with arrow), market cap abbreviated (e.g. "$1.2T", "$45.6B"), "Trade" button, DataBadge
+- Market cap formatting helper: values >= 1T show as "T", >= 1B as "B", >= 1M as "M"
+
+### Forex Section
+- Already fetches via `useMarketData('forex')` -- enhance display
+- Group into two visual sections: "African Pairs" (USD/GHS, EUR/GHS, GBP/GHS, USD/NGN, USD/ZAR) and "Major Pairs" (rest)
+- Each row shows: pair, bid, ask, spread (ask - bid, formatted to 4 decimal places for small values), change %, DataBadge
+- Keep existing Buy/Sell buttons
+
+### Commodities Section
+- Already fetches via `useMarketData('commodities')` -- enhance display
+- Group by category using sub-headings: "Metals", "Energy", "Agricultural"
+- Each item shows: name, price + unit, change %, DataBadge
+- Keep existing Buy/Sell buttons
+
+### Remove
+- Remove `glass-card-gold` and `glass-card` class references on balance cards
+
+---
+
+## Part 5: DataBadge Component
+
+**New file:** `src/components/simulator/DataBadge.tsx`
+
+```
+interface DataBadgeProps {
+  meta?: { source: string; cached: boolean; simulated: boolean };
 }
 ```
 
-The top-level response also includes a global `_meta`:
-```text
-{
-  data: [...items with _meta...],
-  timestamp: 1234567890,
-  _meta: { source: "alpaca", cached: false, simulated: false }
-}
-```
+Logic:
+- If `meta.simulated === true`: orange dot + "Simulated"
+- Else if `meta.cached === true`: blue dot + "Cached"
+- Else: green dot + "Live"
 
-### Default Stock Symbols (60 total)
+Styling: small inline Badge with `variant="outline"`, 2px dot, `text-xs`, non-intrusive. Similar to existing `LiveBadge` but driven by `_meta`.
 
-US Tech (15): AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA, AMD, INTC, CRM, ORCL, ADBE, NFLX, UBER, PYPL
+Usage: Replace the existing `LiveBadge` on Trading/Investment pages with per-item `DataBadge` where `_meta` is available. Keep `LiveBadge` for the top-level timestamp display.
 
-Finance (10): JPM, BAC, GS, V, MA, BRK.B, C, WFC, AXP, MS
+---
 
-Healthcare (8): JNJ, PFE, UNH, ABBV, MRK, LLY, BMY, AMGN
+## Part 6: Environment Variable Verification
 
-Energy (5): XOM, CVX, COP, SLB, EOG
+Confirm in the edge function that all keys are accessed via `Deno.env.get()`:
+- `ALPACA_API_KEY` -- already used in `fetchStocks()`, will also be used in new `fetchForex()`
+- `ALPACA_API_SECRET` -- same
+- `FINNHUB_API_KEY` -- used in `fetchCommodities()` (forex no longer uses it)
+- `COINGECKO_API_KEY` -- used in `fetchCrypto()`
 
-Consumer (8): WMT, MCD, KO, PEP, NKE, SBUX, DIS, HD
+No hardcoded values. All four secrets already exist in Supabase secrets.
 
-ETFs (10): SPY, QQQ, GLD, VTI, IVV, AGG, VEA, EEM, IAU, SLV
+---
 
-### Expanded Crypto (14 coins)
+## Files Summary
 
-bitcoin (BTC), ethereum (ETH), solana (SOL), cardano (ADA), binancecoin (BNB), ripple (XRP), dogecoin (DOGE), avalanche-2 (AVAX), chainlink (LINK), polkadot (DOT), uniswap (UNI), litecoin (LTC), stellar (XLM), algorand (ALGO)
+| File | Action | Description |
+|------|--------|-------------|
+| `supabase/functions/market-data/index.ts` | Modify | Replace fetchForex() with Alpaca implementation |
+| `src/components/simulator/DataBadge.tsx` | Create | Reusable Live/Simulated/Cached badge component |
+| `src/pages/simulator/SimulatorBanking.tsx` | Rewrite | 3 sections: live T-Bills, FD calculator, savings rates |
+| `src/pages/simulator/SimulatorInvestment.tsx` | Modify | Add sector tabs, search bar, DataBadge, remove glass classes |
+| `src/pages/simulator/SimulatorTrading.tsx` | Modify | Card grid crypto, grouped forex/commodities, DataBadge, remove glass classes |
 
 ### Implementation Order
+1. Create DataBadge component
+2. Update edge function (forex to Alpaca)
+3. Deploy edge function
+4. Rewrite SimulatorBanking page
+5. Update SimulatorInvestment page
+6. Update SimulatorTrading page
+7. Test all endpoints via curl
 
-1. Rewrite the edge function with all expansions
-2. Update the frontend hook types
-3. Deploy the edge function
-4. Test each endpoint type via curl
