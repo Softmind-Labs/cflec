@@ -185,90 +185,29 @@ async function fetchStocks(symbols: string) {
 }
 
 // ─── FOREX ─────────────────────────────────────────────────────────
-const forexPairsConfig = [
-  { pair: "USD/GHS", from: "USD", to: "GHS", finnhubSymbol: "OANDA:USD_GHS" },
-  { pair: "EUR/GHS", from: "EUR", to: "GHS", finnhubSymbol: "OANDA:EUR_GHS" },
-  { pair: "GBP/GHS", from: "GBP", to: "GHS", finnhubSymbol: "OANDA:GBP_GHS" },
-  { pair: "USD/NGN", from: "USD", to: "NGN", finnhubSymbol: "OANDA:USD_NGN" },
-  { pair: "USD/ZAR", from: "USD", to: "ZAR", finnhubSymbol: "OANDA:USD_ZAR" },
-  { pair: "EUR/USD", from: "EUR", to: "USD", finnhubSymbol: "OANDA:EUR_USD" },
-  { pair: "GBP/USD", from: "GBP", to: "USD", finnhubSymbol: "OANDA:GBP_USD" },
-  { pair: "USD/JPY", from: "USD", to: "JPY", finnhubSymbol: "OANDA:USD_JPY" },
-  { pair: "USD/CHF", from: "USD", to: "CHF", finnhubSymbol: "OANDA:USD_CHF" },
-  { pair: "AUD/USD", from: "AUD", to: "USD", finnhubSymbol: "OANDA:AUD_USD" },
-  { pair: "USD/CAD", from: "USD", to: "CAD", finnhubSymbol: "OANDA:USD_CAD" },
-  { pair: "EUR/GBP", from: "EUR", to: "GBP", finnhubSymbol: "OANDA:EUR_GBP" },
-  { pair: "XAU/USD", from: "XAU", to: "USD", finnhubSymbol: "OANDA:XAU_USD" },
+// Pairs to fetch from Alpaca
+const alpacaForexPairs = [
+  { pair: "USD/GHS", base: "USD", quote: "GHS" },
+  { pair: "EUR/USD", base: "EUR", quote: "USD" },
+  { pair: "GBP/USD", base: "GBP", quote: "USD" },
+  { pair: "USD/JPY", base: "USD", quote: "JPY" },
+  { pair: "USD/CHF", base: "USD", quote: "CHF" },
+  { pair: "AUD/USD", base: "AUD", quote: "USD" },
+  { pair: "USD/CAD", base: "USD", quote: "CAD" },
+  { pair: "EUR/GBP", base: "EUR", quote: "GBP" },
+  { pair: "XAU/USD", base: "XAU", quote: "USD" },
 ];
 
-async function fetchForex() {
-  const hit = getCached("forex", "forex");
-  if (hit) return { data: hit.data, _meta: meta("finnhub", true, false) };
-
-  const apiKey = Deno.env.get("FINNHUB_API_KEY") || "";
-  if (!apiKey) {
-    console.warn("FINNHUB_API_KEY not set – returning fallback forex data");
-    const fallback = forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) }));
-    return { data: fallback, _meta: meta("fallback", false, true) };
-  }
-
-  try {
-    // Fetch all quotes in parallel
-    const quotePromises = forexPairsConfig.map(async (cfg) => {
-      try {
-        const url = `https://finnhub.io/api/v1/quote?symbol=${cfg.finnhubSymbol}&token=${apiKey}`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const q = await res.json();
-        // q.c = current, q.pc = previous close
-        if (!q.c || q.c === 0) return null;
-        const change = q.pc && q.pc > 0 ? Number(((q.c - q.pc) / q.pc * 100).toFixed(2)) : 0;
-        const simulated = !q.pc || q.pc === 0;
-        const spread = q.c * 0.003;
-        return {
-          pair: cfg.pair,
-          bid: Number((q.c - spread / 2).toFixed(q.c < 10 ? 4 : 2)),
-          ask: Number((q.c + spread / 2).toFixed(q.c < 10 ? 4 : 2)),
-          change_percent: change,
-          simulated,
-          _meta: meta("finnhub", false, simulated),
-        };
-      } catch {
-        return null;
-      }
-    });
-
-    const results = await Promise.all(quotePromises);
-
-    // Fill in any failed pairs from fallback
-    const data = forexPairsConfig.map((cfg, i) => {
-      if (results[i]) return results[i];
-      const fb = forexFallback.find(f => f.pair === cfg.pair);
-      return {
-        pair: cfg.pair,
-        bid: fb?.bid ?? 0,
-        ask: fb?.ask ?? 0,
-        change_percent: 0,
-        simulated: true,
-        _meta: meta("fallback", false, true),
-      };
-    });
-
-    setCache("forex", data);
-    return { data, _meta: meta("finnhub", false, false) };
-  } catch (e) {
-    console.error("Finnhub forex failed:", e);
-    const fallback = forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) }));
-    return { data: fallback, _meta: meta("fallback", false, true) };
-  }
-}
+// African pairs not available on Alpaca – always fallback
+const africanFallbackPairs = [
+  { pair: "USD/NGN", bid: 1550.00, ask: 1555.00, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
+  { pair: "USD/ZAR", bid: 18.10, ask: 18.15, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
+  { pair: "EUR/GHS", bid: 16.20, ask: 16.35, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
+  { pair: "GBP/GHS", bid: 18.90, ask: 19.05, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
+];
 
 const forexFallback = [
   { pair: "USD/GHS", bid: 14.85, ask: 14.95, change_percent: 0, simulated: true },
-  { pair: "EUR/GHS", bid: 16.20, ask: 16.35, change_percent: 0, simulated: true },
-  { pair: "GBP/GHS", bid: 18.90, ask: 19.05, change_percent: 0, simulated: true },
-  { pair: "USD/NGN", bid: 1550.00, ask: 1555.00, change_percent: 0, simulated: true },
-  { pair: "USD/ZAR", bid: 18.10, ask: 18.15, change_percent: 0, simulated: true },
   { pair: "EUR/USD", bid: 1.085, ask: 1.087, change_percent: 0, simulated: true },
   { pair: "GBP/USD", bid: 1.268, ask: 1.270, change_percent: 0, simulated: true },
   { pair: "USD/JPY", bid: 149.80, ask: 149.90, change_percent: 0, simulated: true },
@@ -278,6 +217,69 @@ const forexFallback = [
   { pair: "EUR/GBP", bid: 0.855, ask: 0.857, change_percent: 0, simulated: true },
   { pair: "XAU/USD", bid: 2920.00, ask: 2925.00, change_percent: 0, simulated: true },
 ];
+
+async function fetchForex() {
+  const hit = getCached("forex", "forex");
+  if (hit) return { data: hit.data, _meta: meta("alpaca", true, false) };
+
+  const apiKey = Deno.env.get("ALPACA_API_KEY") || "";
+  const apiSecret = Deno.env.get("ALPACA_API_SECRET") || "";
+
+  if (!apiKey || !apiSecret) {
+    console.warn("ALPACA keys not set – returning fallback forex data");
+    const fallback = [...forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) })), ...africanFallbackPairs];
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
+
+  try {
+    // Fetch latest forex rates from Alpaca
+    const currencyPairs = alpacaForexPairs.map(p => `${p.base}/${p.quote}`).join(",");
+    const url = `https://data.alpaca.markets/v1beta3/forex/latest/rates?currency_pairs=${encodeURIComponent(currencyPairs)}`;
+    const res = await fetch(url, {
+      headers: { "APCA-API-KEY-ID": apiKey, "APCA-API-SECRET-KEY": apiSecret },
+    });
+
+    if (!res.ok) throw new Error(`Alpaca forex error: ${res.status}`);
+    const raw = await res.json();
+    const rates = raw.rates || {};
+
+    const alpacaResults = alpacaForexPairs.map((cfg) => {
+      const rateKey = `${cfg.base}/${cfg.quote}`;
+      const r = rates[rateKey];
+
+      if (r && r.bp && r.ap) {
+        // bp = bid price, ap = ask price, mp = mid price
+        const bid = Number(r.bp);
+        const ask = Number(r.ap);
+        // Compute change from previous close if available
+        const prevClose = r.pc ?? 0;
+        const mid = (bid + ask) / 2;
+        const change = prevClose > 0 ? Number(((mid - prevClose) / prevClose * 100).toFixed(2)) : 0;
+        const simulated = prevClose === 0;
+        return {
+          pair: cfg.pair, bid, ask, change_percent: change, simulated,
+          _meta: meta("alpaca", false, simulated),
+        };
+      }
+
+      // Fallback for this pair
+      const fb = forexFallback.find(f => f.pair === cfg.pair);
+      return {
+        pair: cfg.pair, bid: fb?.bid ?? 0, ask: fb?.ask ?? 0,
+        change_percent: 0, simulated: true,
+        _meta: meta("fallback", false, true),
+      };
+    });
+
+    const data = [...alpacaResults, ...africanFallbackPairs];
+    setCache("forex", data);
+    return { data, _meta: meta("alpaca", false, false) };
+  } catch (e) {
+    console.error("Alpaca forex failed:", e);
+    const fallback = [...forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) })), ...africanFallbackPairs];
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
+}
 
 // ─── GSE ───────────────────────────────────────────────────────────
 async function fetchGSE() {
