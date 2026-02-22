@@ -8,12 +8,21 @@ const corsHeaders = {
 
 // In-memory cache
 const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL_FAST = 60_000;
-const CACHE_TTL_SLOW = 300_000;
 
-function getCached(key: string, ttl: number) {
+// Per-type TTLs (ms)
+const CACHE_TTL: Record<string, number> = {
+  crypto: 60_000,
+  stocks: 120_000,
+  forex: 60_000,
+  gse: 600_000,
+  commodities: 120_000,
+  tbills: 86_400_000,
+};
+
+function getCached(key: string, type: string): { data: unknown; cached: true } | null {
+  const ttl = CACHE_TTL[type] ?? 60_000;
   const entry = cache.get(key);
-  if (entry && Date.now() - entry.timestamp < ttl) return entry.data;
+  if (entry && Date.now() - entry.timestamp < ttl) return { data: entry.data, cached: true };
   return null;
 }
 
@@ -21,12 +30,26 @@ function setCache(key: string, data: unknown) {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
+function meta(source: string, cached: boolean, simulated: boolean) {
+  return { source, cached, simulated };
+}
+
+// ─── CRYPTO ────────────────────────────────────────────────────────
 async function fetchCrypto() {
-  const cached = getCached("crypto", CACHE_TTL_FAST);
-  if (cached) return cached;
+  const hit = getCached("crypto", "crypto");
+  if (hit) return { data: hit.data, _meta: meta("coingecko", true, false) };
 
   const apiKey = Deno.env.get("COINGECKO_API_KEY") || "";
-  const ids = "bitcoin,ethereum,solana,cardano";
+  if (!apiKey) {
+    console.warn("COINGECKO_API_KEY not set – returning fallback crypto data");
+    const fallback = Object.entries(cryptoNameMap).map(([id, info]) => ({
+      id, name: info.name, symbol: info.symbol, price: 0, change_24h: 0, market_cap: 0,
+      _meta: meta("fallback", false, true),
+    }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
+
+  const ids = Object.keys(cryptoNameMap).join(",");
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`;
 
   const headers: Record<string, string> = { accept: "application/json" };
@@ -36,42 +59,94 @@ async function fetchCrypto() {
   if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
   const raw = await res.json();
 
-  const nameMap: Record<string, { name: string; symbol: string }> = {
-    bitcoin: { name: "Bitcoin", symbol: "BTC" },
-    ethereum: { name: "Ethereum", symbol: "ETH" },
-    solana: { name: "Solana", symbol: "SOL" },
-    cardano: { name: "Cardano", symbol: "ADA" },
-  };
-
   const data = Object.entries(raw).map(([id, v]: [string, any]) => ({
     id,
-    name: nameMap[id]?.name || id,
-    symbol: nameMap[id]?.symbol || id.toUpperCase(),
+    name: cryptoNameMap[id]?.name || id,
+    symbol: cryptoNameMap[id]?.symbol || id.toUpperCase(),
     price: v.usd,
     change_24h: v.usd_24h_change ?? 0,
     market_cap: v.usd_market_cap ?? 0,
+    _meta: meta("coingecko", false, false),
   }));
 
   setCache("crypto", data);
-  return data;
+  return { data, _meta: meta("coingecko", false, false) };
 }
+
+const cryptoNameMap: Record<string, { name: string; symbol: string }> = {
+  bitcoin: { name: "Bitcoin", symbol: "BTC" },
+  ethereum: { name: "Ethereum", symbol: "ETH" },
+  solana: { name: "Solana", symbol: "SOL" },
+  cardano: { name: "Cardano", symbol: "ADA" },
+  binancecoin: { name: "BNB", symbol: "BNB" },
+  ripple: { name: "XRP", symbol: "XRP" },
+  dogecoin: { name: "Dogecoin", symbol: "DOGE" },
+  "avalanche-2": { name: "Avalanche", symbol: "AVAX" },
+  chainlink: { name: "Chainlink", symbol: "LINK" },
+  polkadot: { name: "Polkadot", symbol: "DOT" },
+  uniswap: { name: "Uniswap", symbol: "UNI" },
+  litecoin: { name: "Litecoin", symbol: "LTC" },
+  stellar: { name: "Stellar", symbol: "XLM" },
+  algorand: { name: "Algorand", symbol: "ALGO" },
+};
+
+// ─── STOCKS ────────────────────────────────────────────────────────
+const DEFAULT_SYMBOLS = [
+  "AAPL","MSFT","GOOGL","AMZN","TSLA","META","NVDA","AMD","INTC","CRM","ORCL","ADBE","NFLX","UBER","PYPL",
+  "JPM","BAC","GS","V","MA","BRK.B","C","WFC","AXP","MS",
+  "JNJ","PFE","UNH","ABBV","MRK","LLY","BMY","AMGN",
+  "XOM","CVX","COP","SLB","EOG",
+  "WMT","MCD","KO","PEP","NKE","SBUX","DIS","HD",
+  "SPY","QQQ","GLD","VTI","IVV","AGG","VEA","EEM","IAU","SLV",
+].join(",");
+
+const stockNameMap: Record<string, string> = {
+  AAPL:"Apple Inc.",MSFT:"Microsoft Corp.",GOOGL:"Alphabet Inc.",AMZN:"Amazon.com Inc.",TSLA:"Tesla Inc.",
+  META:"Meta Platforms Inc.",NVDA:"NVIDIA Corp.",AMD:"AMD Inc.",INTC:"Intel Corp.",CRM:"Salesforce Inc.",
+  ORCL:"Oracle Corp.",ADBE:"Adobe Inc.",NFLX:"Netflix Inc.",UBER:"Uber Technologies",PYPL:"PayPal Holdings",
+  JPM:"JPMorgan Chase",BAC:"Bank of America",GS:"Goldman Sachs",V:"Visa Inc.",MA:"Mastercard Inc.",
+  "BRK.B":"Berkshire Hathaway B",C:"Citigroup Inc.",WFC:"Wells Fargo",AXP:"American Express",MS:"Morgan Stanley",
+  JNJ:"Johnson & Johnson",PFE:"Pfizer Inc.",UNH:"UnitedHealth Group",ABBV:"AbbVie Inc.",MRK:"Merck & Co.",
+  LLY:"Eli Lilly",BMY:"Bristol-Myers Squibb",AMGN:"Amgen Inc.",
+  XOM:"Exxon Mobil",CVX:"Chevron Corp.",COP:"ConocoPhillips",SLB:"Schlumberger",EOG:"EOG Resources",
+  WMT:"Walmart Inc.",MCD:"McDonald's Corp.",KO:"Coca-Cola Co.",PEP:"PepsiCo Inc.",NKE:"Nike Inc.",
+  SBUX:"Starbucks Corp.",DIS:"Walt Disney Co.",HD:"Home Depot Inc.",
+  SPY:"SPDR S&P 500 ETF",QQQ:"Invesco QQQ Trust",GLD:"SPDR Gold Shares",VTI:"Vanguard Total Stock Mkt",
+  IVV:"iShares Core S&P 500",AGG:"iShares Core US Agg Bond",VEA:"Vanguard FTSE Dev Mkts",
+  EEM:"iShares MSCI Emerging Mkts",IAU:"iShares Gold Trust",SLV:"iShares Silver Trust",
+};
+
+const sectorMap: Record<string, string> = {
+  AAPL:"Technology",MSFT:"Technology",GOOGL:"Technology",AMZN:"Technology",TSLA:"Technology",
+  META:"Technology",NVDA:"Technology",AMD:"Technology",INTC:"Technology",CRM:"Technology",
+  ORCL:"Technology",ADBE:"Technology",NFLX:"Technology",UBER:"Technology",PYPL:"Technology",
+  JPM:"Finance",BAC:"Finance",GS:"Finance",V:"Finance",MA:"Finance",
+  "BRK.B":"Finance",C:"Finance",WFC:"Finance",AXP:"Finance",MS:"Finance",
+  JNJ:"Healthcare",PFE:"Healthcare",UNH:"Healthcare",ABBV:"Healthcare",MRK:"Healthcare",
+  LLY:"Healthcare",BMY:"Healthcare",AMGN:"Healthcare",
+  XOM:"Energy",CVX:"Energy",COP:"Energy",SLB:"Energy",EOG:"Energy",
+  WMT:"Consumer",MCD:"Consumer",KO:"Consumer",PEP:"Consumer",NKE:"Consumer",
+  SBUX:"Consumer",DIS:"Consumer",HD:"Consumer",
+  SPY:"ETF",QQQ:"ETF",GLD:"ETF",VTI:"ETF",IVV:"ETF",AGG:"ETF",VEA:"ETF",EEM:"ETF",IAU:"ETF",SLV:"ETF",
+};
 
 async function fetchStocks(symbols: string) {
   const cacheKey = `stocks_${symbols}`;
-  const cached = getCached(cacheKey, CACHE_TTL_SLOW);
-  if (cached) return cached;
+  const hit = getCached(cacheKey, "stocks");
+  if (hit) return { data: hit.data, _meta: meta("alpaca", true, false) };
 
   const apiKey = Deno.env.get("ALPACA_API_KEY") || "";
   const apiSecret = Deno.env.get("ALPACA_API_SECRET") || "";
 
-  const nameMap: Record<string, string> = {
-    AAPL: "Apple Inc.", MSFT: "Microsoft Corp.", GOOGL: "Alphabet Inc.",
-    AMZN: "Amazon.com Inc.", TSLA: "Tesla Inc.", META: "Meta Platforms Inc.",
-    NVDA: "NVIDIA Corp.", JPM: "JPMorgan Chase",
-    SPY: "SPDR S&P 500 ETF", GLD: "SPDR Gold Shares",
-    QQQ: "Invesco QQQ Trust", VTI: "Vanguard Total Stock Mkt",
-    IVV: "iShares Core S&P 500", AGG: "iShares Core US Aggregate Bond",
-  };
+  if (!apiKey || !apiSecret) {
+    console.warn("ALPACA keys not set – returning fallback stock data");
+    const fallback = symbols.split(",").map(s => ({
+      symbol: s, name: stockNameMap[s] || s, sector: sectorMap[s] || "Other",
+      price: 0, previous_close: 0, change_percent: 0, day_high: 0, day_low: 0,
+      _meta: meta("fallback", false, true),
+    }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
 
   try {
     const url = `https://data.alpaca.markets/v2/stocks/snapshots?symbols=${symbols}`;
@@ -84,75 +159,130 @@ async function fetchStocks(symbols: string) {
 
     const data = Object.entries(raw).map(([symbol, v]: [string, any]) => ({
       symbol,
-      name: nameMap[symbol] || symbol,
+      name: stockNameMap[symbol] || symbol,
+      sector: sectorMap[symbol] || "Other",
       price: v.latestTrade?.p ?? v.dailyBar?.c ?? 0,
       previous_close: v.prevDailyBar?.c ?? 0,
       change_percent: v.prevDailyBar?.c
-        ? (((v.latestTrade?.p ?? v.dailyBar?.c ?? 0) - v.prevDailyBar.c) / v.prevDailyBar.c) * 100
+        ? Number((((v.latestTrade?.p ?? v.dailyBar?.c ?? 0) - v.prevDailyBar.c) / v.prevDailyBar.c * 100).toFixed(2))
         : 0,
       day_high: v.dailyBar?.h ?? 0,
       day_low: v.dailyBar?.l ?? 0,
+      _meta: meta("alpaca", false, false),
     }));
 
     setCache(cacheKey, data);
-    return data;
+    return { data, _meta: meta("alpaca", false, false) };
   } catch (e) {
     console.error("Alpaca fetch failed:", e);
-    return symbols.split(",").map(s => ({
-      symbol: s, name: nameMap[s] || s, price: 0, previous_close: 0,
-      change_percent: 0, day_high: 0, day_low: 0,
+    const fallback = symbols.split(",").map(s => ({
+      symbol: s, name: stockNameMap[s] || s, sector: sectorMap[s] || "Other",
+      price: 0, previous_close: 0, change_percent: 0, day_high: 0, day_low: 0,
+      _meta: meta("fallback", false, true),
     }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
   }
 }
 
+// ─── FOREX ─────────────────────────────────────────────────────────
+const forexPairsConfig = [
+  { pair: "USD/GHS", from: "USD", to: "GHS", finnhubSymbol: "OANDA:USD_GHS" },
+  { pair: "EUR/GHS", from: "EUR", to: "GHS", finnhubSymbol: "OANDA:EUR_GHS" },
+  { pair: "GBP/GHS", from: "GBP", to: "GHS", finnhubSymbol: "OANDA:GBP_GHS" },
+  { pair: "USD/NGN", from: "USD", to: "NGN", finnhubSymbol: "OANDA:USD_NGN" },
+  { pair: "USD/ZAR", from: "USD", to: "ZAR", finnhubSymbol: "OANDA:USD_ZAR" },
+  { pair: "EUR/USD", from: "EUR", to: "USD", finnhubSymbol: "OANDA:EUR_USD" },
+  { pair: "GBP/USD", from: "GBP", to: "USD", finnhubSymbol: "OANDA:GBP_USD" },
+  { pair: "USD/JPY", from: "USD", to: "JPY", finnhubSymbol: "OANDA:USD_JPY" },
+  { pair: "USD/CHF", from: "USD", to: "CHF", finnhubSymbol: "OANDA:USD_CHF" },
+  { pair: "AUD/USD", from: "AUD", to: "USD", finnhubSymbol: "OANDA:AUD_USD" },
+  { pair: "USD/CAD", from: "USD", to: "CAD", finnhubSymbol: "OANDA:USD_CAD" },
+  { pair: "EUR/GBP", from: "EUR", to: "GBP", finnhubSymbol: "OANDA:EUR_GBP" },
+  { pair: "XAU/USD", from: "XAU", to: "USD", finnhubSymbol: "OANDA:XAU_USD" },
+];
+
 async function fetchForex() {
-  const cached = getCached("forex", CACHE_TTL_FAST);
-  if (cached) return cached;
+  const hit = getCached("forex", "forex");
+  if (hit) return { data: hit.data, _meta: meta("finnhub", true, false) };
 
   const apiKey = Deno.env.get("FINNHUB_API_KEY") || "";
+  if (!apiKey) {
+    console.warn("FINNHUB_API_KEY not set – returning fallback forex data");
+    const fallback = forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
 
   try {
-    const url = `https://finnhub.io/api/v1/forex/rates?base=USD&token=${apiKey}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Finnhub forex error: ${res.status}`);
-    const raw = await res.json();
-    const rates = raw.quote || {};
+    // Fetch all quotes in parallel
+    const quotePromises = forexPairsConfig.map(async (cfg) => {
+      try {
+        const url = `https://finnhub.io/api/v1/quote?symbol=${cfg.finnhubSymbol}&token=${apiKey}`;
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const q = await res.json();
+        // q.c = current, q.pc = previous close
+        if (!q.c || q.c === 0) return null;
+        const change = q.pc && q.pc > 0 ? Number(((q.c - q.pc) / q.pc * 100).toFixed(2)) : 0;
+        const simulated = !q.pc || q.pc === 0;
+        const spread = q.c * 0.003;
+        return {
+          pair: cfg.pair,
+          bid: Number((q.c - spread / 2).toFixed(q.c < 10 ? 4 : 2)),
+          ask: Number((q.c + spread / 2).toFixed(q.c < 10 ? 4 : 2)),
+          change_percent: change,
+          simulated,
+          _meta: meta("finnhub", false, simulated),
+        };
+      } catch {
+        return null;
+      }
+    });
 
-    const pairsConfig = [
-      { from: "USD", to: "GHS", rate: rates["GHS"] },
-      { from: "EUR", to: "GHS", rate: rates["GHS"] && rates["EUR"] ? rates["GHS"] / rates["EUR"] : 0 },
-      { from: "GBP", to: "GHS", rate: rates["GHS"] && rates["GBP"] ? rates["GHS"] / rates["GBP"] : 0 },
-      { from: "EUR", to: "USD", rate: rates["EUR"] ? 1 / rates["EUR"] : 0 },
-      { from: "GBP", to: "USD", rate: rates["GBP"] ? 1 / rates["GBP"] : 0 },
-    ];
+    const results = await Promise.all(quotePromises);
 
-    const results = pairsConfig.map(({ from, to, rate }) => {
-      const spread = rate * 0.003;
+    // Fill in any failed pairs from fallback
+    const data = forexPairsConfig.map((cfg, i) => {
+      if (results[i]) return results[i];
+      const fb = forexFallback.find(f => f.pair === cfg.pair);
       return {
-        pair: `${from}/${to}`,
-        bid: Number((rate - spread / 2).toFixed(rate < 10 ? 4 : 2)),
-        ask: Number((rate + spread / 2).toFixed(rate < 10 ? 4 : 2)),
-        change_percent: Number((Math.random() * 0.6 - 0.3).toFixed(2)),
+        pair: cfg.pair,
+        bid: fb?.bid ?? 0,
+        ask: fb?.ask ?? 0,
+        change_percent: 0,
+        simulated: true,
+        _meta: meta("fallback", false, true),
       };
     });
 
-    setCache("forex", results);
-    return results;
+    setCache("forex", data);
+    return { data, _meta: meta("finnhub", false, false) };
   } catch (e) {
     console.error("Finnhub forex failed:", e);
-    return [
-      { pair: "USD/GHS", bid: 14.85, ask: 14.95, change_percent: 0.15 },
-      { pair: "EUR/GHS", bid: 16.20, ask: 16.35, change_percent: -0.08 },
-      { pair: "GBP/GHS", bid: 18.90, ask: 19.05, change_percent: 0.22 },
-      { pair: "EUR/USD", bid: 1.085, ask: 1.087, change_percent: -0.12 },
-      { pair: "GBP/USD", bid: 1.268, ask: 1.270, change_percent: 0.05 },
-    ];
+    const fallback = forexFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
   }
 }
 
+const forexFallback = [
+  { pair: "USD/GHS", bid: 14.85, ask: 14.95, change_percent: 0, simulated: true },
+  { pair: "EUR/GHS", bid: 16.20, ask: 16.35, change_percent: 0, simulated: true },
+  { pair: "GBP/GHS", bid: 18.90, ask: 19.05, change_percent: 0, simulated: true },
+  { pair: "USD/NGN", bid: 1550.00, ask: 1555.00, change_percent: 0, simulated: true },
+  { pair: "USD/ZAR", bid: 18.10, ask: 18.15, change_percent: 0, simulated: true },
+  { pair: "EUR/USD", bid: 1.085, ask: 1.087, change_percent: 0, simulated: true },
+  { pair: "GBP/USD", bid: 1.268, ask: 1.270, change_percent: 0, simulated: true },
+  { pair: "USD/JPY", bid: 149.80, ask: 149.90, change_percent: 0, simulated: true },
+  { pair: "USD/CHF", bid: 0.878, ask: 0.880, change_percent: 0, simulated: true },
+  { pair: "AUD/USD", bid: 0.652, ask: 0.654, change_percent: 0, simulated: true },
+  { pair: "USD/CAD", bid: 1.355, ask: 1.357, change_percent: 0, simulated: true },
+  { pair: "EUR/GBP", bid: 0.855, ask: 0.857, change_percent: 0, simulated: true },
+  { pair: "XAU/USD", bid: 2920.00, ask: 2925.00, change_percent: 0, simulated: true },
+];
+
+// ─── GSE ───────────────────────────────────────────────────────────
 async function fetchGSE() {
-  const cached = getCached("gse", CACHE_TTL_SLOW);
-  if (cached) return cached;
+  const hit = getCached("gse", "gse");
+  if (hit) return { data: hit.data, _meta: meta("gse", true, false) };
 
   try {
     const res = await fetch("https://dev.kwayisi.org/apis/gse/live");
@@ -165,66 +295,147 @@ async function fetchGSE() {
       price: item.price ?? item.last_trade_price ?? 0,
       change: item.change ?? 0,
       volume: item.volume ?? 0,
+      _meta: meta("gse", false, false),
     }));
 
     setCache("gse", data);
-    return data;
+    return { data, _meta: meta("gse", false, false) };
   } catch (e) {
     console.error("GSE fetch failed:", e);
-    return [
-      { symbol: "MTN", name: "MTN Ghana", price: 1.25, change: 0, volume: 0 },
-      { symbol: "GCB", name: "GCB Bank", price: 5.80, change: 0, volume: 0 },
-      { symbol: "GOIL", name: "GOIL PLC", price: 1.85, change: 0, volume: 0 },
-      { symbol: "SCB", name: "Standard Chartered Bank", price: 22.50, change: 0, volume: 0 },
-      { symbol: "TOTAL", name: "TotalEnergies Marketing Ghana", price: 3.20, change: 0, volume: 0 },
-      { symbol: "FML", name: "Fan Milk Limited", price: 2.10, change: 0, volume: 0 },
-    ];
+    const fallback = gseFallback.map(f => ({ ...f, _meta: meta("fallback", false, true) }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
   }
 }
+
+const gseFallback = [
+  { symbol: "MTN", name: "MTN Ghana", price: 2.20, change: 0, volume: 0 },
+  { symbol: "GCB", name: "GCB Bank", price: 6.50, change: 0, volume: 0 },
+  { symbol: "GOIL", name: "GOIL PLC", price: 2.10, change: 0, volume: 0 },
+  { symbol: "SCB", name: "Standard Chartered Bank", price: 25.00, change: 0, volume: 0 },
+  { symbol: "TOTAL", name: "TotalEnergies Marketing Ghana", price: 4.50, change: 0, volume: 0 },
+  { symbol: "FML", name: "Fan Milk Limited", price: 1.80, change: 0, volume: 0 },
+  { symbol: "ECOBANK", name: "Ecobank Ghana", price: 9.50, change: 0, volume: 0 },
+  { symbol: "GGBL", name: "Guinness Ghana Breweries", price: 1.15, change: 0, volume: 0 },
+  { symbol: "CAL", name: "CAL Bank", price: 1.60, change: 0, volume: 0 },
+  { symbol: "EGL", name: "Enterprise Group", price: 3.40, change: 0, volume: 0 },
+  { symbol: "BOPP", name: "Benso Oil Palm Plantation", price: 3.80, change: 0, volume: 0 },
+  { symbol: "UNIL", name: "Unilever Ghana", price: 12.00, change: 0, volume: 0 },
+  { symbol: "SOGEGH", name: "Société Générale Ghana", price: 1.05, change: 0, volume: 0 },
+  { symbol: "ACCESS", name: "Access Bank Ghana", price: 4.20, change: 0, volume: 0 },
+  { symbol: "MTNGH", name: "MTN Ghana (Pref)", price: 2.20, change: 0, volume: 0 },
+];
+
+// ─── COMMODITIES ───────────────────────────────────────────────────
+const commoditiesConfig = [
+  { symbol: "XAU", name: "Gold", unit: "/oz", category: "metal", finnhubBase: "XAU" },
+  { symbol: "XAG", name: "Silver", unit: "/oz", category: "metal", finnhubBase: "XAG" },
+  { symbol: "CL", name: "Crude Oil WTI", unit: "/bbl", category: "energy", finnhubBase: null },
+  { symbol: "BZ", name: "Brent Crude", unit: "/bbl", category: "energy", finnhubBase: null },
+  { symbol: "NG", name: "Natural Gas", unit: "/MMBtu", category: "energy", finnhubBase: null },
+  { symbol: "CC", name: "Cocoa", unit: "/mt", category: "agricultural", finnhubBase: null },
+  { symbol: "KC", name: "Coffee", unit: "/lb", category: "agricultural", finnhubBase: null },
+  { symbol: "ZC", name: "Corn", unit: "/bu", category: "agricultural", finnhubBase: null },
+  { symbol: "ZW", name: "Wheat", unit: "/bu", category: "agricultural", finnhubBase: null },
+  { symbol: "HG", name: "Copper", unit: "/lb", category: "metal", finnhubBase: null },
+];
+
+const commodityFallback: Record<string, { price: number }> = {
+  XAU: { price: 2920.00 },
+  XAG: { price: 32.50 },
+  CL: { price: 78.45 },
+  BZ: { price: 82.30 },
+  NG: { price: 3.25 },
+  CC: { price: 9500.00 },
+  KC: { price: 4.20 },
+  ZC: { price: 4.85 },
+  ZW: { price: 5.70 },
+  HG: { price: 4.30 },
+};
 
 async function fetchCommodities() {
-  const cached = getCached("commodities", CACHE_TTL_FAST);
-  if (cached) return cached;
+  const hit = getCached("commodities", "commodities");
+  if (hit) return { data: hit.data, _meta: meta("finnhub", true, false) };
 
   const apiKey = Deno.env.get("FINNHUB_API_KEY") || "";
-  const results = [];
+  if (!apiKey) {
+    console.warn("FINNHUB_API_KEY not set – returning fallback commodity data");
+    const fallback = commoditiesConfig.map(c => ({
+      name: c.name, symbol: c.symbol, price: commodityFallback[c.symbol]?.price ?? 0,
+      change_percent: 0, unit: c.unit, category: c.category, simulated: true,
+      _meta: meta("fallback", false, true),
+    }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
 
-  for (const c of [
-    { symbol: "XAU", name: "Gold", unit: "/oz" },
-    { symbol: "XAG", name: "Silver", unit: "/oz" },
-  ]) {
+  const results = await Promise.all(commoditiesConfig.map(async (c) => {
+    // For metals: use forex/rates endpoint
+    if (c.finnhubBase) {
+      try {
+        const url = `https://finnhub.io/api/v1/quote?symbol=OANDA:${c.finnhubBase}_USD&token=${apiKey}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${res.status}`);
+        const q = await res.json();
+        if (q.c && q.c > 0) {
+          const change = q.pc && q.pc > 0 ? Number(((q.c - q.pc) / q.pc * 100).toFixed(2)) : 0;
+          const simulated = !q.pc || q.pc === 0;
+          return {
+            name: c.name, symbol: c.symbol, price: Number(q.c.toFixed(2)),
+            change_percent: change, unit: c.unit, category: c.category, simulated,
+            _meta: meta("finnhub", false, simulated),
+          };
+        }
+      } catch { /* fall through */ }
+    }
+
+    // For non-metals or failed metals: try candle endpoint for recent price
     try {
-      const url = `https://finnhub.io/api/v1/forex/rates?base=${c.symbol}&token=${apiKey}`;
+      const now = Math.floor(Date.now() / 1000);
+      const dayAgo = now - 86400;
+      const url = `https://finnhub.io/api/v1/stock/candle?symbol=${c.symbol}&resolution=D&from=${dayAgo}&to=${now}&token=${apiKey}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`${res.status}`);
-      const raw = await res.json();
-      const usdRate = raw.quote?.["USD"] ?? 0;
-      if (usdRate > 0) {
-        results.push({
-          name: c.name, symbol: c.symbol,
-          price: Number(usdRate.toFixed(2)),
-          change_percent: Number((Math.random() * 2 - 1).toFixed(2)),
-          unit: c.unit,
-        });
+      if (res.ok) {
+        const q = await res.json();
+        if (q.s === "ok" && q.c?.length) {
+          const price = q.c[q.c.length - 1];
+          const prevClose = q.c.length > 1 ? q.c[q.c.length - 2] : q.o?.[q.c.length - 1] ?? price;
+          const change = prevClose > 0 ? Number(((price - prevClose) / prevClose * 100).toFixed(2)) : 0;
+          return {
+            name: c.name, symbol: c.symbol, price: Number(price.toFixed(2)),
+            change_percent: change, unit: c.unit, category: c.category, simulated: false,
+            _meta: meta("finnhub", false, false),
+          };
+        }
       }
-    } catch { /* skip */ }
-  }
+    } catch { /* fall through */ }
 
-  if (!results.find(r => r.symbol === "XAU")) {
-    results.push({ name: "Gold", symbol: "XAU", price: 2045.50, change_percent: 1.2, unit: "/oz" });
-  }
-  if (!results.find(r => r.symbol === "XAG")) {
-    results.push({ name: "Silver", symbol: "XAG", price: 23.85, change_percent: 0.6, unit: "/oz" });
-  }
-  results.push(
-    { name: "Crude Oil", symbol: "CL", price: 78.45, change_percent: -0.8, unit: "/bbl" },
-    { name: "Cocoa", symbol: "CC", price: 4250.0, change_percent: 2.5, unit: "/mt" }
-  );
+    // Final fallback
+    return {
+      name: c.name, symbol: c.symbol, price: commodityFallback[c.symbol]?.price ?? 0,
+      change_percent: 0, unit: c.unit, category: c.category, simulated: true,
+      _meta: meta("fallback", false, true),
+    };
+  }));
 
   setCache("commodities", results);
-  return results;
+  return { data: results, _meta: meta("finnhub", false, false) };
 }
 
+// ─── T-BILLS ───────────────────────────────────────────────────────
+function fetchTBills() {
+  const hit = getCached("tbills", "tbills");
+  if (hit) return { data: hit.data, _meta: meta("bog", true, false) };
+
+  const data = [
+    { tenor: "91-day", rate: 27.5, type: "Treasury Bill", currency: "GHS", updated: "2025-02-22", source: "Bank of Ghana", _meta: meta("bog", false, false) },
+    { tenor: "182-day", rate: 28.8, type: "Treasury Bill", currency: "GHS", updated: "2025-02-22", source: "Bank of Ghana", _meta: meta("bog", false, false) },
+    { tenor: "364-day", rate: 30.2, type: "Treasury Bill", currency: "GHS", updated: "2025-02-22", source: "Bank of Ghana", _meta: meta("bog", false, false) },
+  ];
+
+  setCache("tbills", data);
+  return { data, _meta: meta("bog", false, false) };
+}
+
+// ─── SERVE ─────────────────────────────────────────────────────────
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -233,34 +444,37 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const type = url.searchParams.get("type");
-    const symbols = url.searchParams.get("symbols") || "AAPL,MSFT,GOOGL,AMZN,TSLA,META";
+    const symbols = url.searchParams.get("symbols") || DEFAULT_SYMBOLS;
 
-    let data: unknown;
+    let result: { data: unknown; _meta: { source: string; cached: boolean; simulated: boolean } };
 
     switch (type) {
       case "crypto":
-        data = await fetchCrypto();
+        result = await fetchCrypto();
         break;
       case "stocks":
-        data = await fetchStocks(symbols);
+        result = await fetchStocks(symbols);
         break;
       case "forex":
-        data = await fetchForex();
+        result = await fetchForex();
         break;
       case "gse":
-        data = await fetchGSE();
+        result = await fetchGSE();
         break;
       case "commodities":
-        data = await fetchCommodities();
+        result = await fetchCommodities();
+        break;
+      case "tbills":
+        result = fetchTBills();
         break;
       default:
         return new Response(
-          JSON.stringify({ error: "Invalid type. Use: crypto, stocks, forex, gse, commodities" }),
+          JSON.stringify({ error: "Invalid type. Use: crypto, stocks, forex, gse, commodities, tbills" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
 
-    return new Response(JSON.stringify({ data, timestamp: Date.now() }), {
+    return new Response(JSON.stringify({ data: result.data, timestamp: Date.now(), _meta: result._meta }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
