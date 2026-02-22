@@ -8,8 +8,8 @@ const corsHeaders = {
 
 // In-memory cache
 const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL_FAST = 60_000; // 60s for crypto/forex/commodities
-const CACHE_TTL_SLOW = 300_000; // 5min for stocks/GSE
+const CACHE_TTL_FAST = 60_000;
+const CACHE_TTL_SLOW = 300_000;
 
 function getCached(key: string, ttl: number) {
   const entry = cache.get(key);
@@ -21,7 +21,6 @@ function setCache(key: string, data: unknown) {
   cache.set(key, { data, timestamp: Date.now() });
 }
 
-// ---------- Crypto (CoinGecko) ----------
 async function fetchCrypto() {
   const cached = getCached("crypto", CACHE_TTL_FAST);
   if (cached) return cached;
@@ -57,7 +56,6 @@ async function fetchCrypto() {
   return data;
 }
 
-// ---------- Stocks (Alpaca) ----------
 async function fetchStocks(symbols: string) {
   const cacheKey = `stocks_${symbols}`;
   const cached = getCached(cacheKey, CACHE_TTL_SLOW);
@@ -100,7 +98,6 @@ async function fetchStocks(symbols: string) {
     return data;
   } catch (e) {
     console.error("Alpaca fetch failed:", e);
-    // Return fallback data
     return symbols.split(",").map(s => ({
       symbol: s, name: nameMap[s] || s, price: 0, previous_close: 0,
       change_percent: 0, day_high: 0, day_low: 0,
@@ -108,14 +105,12 @@ async function fetchStocks(symbols: string) {
   }
 }
 
-// ---------- Forex (Finnhub) ----------
 async function fetchForex() {
   const cached = getCached("forex", CACHE_TTL_FAST);
   if (cached) return cached;
 
   const apiKey = Deno.env.get("FINNHUB_API_KEY") || "";
 
-  // Use exchange rates endpoint
   try {
     const url = `https://finnhub.io/api/v1/forex/rates?base=USD&token=${apiKey}`;
     const res = await fetch(url);
@@ -145,7 +140,6 @@ async function fetchForex() {
     return results;
   } catch (e) {
     console.error("Finnhub forex failed:", e);
-    // Fallback with approximate rates
     return [
       { pair: "USD/GHS", bid: 14.85, ask: 14.95, change_percent: 0.15 },
       { pair: "EUR/GHS", bid: 16.20, ask: 16.35, change_percent: -0.08 },
@@ -156,7 +150,6 @@ async function fetchForex() {
   }
 }
 
-// ---------- GSE (Ghana Stock Exchange) ----------
 async function fetchGSE() {
   const cached = getCached("gse", CACHE_TTL_SLOW);
   if (cached) return cached;
@@ -178,7 +171,6 @@ async function fetchGSE() {
     return data;
   } catch (e) {
     console.error("GSE fetch failed:", e);
-    // Return fallback mock data
     return [
       { symbol: "MTN", name: "MTN Ghana", price: 1.25, change: 0, volume: 0 },
       { symbol: "GCB", name: "GCB Bank", price: 5.80, change: 0, volume: 0 },
@@ -190,7 +182,6 @@ async function fetchGSE() {
   }
 }
 
-// ---------- Commodities (Finnhub) ----------
 async function fetchCommodities() {
   const cached = getCached("commodities", CACHE_TTL_FAST);
   if (cached) return cached;
@@ -198,7 +189,6 @@ async function fetchCommodities() {
   const apiKey = Deno.env.get("FINNHUB_API_KEY") || "";
   const results = [];
 
-  // Try to get Gold and Silver prices via forex rates (XAU/USD, XAG/USD)
   for (const c of [
     { symbol: "XAU", name: "Gold", unit: "/oz" },
     { symbol: "XAG", name: "Silver", unit: "/oz" },
@@ -220,7 +210,6 @@ async function fetchCommodities() {
     } catch { /* skip */ }
   }
 
-  // Fallback for missing commodities
   if (!results.find(r => r.symbol === "XAU")) {
     results.push({ name: "Gold", symbol: "XAU", price: 2045.50, change_percent: 1.2, unit: "/oz" });
   }
@@ -236,7 +225,6 @@ async function fetchCommodities() {
   return results;
 }
 
-// ---------- Main handler ----------
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
