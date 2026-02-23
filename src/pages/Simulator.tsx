@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Building2, 
   TrendingUp, 
@@ -10,51 +9,47 @@ import {
   Landmark,
   ArrowRight,
   Trophy,
-  Wallet
+  Wallet,
+  CheckCircle2
 } from 'lucide-react';
+
+const accentColors = {
+  banking: '#3b82f6',
+  investment: '#16a34a',
+  trading: '#d97706',
+  capital_markets: '#6366f1',
+};
 
 const marketCategories = [
   {
-    id: 'banking',
+    id: 'banking' as const,
     title: 'Banking',
     description: 'Treasury Bills, Fixed Deposits, Savings Accounts',
     icon: Building2,
-    bgColor: 'bg-primary/10',
-    borderColor: 'border-primary/20',
-    textColor: 'text-primary',
     features: ['91, 182, 364-day T-Bills', 'Fixed Deposits up to 22% p.a.', 'High-yield Savings'],
     route: '/simulator/banking',
   },
   {
-    id: 'investment',
+    id: 'investment' as const,
     title: 'Investment',
     description: 'Ghana Stock Exchange & World Stock Markets',
     icon: TrendingUp,
-    bgColor: 'bg-[hsl(var(--cflp-green)/0.1)]',
-    borderColor: 'border-[hsl(var(--cflp-green)/0.2)]',
-    textColor: 'text-[hsl(var(--cflp-green))]',
     features: ['GSE Listed Stocks', 'NYSE & NASDAQ', 'Portfolio Tracking'],
     route: '/simulator/investment',
   },
   {
-    id: 'trading',
+    id: 'trading' as const,
     title: 'Trading',
     description: 'Forex, Commodities, and Crypto Demo',
     icon: CandlestickChart,
-    bgColor: 'bg-[hsl(var(--cflp-gold)/0.1)]',
-    borderColor: 'border-[hsl(var(--cflp-gold)/0.2)]',
-    textColor: 'text-[hsl(var(--cflp-gold))]',
     features: ['GHS/USD, EUR/GHS Pairs', 'Gold, Cocoa, Oil', 'Bitcoin & Ethereum Demo'],
     route: '/simulator/trading',
   },
   {
-    id: 'capital_markets',
+    id: 'capital_markets' as const,
     title: 'Capital Markets',
     description: 'Bonds, Mutual Funds, and ETFs',
     icon: Landmark,
-    bgColor: 'bg-[hsl(var(--cflp-blue)/0.1)]',
-    borderColor: 'border-[hsl(var(--cflp-blue)/0.2)]',
-    textColor: 'text-[hsl(var(--cflp-blue))]',
     features: ['Government Bonds', 'Databank, Fidelity Funds', 'Gold & Equity ETFs'],
     route: '/simulator/capital-markets',
   },
@@ -67,9 +62,9 @@ export default function Simulator() {
         <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           {/* Header */}
           <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">Practice Trading</Badge>
-            <h1 className="text-4xl font-display mb-4">Market Simulator</h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm text-muted-foreground mb-4">Practice Trading</p>
+            <h1 className="font-display font-bold text-[2rem] mb-4">Market Simulator</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Learn to invest with virtual money. Choose a market category to start practicing your trading skills risk-free.
             </p>
           </div>
@@ -82,14 +77,14 @@ export default function Simulator() {
                   <Wallet className="h-4 w-4" />
                   Starting Balance
                 </CardDescription>
-                <CardTitle className="text-3xl text-[hsl(var(--cflp-green))] tabular-nums">$500.00</CardTitle>
+                <CardTitle className="text-3xl tabular-nums" style={{ color: '#16a34a' }}>$500.00</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Virtual funds to practice with</p>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[hsl(var(--cflp-gold)/0.3)]">
+            <Card>
               <CardHeader className="pb-2">
                 <CardDescription className="flex items-center gap-2">
                   <Trophy className="h-4 w-4" />
@@ -112,35 +107,42 @@ export default function Simulator() {
           <div className="grid md:grid-cols-2 gap-6">
             {marketCategories.map((category) => {
               const Icon = category.icon;
+              const accent = accentColors[category.id];
               return (
                 <Card 
                   key={category.id}
-                  className={`relative overflow-hidden hover:shadow-xl transition-all duration-300 border-2 ${category.borderColor} group`}
+                  className="min-h-[280px] flex flex-col overflow-hidden"
+                  style={{ borderLeftWidth: '4px', borderLeftColor: accent }}
                 >
-                  <div className={`absolute inset-0 ${category.bgColor} opacity-50`} />
-                  <CardHeader className="relative">
+                  <CardHeader className="flex-none">
                     <div className="flex items-center justify-between">
-                      <div className={`h-14 w-14 rounded-xl ${category.bgColor} flex items-center justify-center`}>
-                        <Icon className={`h-7 w-7 ${category.textColor}`} />
+                      <div
+                        className="h-[52px] w-[52px] rounded-[14px] flex items-center justify-center"
+                        style={{ backgroundColor: `${accent}1a` }}
+                      >
+                        <Icon className="h-6 w-6" style={{ color: accent }} />
                       </div>
-                      <Badge variant="secondary">4 Markets</Badge>
+                      <span className="text-sm text-muted-foreground">4 Markets</span>
                     </div>
-                    <CardTitle className="text-2xl mt-4">{category.title}</CardTitle>
-                    <CardDescription className="text-base">{category.description}</CardDescription>
+                    <CardTitle className="font-display font-semibold text-[1.25rem] mt-4">{category.title}</CardTitle>
+                    <CardDescription className="text-[0.875rem]">{category.description}</CardDescription>
                   </CardHeader>
-                  <CardContent className="relative">
-                    <ul className="space-y-2 mb-6">
+                  <CardContent className="flex flex-col flex-1">
+                    <ul className="space-y-2 mb-5 flex-1">
                       {category.features.map((feature, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className={`h-1.5 w-1.5 rounded-full ${category.bgColor.replace('/0.1', '')}`} />
+                        <li key={index} className="flex items-center gap-2 text-[0.875rem] text-[hsl(240_4%_36%)]">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: `${accent}99` }} />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <Link to={category.route}>
-                      <Button className="w-full gap-2 group-hover:gap-3 transition-all">
+                    <Link to={category.route} className="mt-auto self-start">
+                      <Button
+                        className="gap-2 rounded-lg h-10 px-5 text-[0.875rem] font-semibold"
+                        style={{ backgroundColor: accent, color: '#ffffff' }}
+                      >
                         Enter {category.title}
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
                     </Link>
                   </CardContent>
@@ -150,7 +152,7 @@ export default function Simulator() {
           </div>
 
           {/* Info Banner */}
-          <Card className="mt-12 border-2 border-primary/20">
+          <Card className="mt-12">
             <CardContent className="py-6">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>

@@ -22,12 +22,14 @@ import {
 import type { Module, UserProgress, CertificateLevel } from '@/types';
 import { CERTIFICATE_INFO } from '@/types';
 
-const certAccentColors: Record<CertificateLevel, string> = {
-  green: '#16a34a',
-  white: '#3b82f6',
-  gold: '#d97706',
-  blue: '#6366f1',
-};
+import { CERT_COLORS } from '@/lib/cert-colors';
+
+const certAccentColors = {
+  green: CERT_COLORS.green.accent,
+  white: CERT_COLORS.white.accent,
+  gold: CERT_COLORS.gold.accent,
+  blue: CERT_COLORS.blue.accent,
+} as const;
 
 export default function Modules() {
   const [modules, setModules] = useState<Module[]>([]);
