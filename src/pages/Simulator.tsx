@@ -112,7 +112,7 @@ export default function Simulator() {
                 <Card 
                   key={category.id}
                   className="min-h-[280px] flex flex-col overflow-hidden"
-                  style={{ borderLeftWidth: '4px', borderLeftColor: accent }}
+                  
                 >
                   <CardHeader className="flex-none">
                     <div className="flex items-center justify-between">
