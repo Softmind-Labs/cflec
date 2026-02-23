@@ -35,7 +35,7 @@ export default function Dashboard() {
       const [modulesRes, progressRes, leaderboardRes] = await Promise.all([
         supabase.from('modules').select('*').order('module_number'),
         supabase.from('user_progress').select('*'),
-        supabase.from('leaderboard').select('*').limit(5),
+        supabase.rpc('get_leaderboard', { limit_count: 5 }),
       ]);
 
       if (modulesRes.data) setModules(modulesRes.data as Module[]);
