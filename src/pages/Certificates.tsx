@@ -112,9 +112,7 @@ export default function Certificates() {
               <Card
                 key={level}
                 className={!available ? 'opacity-50' : ''}
-                style={isCurrent && available ? {
-                  borderWidth: '1.5px',
-                  borderColor: `${accent}66`,
+              style={isCurrent && available ? {
                   backgroundColor: `${accent}0a`,
                 } : undefined}
               >
@@ -179,8 +177,6 @@ export default function Certificates() {
                 key={level}
                 className="relative overflow-hidden"
                 style={{
-                  borderLeftWidth: '4px',
-                  borderLeftColor: isLocked ? 'hsl(240 4% 80%)' : accent,
                   opacity: isLocked ? 0.65 : 1,
                 }}
               >
