@@ -124,7 +124,7 @@ export default function ModulePlayer() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="container py-8">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-muted rounded w-1/4" />
             <div className="h-96 bg-muted rounded-lg" />
@@ -137,7 +137,7 @@ export default function ModulePlayer() {
   if (!module) {
     return (
       <MainLayout>
-        <div className="container py-8 text-center">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12 text-center">
           <h1 className="text-2xl font-bold">Module not found</h1>
           <Link to="/modules">
             <Button className="mt-4">Back to Modules</Button>
@@ -156,7 +156,7 @@ export default function ModulePlayer() {
     <MainLayout>
       {/* Hero Section */}
       <div className="bg-muted/50 border-b">
-        <div className="container py-6">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12">
           {/* Breadcrumbs */}
           <BreadcrumbNav
             items={[
@@ -197,7 +197,7 @@ export default function ModulePlayer() {
         </div>
       </div>
 
-      <div className="container py-8">
+      <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-8">
         {/* Progress Bar */}
         <Card className="mb-8">
           <CardContent className="py-4">

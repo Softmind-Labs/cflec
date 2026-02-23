@@ -218,7 +218,7 @@ export default function Trade() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="container py-8">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-muted rounded w-1/4" />
             <div className="h-12 bg-muted rounded w-full max-w-md" />
@@ -235,7 +235,7 @@ export default function Trade() {
 
   return (
     <MainLayout>
-      <div className="container py-8">
+      <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
         <div className="flex items-center gap-4 mb-8">
           <Link to="/simulator">
             <Button variant="ghost" size="icon">

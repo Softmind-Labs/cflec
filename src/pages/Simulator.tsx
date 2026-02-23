@@ -64,7 +64,7 @@ export default function Simulator() {
   return (
     <MainLayout>
       <div className="min-h-full bg-background">
-        <div className="container py-8">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           {/* Header */}
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4">Practice Trading</Badge>
