@@ -151,7 +151,7 @@ export default function SimulatorInvestment() {
         <div className="flex items-center gap-4 mb-8">
           <Link to="/simulator"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold flex items-center gap-2"><TrendingUp className="h-8 w-8" />Investment Simulator</h1>
+            <h1 className="text-3xl font-display flex items-center gap-2"><TrendingUp className="h-8 w-8" />Investment Simulator</h1>
             <p className="text-muted-foreground">Trade stocks on Ghana Stock Exchange and World Markets</p>
           </div>
           <Link to="/simulator/trade"><Button className="gap-2"><TrendingUp className="h-4 w-4" />Trade Now</Button></Link>
@@ -162,21 +162,21 @@ export default function SimulatorInvestment() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Total Portfolio Value</CardDescription>
-              <CardTitle className="text-3xl">${calculateTotalValue().toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">${calculateTotalValue().toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
             <CardContent><div className="flex items-center gap-1 text-sm text-green-600"><ArrowUpRight className="h-4 w-4" />+5.2% all time</div></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Cash Balance</CardDescription>
-              <CardTitle className="text-3xl">${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Available to invest</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Holdings Value</CardDescription>
-              <CardTitle className="text-3xl">${holdings.reduce((sum, h) => sum + (h.quantity * Number(h.stock.current_price)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">${holdings.reduce((sum, h) => sum + (h.quantity * Number(h.stock.current_price)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">{holdings.length} positions</p></CardContent>
           </Card>
@@ -208,8 +208,8 @@ export default function SimulatorInvestment() {
                           <div><p className="font-semibold">{stock.symbol}</p><p className="text-sm text-muted-foreground">{stock.name}</p></div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">GHS {Number(stock.price).toFixed(2)}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                          <p className="font-semibold tabular-nums">GHS {Number(stock.price).toFixed(2)}</p>
+                          <p className={`text-sm flex items-center justify-end gap-1 tabular-nums ${stock.change >= 0 ? 'text-gain' : 'text-loss'}`}>
                             {stock.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                             {stock.change >= 0 ? '+' : ''}{Number(stock.change).toFixed(2)}%
                           </p>
@@ -275,13 +275,13 @@ export default function SimulatorInvestment() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="font-semibold">${Number(stock.price).toFixed(2)}</p>
-                          <p className={`text-sm flex items-center justify-end gap-1 ${stock.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                          <p className="font-semibold tabular-nums">${Number(stock.price).toFixed(2)}</p>
+                          <p className={`text-sm flex items-center justify-end gap-1 tabular-nums ${stock.change_percent >= 0 ? 'text-gain' : 'text-loss'}`}>
                             {stock.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                             {stock.change_percent >= 0 ? '+' : ''}{Number(stock.change_percent).toFixed(2)}%
                           </p>
                         </div>
-                        <div className="text-right text-sm text-muted-foreground shrink-0 hidden md:block">
+                        <div className="text-right text-sm text-muted-foreground shrink-0 hidden md:block tabular-nums">
                           <p>H: ${Number(stock.day_high).toFixed(2)}</p>
                           <p>L: ${Number(stock.day_low).toFixed(2)}</p>
                         </div>

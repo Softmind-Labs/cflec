@@ -76,8 +76,8 @@ export function AppSidebar() {
                     <NavLink 
                       to={item.url} 
                       end 
-                      className="hover:bg-primary/5 py-3 px-4 transition-all duration-200 ease-out" 
-                      activeClassName="border-l-[3px] border-primary bg-primary/10 text-sidebar-primary font-medium"
+                      className="hover:bg-muted py-3 px-4 transition-all duration-150 ease-[cubic-bezier(0.4,0,0.2,1)]" 
+                      activeClassName="border-l-[3px] border-primary bg-primary/8 text-sidebar-primary font-medium"
                     >
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>

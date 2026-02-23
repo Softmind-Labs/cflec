@@ -121,7 +121,7 @@ export default function Modules() {
         />
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-3xl font-display flex items-center gap-2">
             <BookOpen className="h-8 w-8" />
             Learning Modules
           </h1>
@@ -185,7 +185,7 @@ export default function Modules() {
                     >
                       {/* Gradient Header with Module Number */}
                       <div className={`relative h-24 bg-gradient-to-br ${levelColorMap[level]} flex items-center justify-between px-6`}>
-                        <span className="text-3xl font-bold text-white/90 drop-shadow">
+                        <span className="text-3xl font-display font-bold text-white/90 drop-shadow">
                           {String(module.module_number).padStart(2, '0')}
                         </span>
                         {completed && (

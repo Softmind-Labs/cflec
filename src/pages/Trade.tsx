@@ -243,11 +243,11 @@ export default function Trade() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Trade Stocks</h1>
+            <h1 className="text-3xl font-display">Trade Stocks</h1>
             <p className="text-muted-foreground">
-              Cash Available: <span className="font-semibold text-cflp-green">
-                ${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </span>
+               Cash Available: <span className="font-semibold text-cflp-green tabular-nums">
+                 ${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+               </span>
             </p>
           </div>
         </div>
@@ -293,10 +293,10 @@ export default function Trade() {
                 <CardContent>
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-2xl font-bold">${Number(stock.current_price).toFixed(2)}</p>
-                      <p className={`text-sm flex items-center gap-1 ${change >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                        {change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                        {change >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
+                      <p className="text-2xl font-bold tabular-nums">${Number(stock.current_price).toFixed(2)}</p>
+                       <p className={`text-sm flex items-center gap-1 tabular-nums ${change >= 0 ? 'text-gain' : 'text-loss'}`}>
+                         {change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                         {change >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
                       </p>
                     </div>
                     <Badge variant="outline">{stock.sector}</Badge>

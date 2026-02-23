@@ -54,7 +54,7 @@ export default function SimulatorBanking() {
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-3xl font-display flex items-center gap-2">
               <Landmark className="h-8 w-8" />
               Banking Simulator
             </h1>
@@ -89,7 +89,7 @@ export default function SimulatorBanking() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <p className="text-4xl font-bold">{bill.rate}%</p>
+                    <p className="text-4xl font-bold tabular-nums font-display">{bill.rate}%</p>
                     <p className="text-sm text-muted-foreground">Annual Yield</p>
                     <p className="text-xs text-muted-foreground">{bill.source}</p>
                     <p className="text-xs text-muted-foreground">Updated: {bill.updated}</p>
@@ -146,17 +146,17 @@ export default function SimulatorBanking() {
 
                 {fdResult && (
                   <div className="space-y-4">
-                    <div className="p-4 rounded-lg bg-muted/30">
+                   <div className="p-4 rounded-[10px] bg-muted">
                       <p className="text-sm text-muted-foreground">Maturity Amount</p>
-                      <p className="text-3xl font-bold">GHS {fdResult.maturity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      <p className="text-3xl font-bold tabular-nums">GHS {fdResult.maturity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-muted/30">
+                     <div className="p-4 rounded-[10px] bg-muted">
                       <p className="text-sm text-muted-foreground">Interest Earned</p>
-                      <p className="text-2xl font-bold text-green-600">GHS {fdResult.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      <p className="text-2xl font-bold text-gain tabular-nums">GHS {fdResult.interest.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                     </div>
-                    <div className="p-4 rounded-lg bg-muted/30">
+                    <div className="p-4 rounded-[10px] bg-muted">
                       <p className="text-sm text-muted-foreground">Effective Monthly Rate</p>
-                      <p className="text-xl font-bold">{fdResult.monthlyRate.toFixed(2)}%</p>
+                      <p className="text-xl font-bold tabular-nums">{fdResult.monthlyRate.toFixed(2)}%</p>
                     </div>
                     {/* Visual bar */}
                     <div className="space-y-1">

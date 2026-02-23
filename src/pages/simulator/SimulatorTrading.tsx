@@ -70,19 +70,19 @@ export default function SimulatorTrading() {
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><DollarSign className="h-5 w-5 text-primary" /></div>
           <div>
             <p className="font-semibold">{pair.pair}</p>
-            <p className={`text-sm flex items-center gap-1 ${pair.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-              {pair.change_percent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {pair.change_percent >= 0 ? '+' : ''}{pair.change_percent}%
-            </p>
+             <p className={`text-sm flex items-center gap-1 tabular-nums ${pair.change_percent >= 0 ? 'text-gain' : 'text-loss'}`}>
+               {pair.change_percent >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+               {pair.change_percent >= 0 ? '+' : ''}{pair.change_percent}%
+             </p>
           </div>
         </div>
-        <div className="text-center"><p className="text-xs text-muted-foreground">Bid</p><p className="font-semibold text-sm">{pair.bid}</p></div>
-        <div className="text-center"><p className="text-xs text-muted-foreground">Ask</p><p className="font-semibold text-sm">{pair.ask}</p></div>
-        <div className="text-center hidden sm:block"><p className="text-xs text-muted-foreground">Spread</p><p className="text-sm">{spreadStr}</p></div>
+         <div className="text-center"><p className="text-xs text-muted-foreground">Bid</p><p className="font-semibold text-sm tabular-nums">{pair.bid}</p></div>
+         <div className="text-center"><p className="text-xs text-muted-foreground">Ask</p><p className="font-semibold text-sm tabular-nums">{pair.ask}</p></div>
+         <div className="text-center hidden sm:block"><p className="text-xs text-muted-foreground">Spread</p><p className="text-sm tabular-nums">{spreadStr}</p></div>
         <DataBadge meta={pair._meta} />
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white">Buy</Button>
-          <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
+           <Button size="sm" variant="outline" className="text-gain border-[hsl(142_72%_29%)] hover:bg-[hsl(142_72%_29%)] hover:text-white">Buy</Button>
+           <Button size="sm" variant="outline" className="text-loss border-[hsl(0_72%_51%)] hover:bg-[hsl(0_72%_51%)] hover:text-white">Sell</Button>
         </div>
       </div>
     );
@@ -97,10 +97,10 @@ export default function SimulatorTrading() {
             <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <TrendingUp className="h-8 w-8" />
-              Trading Simulator
-            </h1>
+             <h1 className="text-3xl font-display flex items-center gap-2">
+               <TrendingUp className="h-8 w-8" />
+               Trading Simulator
+             </h1>
             <p className="text-muted-foreground">Trade Forex, Commodities, and Crypto</p>
           </div>
         </div>
@@ -110,23 +110,23 @@ export default function SimulatorTrading() {
           <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Trading Balance</CardDescription>
-              <CardTitle className="text-3xl">${tradingBalance.toLocaleString()}</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">${tradingBalance.toLocaleString()}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Virtual funds for trading</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Open Positions</CardDescription>
-              <CardTitle className="text-3xl">3</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">3</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-green-600">+$125.50 unrealized P/L</p></CardContent>
+            <CardContent><p className="text-sm text-gain tabular-nums">+$125.50 unrealized P/L</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Today's P/L</CardDescription>
-              <CardTitle className="text-3xl text-green-600">+$85.20</CardTitle>
-            </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">5 trades completed</p></CardContent>
+               <CardTitle className="text-3xl text-gain tabular-nums">+$85.20</CardTitle>
+             </CardHeader>
+             <CardContent><p className="text-sm text-muted-foreground tabular-nums">5 trades completed</p></CardContent>
           </Card>
         </div>
 
@@ -156,12 +156,12 @@ export default function SimulatorTrading() {
                         </div>
                         <DataBadge meta={crypto._meta} />
                       </div>
-                      <p className="text-2xl font-bold mb-1">${crypto.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                      <p className="text-2xl font-bold mb-1 tabular-nums">${crypto.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                       <div className="flex items-center justify-between">
-                        <p className={`text-sm flex items-center gap-1 ${crypto.change_24h >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                          {crypto.change_24h >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                          {crypto.change_24h >= 0 ? '+' : ''}{crypto.change_24h.toFixed(2)}%
-                        </p>
+                         <p className={`text-sm flex items-center gap-1 tabular-nums ${crypto.change_24h >= 0 ? 'text-gain' : 'text-loss'}`}>
+                           {crypto.change_24h >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                           {crypto.change_24h >= 0 ? '+' : ''}{crypto.change_24h.toFixed(2)}%
+                         </p>
                         <p className="text-xs text-muted-foreground">{formatMarketCap(crypto.market_cap)}</p>
                       </div>
                       <Button size="sm" className="w-full mt-3">Trade</Button>
@@ -223,16 +223,16 @@ export default function SimulatorTrading() {
                             <div><p className="font-semibold">{c.name}</p><p className="text-sm text-muted-foreground">{c.symbol}</p></div>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">${c.price.toLocaleString()}{c.unit}</p>
-                            <p className={`text-sm flex items-center justify-end gap-1 ${c.change_percent >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                              {c.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                              {c.change_percent >= 0 ? '+' : ''}{c.change_percent}%
-                            </p>
+                            <p className="font-semibold tabular-nums">${c.price.toLocaleString()}{c.unit}</p>
+                             <p className={`text-sm flex items-center justify-end gap-1 tabular-nums ${c.change_percent >= 0 ? 'text-gain' : 'text-loss'}`}>
+                               {c.change_percent >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                               {c.change_percent >= 0 ? '+' : ''}{c.change_percent}%
+                             </p>
                           </div>
                           <DataBadge meta={c._meta} />
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white">Buy</Button>
-                            <Button size="sm" variant="outline" className="text-destructive border-destructive hover:bg-destructive hover:text-white">Sell</Button>
+                             <Button size="sm" variant="outline" className="text-gain border-[hsl(142_72%_29%)] hover:bg-[hsl(142_72%_29%)] hover:text-white">Buy</Button>
+                             <Button size="sm" variant="outline" className="text-loss border-[hsl(0_72%_51%)] hover:bg-[hsl(0_72%_51%)] hover:text-white">Sell</Button>
                           </div>
                         </div>
                       ))}

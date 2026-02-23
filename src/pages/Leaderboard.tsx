@@ -92,11 +92,11 @@ export default function Leaderboard() {
 
   return (
     <MainLayout>
-      <div className="min-h-full bg-gradient-to-br from-cflp-gold/5 via-transparent to-primary/5">
+      <div className="min-h-full bg-background">
         <div className="container py-8">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
+            <h1 className="text-3xl font-display flex items-center gap-2">
               <Trophy className="h-8 w-8 text-cflp-gold" />
               Leaderboard
             </h1>
@@ -141,10 +141,10 @@ export default function Leaderboard() {
 
           {/* User's Rank Card */}
           {userRank > 0 && (
-            <Card className="mb-8 glass-card-primary">
+            <Card className="mb-8">
               <CardHeader className="pb-2">
                 <CardDescription>Your Ranking</CardDescription>
-                <CardTitle className="text-3xl">#{userRank}</CardTitle>
+                <CardTitle className="text-3xl tabular-nums">#{userRank}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-4 text-sm">
@@ -192,9 +192,9 @@ export default function Leaderboard() {
                       <Badge variant="secondary" className="mt-2">
                         {ACCOUNT_TYPE_LABELS[entry.account_type]}
                       </Badge>
-                      <p className="text-2xl font-bold mt-4 text-[hsl(var(--cflp-green))]">
-                        ${Number(entry.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </p>
+                       <p className="text-2xl font-bold mt-4 text-[hsl(var(--cflp-green))] tabular-nums">
+                         ${Number(entry.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                       </p>
                     </CardContent>
                   </Card>
                 );
@@ -203,7 +203,7 @@ export default function Leaderboard() {
           )}
 
           {/* Full Leaderboard */}
-          <Card className="glass-card">
+          <Card>
             <CardHeader>
               <CardTitle>All Rankings</CardTitle>
             </CardHeader>
@@ -249,12 +249,12 @@ export default function Leaderboard() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-lg text-[hsl(var(--cflp-green))]">
-                            ${Number(entry.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                          </p>
+                           <p className="font-bold text-lg text-[hsl(var(--cflp-green))] tabular-nums">
+                             ${Number(entry.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                           </p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <TrendingUp className="h-3 w-3" />
-                            ${Number(entry.holdings_value).toLocaleString()} in stocks
+                             ${Number(entry.holdings_value).toLocaleString()} in stocks
                           </div>
                         </div>
                       </div>
