@@ -44,7 +44,7 @@
     /* CFLP Certificate Colors */
     --cflp-green: 142 76% 36%;
     --cflp-green-foreground: 0 0% 100%;
-    --cflp-white: 0 0% 95%;
+    --cflp-white: 216 10% 75%;
     --cflp-white-foreground: 222.2 84% 4.9%;
     --cflp-gold: 45 93% 47%;
     --cflp-gold-foreground: 0 0% 100%;
@@ -109,7 +109,7 @@
     /* CFLP Certificate Colors - same in dark mode */
     --cflp-green: 142 76% 36%;
     --cflp-green-foreground: 0 0% 100%;
-    --cflp-white: 0 0% 95%;
+    --cflp-white: 216 10% 75%;
     --cflp-white-foreground: 222.2 84% 4.9%;
     --cflp-gold: 45 93% 47%;
     --cflp-gold-foreground: 0 0% 100%;
@@ -221,7 +221,7 @@
     color: #ffffff;
   }
   .certificate-white {
-    background-color: #FFFFFF;
+    background-color: #B8BEC7;
     color: #000000;
   }
   .certificate-gold {
