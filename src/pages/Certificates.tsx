@@ -60,7 +60,7 @@ export default function Certificates() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="container py-8">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-muted rounded w-1/4" />
             <div className="grid md:grid-cols-2 gap-6">
@@ -76,7 +76,7 @@ export default function Certificates() {
 
   return (
     <MainLayout>
-      <div className="container py-8">
+      <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
         <div className="mb-8">
           <h1 className="text-3xl font-display flex items-center gap-2">
             <Award className="h-8 w-8" />

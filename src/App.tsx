@@ -21,6 +21,8 @@ import Trade from "./pages/Trade";
 import Leaderboard from "./pages/Leaderboard";
 import Certificates from "./pages/Certificates";
 import Profile from "./pages/Profile";
+import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
 import KidsLanding from "./pages/kids/KidsLanding";
 import NotFound from "./pages/NotFound";
 
@@ -93,6 +95,16 @@ const App = () => (
             <Route path="/certificates" element={
               <ProtectedRoute>
                 <Certificates />
+              </ProtectedRoute>
+            } />
+            <Route path="/courses" element={
+              <ProtectedRoute>
+                <Courses />
+              </ProtectedRoute>
+            } />
+            <Route path="/courses/:slug" element={
+              <ProtectedRoute>
+                <CourseDetail />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

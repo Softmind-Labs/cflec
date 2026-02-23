@@ -83,7 +83,7 @@ export default function Dashboard() {
     return (
       <MainLayout>
         <div className="min-h-full bg-background">
-          <div className="container py-8">
+          <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
             <div className="animate-pulse space-y-6">
               <div className="h-8 bg-muted rounded w-1/4" />
               <div className="grid md:grid-cols-4 gap-6">
@@ -101,7 +101,7 @@ export default function Dashboard() {
   return (
     <MainLayout>
       <div className="min-h-full bg-background">
-        <div className="container py-8">
+        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           {/* Welcome Section */}
           <div className="mb-8">
             <h1 className="text-3xl font-display">

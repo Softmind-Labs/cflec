@@ -12,7 +12,7 @@ import {
 
 export default function KidsLanding() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kids-background via-background to-kids-secondary/10">
+    <div className="min-h-screen bg-[hsl(0_0%_97.3%)]">
       {/* Header */}
       <header className="border-b bg-white/95 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">

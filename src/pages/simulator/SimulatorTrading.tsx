@@ -90,7 +90,7 @@ export default function SimulatorTrading() {
 
   return (
     <MainLayout>
-      <div className="container py-8">
+      <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Link to="/simulator">
