@@ -1,40 +1,30 @@
 
 
-# Fix: Update White Certificate Color to #B8BEC7
+# Fix: Course Detail Auth References & Header Search
 
-The previous changes were never saved — all four locations still show `#FFFFFF` / `0 0% 95%`. Here are the exact edits needed:
+## Issue 1 — CourseDetail.tsx still sends logged-in users to `/auth`
 
-## 1. `src/lib/cert-colors.ts` — line 3
-```
-// FROM:
-white:  { accent: '#FFFFFF', bg: '#fafafa', border: '#e5e5e5' },
-// TO:
-white:  { accent: '#B8BEC7', bg: '#f4f5f6', border: '#d1d5db' },
-```
+Three locations need updating:
 
-## 2. `src/index.css` — line 47 (light mode)
-```
-// FROM:
---cflp-white: 0 0% 95%;
-// TO:
---cflp-white: 216 10% 75%;
-```
+- **Line 210**: Hero "Start Learning" button links to `/auth` → should link to the first lesson (or stay on page with a toast, since courses are "coming soon")
+- **Line 304**: Sidebar text says "Login required to access" → change to "Free to access"
+- **Line 327**: Sidebar "Start Learning" button links to `/auth` → same fix as line 210
 
-## 3. `src/index.css` — line 112 (dark mode)
-```
-// FROM:
---cflp-white: 0 0% 95%;
-// TO:
---cflp-white: 216 10% 75%;
-```
+Since the course content is marked "Coming soon", the buttons will show a toast notification instead of navigating to `/auth`.
 
-## 4. `src/index.css` — line 224 (utility class)
-```
-// FROM:
-background-color: #FFFFFF;
-// TO:
-background-color: #B8BEC7;
-```
+## Issue 2 — Header search icon is non-functional
 
-**2 files, 4 line changes. No other files affected.**
+The `TopNav.tsx` search button (line ~101) has no `onClick` handler. Will add a command-palette search dialog using the existing `cmdk` dependency and `CommandDialog` component already in the project.
+
+### Search implementation
+- Create `src/components/layout/SearchDialog.tsx` — a `CommandDialog` listing nav pages (Dashboard, Modules, Courses, Simulator, Certificates, Profile) with keyboard shortcut `Ctrl+K`
+- Wire the search icon in `TopNav.tsx` to toggle this dialog open
+
+## Files changed
+
+| File | Change |
+|---|---|
+| `src/pages/CourseDetail.tsx` | Remove `/auth` links, replace with toast "Coming soon"; update sidebar text |
+| `src/components/layout/SearchDialog.tsx` | New — command palette with page navigation |
+| `src/components/layout/TopNav.tsx` | Wire search icon to open SearchDialog; add `Ctrl+K` listener |
 
