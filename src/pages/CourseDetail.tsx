@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -207,12 +208,13 @@ export default function CourseDetail() {
                 </span>
               </div>
 
-              <Link to="/auth" className="inline-block mt-7">
-                <Button className="h-12 px-8 rounded-[10px] text-base font-semibold gap-2">
-                  Start Learning
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button
+                onClick={() => toast.info('Course content coming soon!')}
+                className="h-12 px-8 rounded-[10px] text-base font-semibold gap-2 mt-7"
+              >
+                Start Learning
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
 
             {/* Right — icon card */}
@@ -301,7 +303,7 @@ export default function CourseDetail() {
                   Free Course
                 </h3>
                 <p className="text-[0.875rem] text-muted-foreground mt-1">
-                  Login required to access
+                  Free to access
                 </p>
 
                 <div className="border-t border-[hsl(0_0%_96%)] my-5" />
@@ -324,12 +326,13 @@ export default function CourseDetail() {
                   ))}
                 </div>
 
-                <Link to="/auth" className="block mt-6">
-                  <Button className="w-full h-12 rounded-[10px] text-[0.9375rem] font-semibold gap-2">
-                    Start Learning
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => toast.info('Course content coming soon!')}
+                  className="w-full h-12 rounded-[10px] text-[0.9375rem] font-semibold gap-2 mt-6"
+                >
+                  Start Learning
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
 
                 <p className="text-[0.75rem] text-[hsl(240_4%_66%)] text-center mt-2">
                   Free · No payment required
