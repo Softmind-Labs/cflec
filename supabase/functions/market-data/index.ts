@@ -282,6 +282,46 @@ async function fetchForex() {
 }
 
 // ─── GSE ───────────────────────────────────────────────────────────
+const gseCompanyMap: Record<string, string> = {
+  AADS: "AngloGold Ashanti (Dep. Shares)",
+  ACCESS: "Access Bank Ghana",
+  ADB: "Agricultural Development Bank",
+  AGA: "AngloGold Ashanti Ltd",
+  ALLGH: "Allianz Insurance Ghana",
+  ASG: "Aluworks Ltd",
+  BOPP: "Benso Oil Palm Plantation",
+  CAL: "CalBank Ltd",
+  CLYD: "Clydestone Ghana",
+  CMLT: "Camelot Ghana",
+  CPC: "Cocoa Processing Company",
+  DASPHARMA: "Danadams Pharmaceutical",
+  DIGICUT: "DigiCut Ltd",
+  EGH: "Ecobank Ghana",
+  EGL: "Enterprise Group Ltd",
+  ETI: "Ecobank Transnational Inc",
+  FAB: "Fan Milk Ltd (Danone)",
+  FML: "Fan Milk Ltd",
+  GCB: "GCB Bank Ltd",
+  GGBL: "Guinness Ghana Breweries",
+  GLD: "Gold Fields Ghana (Dep. Shares)",
+  GOIL: "GOIL PLC",
+  HORDS: "Hords Ltd",
+  IIL: "Intravenous Infusions Ltd",
+  MAC: "Mega African Capital",
+  MMH: "Mechanical Lloyd",
+  MTNGH: "MTN Ghana Ltd",
+  RBGH: "Republic Bank Ghana",
+  SAMBA: "Sam Woode Ltd",
+  SCB: "Standard Chartered Bank Ghana",
+  SCBPREF: "Standard Chartered Bank (Pref)",
+  SIC: "SIC Insurance Company",
+  SOGEGH: "Société Générale Ghana",
+  TBL: "Trust Bank Ltd (The Gambia)",
+  TLW: "Tullow Oil Ghana",
+  TOTAL: "TotalEnergies Marketing Ghana",
+  UNIL: "Unilever Ghana Ltd",
+};
+
 async function fetchGSE() {
   const hit = getCached("gse", "gse");
   if (hit) return { data: hit.data, _meta: meta("gse", true, false) };
@@ -291,14 +331,17 @@ async function fetchGSE() {
     if (!res.ok) throw new Error(`GSE error: ${res.status}`);
     const raw = await res.json();
 
-    const data = (Array.isArray(raw) ? raw : []).map((item: any) => ({
-      symbol: item.name || item.symbol || "",
-      name: item.company || item.name || "",
-      price: item.price ?? item.last_trade_price ?? 0,
-      change: item.change ?? 0,
-      volume: item.volume ?? 0,
-      _meta: meta("gse", false, false),
-    }));
+    const data = (Array.isArray(raw) ? raw : []).map((item: any) => {
+      const ticker = item.name || item.symbol || "";
+      return {
+        symbol: ticker,
+        name: gseCompanyMap[ticker] || item.company || ticker,
+        price: item.price ?? item.last_trade_price ?? 0,
+        change: item.change ?? 0,
+        volume: item.volume ?? 0,
+        _meta: meta("gse", false, false),
+      };
+    });
 
     setCache("gse", data);
     return { data, _meta: meta("gse", false, false) };

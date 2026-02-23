@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
+import { SimulationDialog, type SimAssetType } from '@/components/simulator/SimulationDialog';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -20,7 +23,6 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
-import { useState } from 'react';
 
 function formatMarketCap(value: number): string {
   if (value >= 1e12) return `$${(value / 1e12).toFixed(1)}T`;
@@ -32,7 +34,9 @@ function formatMarketCap(value: number): string {
 const AFRICAN_PAIRS = ['USD/GHS', 'EUR/GHS', 'GBP/GHS', 'USD/NGN', 'USD/ZAR'];
 
 export default function SimulatorTrading() {
-  const [tradingBalance] = useState(10000);
+  const { user } = useAuth();
+  const [portfolioBalance, setPortfolioBalance] = useState(0);
+  const [holdingsCount, setHoldingsCount] = useState(0);
 
   const { data: forexData, isLoading: forexLoading, isError: forexError, refetch: refetchForex } = useMarketDataWithTimestamp('forex');
   const { data: commoditiesData, isLoading: commoditiesLoading, isError: commoditiesError, refetch: refetchCommodities } = useMarketDataWithTimestamp('commodities');
@@ -41,6 +45,28 @@ export default function SimulatorTrading() {
   const forex = forexData?.data ?? [];
   const commodities = commoditiesData?.data ?? [];
   const cryptos = cryptoData?.data ?? [];
+
+  // Simulation dialog state
+  const [simOpen, setSimOpen] = useState(false);
+  const [simAsset, setSimAsset] = useState<{ name: string; symbol: string; price: number; type: SimAssetType; bid?: number; ask?: number; unit?: string } | null>(null);
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      if (!user) return;
+      const { data: p } = await supabase.from('portfolios').select('*').eq('user_id', user.id).maybeSingle();
+      if (p) {
+        setPortfolioBalance(Number(p.cash_balance));
+        const { data: h } = await supabase.from('stock_holdings').select('id').eq('portfolio_id', p.id);
+        setHoldingsCount(h?.length || 0);
+      }
+    };
+    fetchPortfolio();
+  }, [user]);
+
+  const openSim = (name: string, symbol: string, price: number, type: SimAssetType, extra?: { bid?: number; ask?: number; unit?: string }) => {
+    setSimAsset({ name, symbol, price, type, ...extra });
+    setSimOpen(true);
+  };
 
   const africanForex = useMemo(() => forex.filter(p => AFRICAN_PAIRS.includes(p.pair)), [forex]);
   const majorForex = useMemo(() => forex.filter(p => !AFRICAN_PAIRS.includes(p.pair)), [forex]);
@@ -81,8 +107,8 @@ export default function SimulatorTrading() {
          <div className="text-center hidden sm:block"><p className="text-xs text-muted-foreground">Spread</p><p className="text-sm tabular-nums">{spreadStr}</p></div>
         <DataBadge meta={pair._meta} />
         <div className="flex gap-2">
-           <Button size="sm" variant="outline" className="text-gain border-[hsl(142_72%_29%)] hover:bg-[hsl(142_72%_29%)] hover:text-white">Buy</Button>
-           <Button size="sm" variant="outline" className="text-loss border-[hsl(0_72%_51%)] hover:bg-[hsl(0_72%_51%)] hover:text-white">Sell</Button>
+           <Button size="sm" variant="outline" className="text-gain" onClick={() => openSim(pair.pair, pair.pair, pair.ask, 'forex', { bid: pair.bid, ask: pair.ask })}>Buy</Button>
+           <Button size="sm" variant="outline" className="text-loss" onClick={() => openSim(pair.pair, pair.pair, pair.bid, 'forex', { bid: pair.bid, ask: pair.ask })}>Sell</Button>
         </div>
       </div>
     );
@@ -109,24 +135,24 @@ export default function SimulatorTrading() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Trading Balance</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">${tradingBalance.toLocaleString()}</CardTitle>
+              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Portfolio Balance</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">${portfolioBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Virtual funds for trading</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Available cash from portfolio</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Open Positions</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">3</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">{holdingsCount}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-gain tabular-nums">+$125.50 unrealized P/L</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Stock holdings</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Today's P/L</CardDescription>
-               <CardTitle className="text-3xl text-gain tabular-nums">+$85.20</CardTitle>
+               <CardTitle className="text-3xl text-muted-foreground tabular-nums">N/A</CardTitle>
              </CardHeader>
-             <CardContent><p className="text-sm text-muted-foreground tabular-nums">5 trades completed</p></CardContent>
+             <CardContent><p className="text-sm text-muted-foreground">Intraday tracking coming soon</p></CardContent>
           </Card>
         </div>
 
@@ -164,7 +190,7 @@ export default function SimulatorTrading() {
                          </p>
                         <p className="text-xs text-muted-foreground">{formatMarketCap(crypto.market_cap)}</p>
                       </div>
-                      <Button size="sm" className="w-full mt-3">Trade</Button>
+                      <Button size="sm" className="w-full mt-3" onClick={() => openSim(crypto.name, crypto.symbol, crypto.price, 'crypto')}>Trade</Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -231,8 +257,8 @@ export default function SimulatorTrading() {
                           </div>
                           <DataBadge meta={c._meta} />
                           <div className="flex gap-2">
-                             <Button size="sm" variant="outline" className="text-gain border-[hsl(142_72%_29%)] hover:bg-[hsl(142_72%_29%)] hover:text-white">Buy</Button>
-                             <Button size="sm" variant="outline" className="text-loss border-[hsl(0_72%_51%)] hover:bg-[hsl(0_72%_51%)] hover:text-white">Sell</Button>
+                             <Button size="sm" variant="outline" className="text-gain" onClick={() => openSim(c.name, c.symbol, c.price, 'commodity', { unit: c.unit })}>Buy</Button>
+                             <Button size="sm" variant="outline" className="text-loss" onClick={() => openSim(c.name, c.symbol, c.price, 'commodity', { unit: c.unit })}>Sell</Button>
                           </div>
                         </div>
                       ))}
@@ -244,6 +270,21 @@ export default function SimulatorTrading() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Simulation Dialog */}
+      {simAsset && (
+        <SimulationDialog
+          open={simOpen}
+          onOpenChange={setSimOpen}
+          assetName={simAsset.name}
+          assetSymbol={simAsset.symbol}
+          price={simAsset.price}
+          assetType={simAsset.type}
+          bid={simAsset.bid}
+          ask={simAsset.ask}
+          unit={simAsset.unit}
+        />
+      )}
     </MainLayout>
   );
 }
