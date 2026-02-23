@@ -1,165 +1,209 @@
 
 
-# Comprehensive Market Data & Simulator Pages Update
+# Premium UI/UX Design Pass — Bloomberg Meets Masterclass
 
-## Overview
+## Scope
+Styling and visual presentation only. No changes to layouts, routing, component logic, or images.
 
-Six-part update: switch forex to Alpaca, rebuild Banking page with live T-Bills, enhance Investment page with sector tabs and search, expand Trading page with grouped data, create a reusable DataBadge component, and verify all env keys.
+## Files to Modify
+
+### 1. `index.html` — Add Fraunces Font
+- Add Fraunces to the Google Fonts `<link>` alongside Inter
+- Weights: 500, 600, 700
+
+### 2. `tailwind.config.ts` — Register Fraunces
+- Add `display: ['Fraunces', 'Georgia', 'serif']` to `fontFamily`
+- Keep existing `sans` and `serif` entries
+
+### 3. `src/index.css` — Global Design Token Overhaul
+
+**Light mode `:root`:**
+- `--background`: change to warm off-white `#f8f8f8` (≈ `0 0% 97.3%`)
+- `--foreground`: darken to `#0a0a0a` (≈ `0 0% 4%`)
+- `--card`: keep `#ffffff`
+- `--card-foreground`: `#0a0a0a`
+- `--muted`: `#f4f4f5` (≈ `240 5% 96%`)
+- `--muted-foreground`: `#71717a` (≈ `240 4% 46%`)
+- `--border`: soften to `rgba(0,0,0,0.06)` equivalent (≈ `0 0% 94%`)
+- `--input`: `#e4e4e7` equivalent for 1.5px solid border
+
+**Base typography rules:**
+- `body`: `font-size: 0.9375rem; line-height: 1.7; color: #3f3f46;`
+- `h1`: `font-family: Fraunces; font-size: 2.25rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.03em; color: #0a0a0a;`
+- `h2`: `font-family: Inter; font-size: 1.375rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #111111;`
+- `h3`: `font-family: Inter; font-size: 1.0625rem; font-weight: 600; line-height: 1.35;`
+- Remove existing generic h1-h6 rules (letter-spacing: 0.3px conflicts with new -0.03em)
+
+**Add utility classes:**
+- `.font-display`: `font-family: Fraunces, Georgia, serif;`
+- `.tabular-nums`: `font-variant-numeric: tabular-nums; font-feature-settings: "tnum";`
+- `.text-gain`: `color: #16a34a;`
+- `.text-loss`: `color: #dc2626;`
+- `.text-flat`: `color: #71717a;`
+
+**Transition rules:**
+- Change `transition: all 0.25s ease` to `transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1)` for interactive elements
+
+### 4. `src/components/ui/card.tsx` — Premium Card Styling
+- Border: `border border-[rgba(0,0,0,0.06)]` instead of just `border`
+- Shadow: `shadow-[0_1px_2px_rgba(0,0,0,0.03),0_4px_16px_rgba(0,0,0,0.05)]`
+- Hover shadow: `hover:shadow-[0_4px_12px_rgba(0,0,0,0.07),0_1px_3px_rgba(0,0,0,0.04)]`
+- Hover border: `hover:border-[rgba(0,0,0,0.1)]`
+- Transition: `transition-all duration-200` with `cubic-bezier(0.4, 0, 0.2, 1)`
+- Keep `rounded-[14px]` and `hover:-translate-y-0.5`
+- Padding: `CardHeader` stays `p-7`, `CardContent` stays `px-7 pb-7`
+
+### 5. `src/components/ui/button.tsx` — Refined Button Styling
+- Default variant: add `shadow-[0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.1)]` hover: `hover:brightness-[1.06] hover:shadow-[0_3px_8px_rgba(0,0,0,0.15)] hover:-translate-y-px`
+- Active: keep `active:scale-[0.98]` add `active:brightness-[0.97] active:translate-y-0`
+- Secondary variant: `border-[1.5px] border-[#e4e4e7] bg-transparent text-[#3f3f46] hover:bg-[#f4f4f5] hover:border-[#d4d4d8]`
+- Ghost variant: `hover:bg-[rgba(0,0,0,0.04)] hover:text-[#3f3f46]`
+- Size default: `h-10 px-5` (40px), size sm: `h-9 px-4`, size lg: `h-11 px-8`
+- Font: `font-medium text-[0.875rem] tracking-[0.01em]`
+- Disabled: `disabled:opacity-[0.38]`
+
+### 6. `src/components/ui/input.tsx` — Refined Input Styling
+- Height: `h-10` (40px standard)
+- Border: `border-[1.5px] border-[#e4e4e7]`
+- Background: `bg-[#fafafa]`
+- Focus: `focus-visible:border-primary focus-visible:bg-white focus-visible:shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.1)]`
+- Font: `text-[0.9375rem] text-[#0f0f0f]`
+- Placeholder: `placeholder:text-[#a1a1aa]`
+
+### 7. `src/components/ui/progress.tsx` — Thin, Premium Progress Bar
+- Root: `h-1 rounded-full bg-[#e4e4e7]` (4px → 4px kept, but default override to 4px)
+- Indicator: `transition-all duration-[400ms] ease-out` (smooth fill animation)
+
+### 8. `src/components/ui/badge.tsx` — No changes needed (already clean)
+
+### 9. `src/components/ui/tabs.tsx` — Refined Tab Styling
+- TabsList: keep current structure
+- TabsTrigger active state: add content fade transition hint via `data-[state=active]:font-medium`
+
+### 10. `src/components/layout/AppSidebar.tsx` — Premium Sidebar
+- Sidebar bg: `#ffffff` (update CSS var `--sidebar-background: 0 0% 100%`)
+- Remove box-shadow references if any
+- Logo area: ensure border-bottom uses `#f4f4f5`
+- Nav items: ensure `text-[0.875rem] font-[450]` (already close), color `#52525b`, gap `10px` between icon and text
+- Active state: brand primary at 8% opacity bg, primary color text, `font-weight: 550` (use `font-medium` as closest)
+- Hover: `bg-[#f4f4f5] text-[#0f0f0f]`
+- User section: ensure border-top `#f4f4f5`
+
+### 11. `src/pages/Index.tsx` — Landing Page
+- Hero h1: add `font-display` class (Fraunces)
+- Section h2s ("Everything You Need to Succeed", "Earn Recognized Certificates", "Choose Your Learning Path"): keep Inter (h2 role), ensure `text-[#111111]`
+- Portal section h3s ("Master Financial Literacy", "Fun Financial Adventures"): add `font-display`
+- No other changes — images and layout untouched
+
+### 12. `src/pages/Dashboard.tsx` — Dashboard
+- Welcome h1: add `font-display` class
+- Stat card numbers (modules completed, quiz rate, streak): add `tabular-nums font-display` for the large numbers
+- Remove background gradient `bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]` — replace with plain `bg-background`
+- Stat cards: add left accent border `border-l-[3px] border-primary/30`
+- "Continue Learning" badge: keep as-is
+- Module title in current module card: ensure Fraunces via `font-display`
+
+### 13. `src/pages/Modules.tsx` — Modules Page
+- Page h1 "Learning Modules": add `font-display`
+- Module card number in gradient header: add `font-display` (already large, just needs font family)
+- Module card title: keep Inter (h3 role)
+
+### 14. `src/pages/ModulePlayer.tsx` — Module Player
+- Module title h1: add `font-display`
+- Quiz score display: add `tabular-nums`
+
+### 15. `src/pages/Certificates.tsx` — Certificates
+- Page h1: add `font-display`
+- Certificate name in detail cards: add `font-display`
+- Stat card numbers: add `tabular-nums`
+
+### 16. `src/pages/Simulator.tsx` — Simulator Hub
+- Page h1 "Market Simulator": add `font-display`
+- Remove background gradient — plain `bg-background`
+- Category card titles: keep Inter
+- "$500.00" starting balance: add `tabular-nums`
+
+### 17. `src/pages/simulator/SimulatorBanking.tsx` — Banking Simulator
+- Page h1: add `font-display`
+- T-Bill rate numbers (27.5%): add `tabular-nums font-display text-[2rem]` — these are display financial numbers
+- FD Calculator results: add `tabular-nums`
+- Results section bg: change `bg-muted/30` to `bg-[#f8f8f8] rounded-[10px]`
+- Savings table: clean, no decoration (already good)
+
+### 18. `src/pages/simulator/SimulatorInvestment.tsx` — Investment Simulator
+- Page h1: add `font-display`
+- Portfolio value numbers: add `tabular-nums`
+- Stock prices: add `tabular-nums`
+- Change %: ensure using pill badge style with subtle bg — currently plain text, wrap in small badge-like span with `bg-green-50 text-green-700` or `bg-red-50 text-red-700` for consistency with "change as badge" spec
+
+### 19. `src/pages/simulator/SimulatorTrading.tsx` — Trading Simulator
+- Page h1: add `font-display`
+- Trading balance/P&L numbers: add `tabular-nums`
+- Crypto prices: add `tabular-nums`
+- Forex bid/ask: add `tabular-nums`
+
+### 20. `src/pages/simulator/SimulatorCapitalMarkets.tsx` — Capital Markets
+- Remove `glass-card-primary` and `glass-card` class references (lines 58, 65, 72) — replace with empty string
+- Bond yields: add `tabular-nums`
+- Page h1: add `font-display`
+
+### 21. `src/pages/Leaderboard.tsx` — Leaderboard
+- Remove `glass-card-primary` (line 144) and `glass-card` (line 206) — replace with empty string
+- Remove background gradient — plain `bg-background`
+- Page h1: add `font-display`
+- Dollar amounts: add `tabular-nums`
+
+### 22. `src/pages/Trade.tsx` — Trade Page
+- Prices: add `tabular-nums`
+
+### 23. `src/pages/Auth.tsx` — Auth Page
+- Remove background gradient — use `bg-[#f8f8f8]`
+- No font changes needed (no display headings here)
+
+### 24. `src/pages/kids/KidsLanding.tsx` — Kids Landing
+- Hero h1: add `font-display`
+- Section h2s: keep Inter
+- Certificate card title: add `font-display`
+
+### 25. `src/pages/Profile.tsx` — Profile
+- Page h1: add `font-display`
+
+### 26. `src/components/ui/stats-bar.tsx` — Stats Bar
+- Value text: add `tabular-nums` for numeric values
+- Label text: `text-[0.8125rem] font-medium tracking-[0.01em] text-[#71717a]`
+
+### 27. `src/components/simulator/DataBadge.tsx` — No changes needed (already clean)
+
+### 28. `src/components/simulator/LiveBadge.tsx` — No changes needed
+
+### 29. `src/components/layout/Footer.tsx` — No changes needed
+
+### 30. `src/components/layout/MainLayout.tsx` — No changes needed (layout untouched)
 
 ---
 
-## Part 1: Switch Forex to Alpaca (Edge Function)
+## Summary of Changes by Category
 
-**File:** `supabase/functions/market-data/index.ts`
+**Fonts**: Import Fraunces, register in Tailwind, apply `font-display` to ~15 headings across pages
 
-Replace the `fetchForex()` function (lines 187-280):
+**CSS Variables**: Update `--background`, `--foreground`, `--muted`, `--muted-foreground`, `--border`, `--sidebar-background` for warm off-white canvas and refined text hierarchy
 
-- Remove all Finnhub-based forex fetching logic and the `forexPairsConfig` array
-- New implementation uses Alpaca endpoint: `https://data.alpaca.markets/v1beta3/forex/latest/rates`
-- Auth via existing `ALPACA_API_KEY` and `ALPACA_API_SECRET` headers (`APCA-API-KEY-ID`, `APCA-API-SECRET-KEY`)
-- Alpaca-supported pairs: USD/GHS, EUR/USD, GBP/USD, USD/JPY, USD/CHF, AUD/USD, USD/CAD, EUR/GBP, XAU/USD
-- For each pair, fetch the rate, compute bid/ask with a small spread, and use previous close if available for `change_percent`
-- African pairs not on Alpaca (USD/NGN, USD/ZAR, EUR/GHS, GBP/GHS) remain in `forexFallback` with `simulated: true` and `_meta.source: "fallback"`
-- Keep `forexFallback` array but update `_meta` source to `"alpaca"` for Alpaca-sourced items
-- Cache TTL remains 60s
-- Response structure unchanged: `{ pair, bid, ask, change_percent, simulated, _meta }`
+**Components**: Update card, button, input, progress primitives with refined shadows, borders, transitions
 
----
+**Glass cleanup**: Remove 5 remaining `glass-card*` references in Leaderboard and CapitalMarkets
 
-## Part 2: Rebuild Banking Simulator Page
+**Gradient cleanup**: Remove decorative page-level gradients from Dashboard, Simulator, Leaderboard, Auth
 
-**File:** `src/pages/simulator/SimulatorBanking.tsx` -- full rewrite of content (same MainLayout wrapper)
+**Financial numbers**: Add `tabular-nums` class to ~30 number displays across simulator/dashboard pages
 
-### Section 1: T-Bills (Live Data)
-- Import and use `useMarketData('tbills')` hook
-- Display 3 cards in a responsive grid (1 col mobile, 3 col desktop)
-- Each card shows: tenor heading ("91-Day T-Bill"), rate as large bold number, "Annual Yield" label, "Bank of Ghana" source in muted text, updated date, "Simulated Investment" button
-- Show loading skeleton while fetching
-- Show DataBadge per card based on `_meta`
+**Micro-interactions**: Refine transition timing to `cubic-bezier(0.4, 0, 0.2, 1)`, button active states
 
-### Section 2: Fixed Deposit Calculator
-- Single calculator Card with inputs:
-  - Principal Amount (GHS) -- number input
-  - Interest Rate (% p.a.) -- number input, default 22
-  - Tenure -- Select dropdown: 3, 6, 9, 12, 24 months
-  - Institution -- Select dropdown: GCB Bank, Ecobank, Absa Bank, Fidelity Bank, Stanbic Bank
-- "Calculate" button triggers client-side computation
-- Formula: `Interest = Principal x Rate/100 x Tenure/12`
-- Results section (conditionally rendered after calculate):
-  - Maturity Amount, Interest Earned, Effective Monthly Rate
-  - Visual bar showing Principal vs Interest proportions
+## Implementation Order
+1. index.html + tailwind.config.ts (font setup)
+2. src/index.css (design tokens + typography)
+3. Primitive components: card, button, input, progress
+4. Sidebar styling
+5. All pages: font-display headings, tabular-nums, glass-card cleanup, gradient removal
 
-### Section 3: Savings Account Rates
-- Static Card with a table of 5 banks:
-  - GCB Bank 8.5% GHS 50, Ecobank 9.0% GHS 100, Absa 8.0% GHS 200, Fidelity 10.5% GHS 50, Stanbic 9.5% GHS 100
-- Disclaimer note: "Rates are indicative. Contact your bank for current offers."
-- DataBadge showing "Simulated"
-
-### Remove
-- Remove old `glass-card` and `glass-card-primary` class references
-- Remove the old portfolio overview cards (they showed hardcoded mock values)
-
----
-
-## Part 3: Update Investment Page -- Stock Sector Tabs
-
-**File:** `src/pages/simulator/SimulatorInvestment.tsx`
-
-Changes to the World Markets tab content:
-
-- Remove the hardcoded `symbols: 'AAPL,MSFT,GOOGL,AMZN,TSLA,META'` param -- fetch all default symbols instead
-- Add a search bar above the sector tabs to filter by symbol or company name
-- Add sector sub-tabs inside the World Markets tab: All | Technology | Finance | Healthcare | Energy | Consumer | ETFs
-- Default tab: All
-- Each stock row/card shows:
-  - Symbol (bold) + Company name (muted)
-  - Sector badge (small colored pill)
-  - Current price (bold)
-  - Change % with green/red color and arrow icon
-  - Day high / Day low
-  - "Trade" button
-  - DataBadge per item based on `_meta.simulated`
-- Remove `glass-card-green` and `glass-card` class references on portfolio overview cards
-- GSE section remains unchanged
-
----
-
-## Part 4: Update Trading Page
-
-**File:** `src/pages/simulator/SimulatorTrading.tsx`
-
-### Crypto Section
-- Already fetches via `useMarketData('crypto')` -- enhance display
-- Switch to a card grid layout (2 cols on md, 3 on lg)
-- Each card shows: coin name + symbol, price in USD, 24h change % (green/red with arrow), market cap abbreviated (e.g. "$1.2T", "$45.6B"), "Trade" button, DataBadge
-- Market cap formatting helper: values >= 1T show as "T", >= 1B as "B", >= 1M as "M"
-
-### Forex Section
-- Already fetches via `useMarketData('forex')` -- enhance display
-- Group into two visual sections: "African Pairs" (USD/GHS, EUR/GHS, GBP/GHS, USD/NGN, USD/ZAR) and "Major Pairs" (rest)
-- Each row shows: pair, bid, ask, spread (ask - bid, formatted to 4 decimal places for small values), change %, DataBadge
-- Keep existing Buy/Sell buttons
-
-### Commodities Section
-- Already fetches via `useMarketData('commodities')` -- enhance display
-- Group by category using sub-headings: "Metals", "Energy", "Agricultural"
-- Each item shows: name, price + unit, change %, DataBadge
-- Keep existing Buy/Sell buttons
-
-### Remove
-- Remove `glass-card-gold` and `glass-card` class references on balance cards
-
----
-
-## Part 5: DataBadge Component
-
-**New file:** `src/components/simulator/DataBadge.tsx`
-
-```
-interface DataBadgeProps {
-  meta?: { source: string; cached: boolean; simulated: boolean };
-}
-```
-
-Logic:
-- If `meta.simulated === true`: orange dot + "Simulated"
-- Else if `meta.cached === true`: blue dot + "Cached"
-- Else: green dot + "Live"
-
-Styling: small inline Badge with `variant="outline"`, 2px dot, `text-xs`, non-intrusive. Similar to existing `LiveBadge` but driven by `_meta`.
-
-Usage: Replace the existing `LiveBadge` on Trading/Investment pages with per-item `DataBadge` where `_meta` is available. Keep `LiveBadge` for the top-level timestamp display.
-
----
-
-## Part 6: Environment Variable Verification
-
-Confirm in the edge function that all keys are accessed via `Deno.env.get()`:
-- `ALPACA_API_KEY` -- already used in `fetchStocks()`, will also be used in new `fetchForex()`
-- `ALPACA_API_SECRET` -- same
-- `FINNHUB_API_KEY` -- used in `fetchCommodities()` (forex no longer uses it)
-- `COINGECKO_API_KEY` -- used in `fetchCrypto()`
-
-No hardcoded values. All four secrets already exist in Supabase secrets.
-
----
-
-## Files Summary
-
-| File | Action | Description |
-|------|--------|-------------|
-| `supabase/functions/market-data/index.ts` | Modify | Replace fetchForex() with Alpaca implementation |
-| `src/components/simulator/DataBadge.tsx` | Create | Reusable Live/Simulated/Cached badge component |
-| `src/pages/simulator/SimulatorBanking.tsx` | Rewrite | 3 sections: live T-Bills, FD calculator, savings rates |
-| `src/pages/simulator/SimulatorInvestment.tsx` | Modify | Add sector tabs, search bar, DataBadge, remove glass classes |
-| `src/pages/simulator/SimulatorTrading.tsx` | Modify | Card grid crypto, grouped forex/commodities, DataBadge, remove glass classes |
-
-### Implementation Order
-1. Create DataBadge component
-2. Update edge function (forex to Alpaca)
-3. Deploy edge function
-4. Rewrite SimulatorBanking page
-5. Update SimulatorInvestment page
-6. Update SimulatorTrading page
-7. Test all endpoints via curl
+## Files Count: ~20 files modified, 0 new files
 
