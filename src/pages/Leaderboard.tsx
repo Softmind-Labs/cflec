@@ -20,11 +20,7 @@ export default function Leaderboard() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const { data } = await supabase
-        .from('leaderboard')
-        .select('*')
-        .order('total_value', { ascending: false })
-        .limit(50);
+      const { data } = await supabase.rpc('get_leaderboard', { limit_count: 50 });
 
       if (data) setLeaderboard(data as LeaderboardEntry[]);
       setLoading(false);

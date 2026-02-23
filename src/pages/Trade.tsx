@@ -98,109 +98,45 @@ export default function Trade() {
 
     try {
       const qty = parseInt(quantity);
-      const total = calculateTotal();
-
-      if (tradeType === 'buy') {
-        // Update cash balance
-        const newBalance = Number(portfolio.cash_balance) - total;
-        await supabase
-          .from('portfolios')
-          .update({ cash_balance: newBalance })
-          .eq('id', portfolio.id);
-
-        // Update or create holding
-        const existingHolding = getHolding(selectedStock.id);
-        if (existingHolding) {
-          const newQty = existingHolding.quantity + qty;
-          const newAvgCost = ((existingHolding.quantity * Number(existingHolding.average_cost)) + total) / newQty;
-          await supabase
-            .from('stock_holdings')
-            .update({ quantity: newQty, average_cost: newAvgCost })
-            .eq('id', existingHolding.id);
-        } else {
-          await supabase
-            .from('stock_holdings')
-            .insert({
-              portfolio_id: portfolio.id,
-              stock_id: selectedStock.id,
-              quantity: qty,
-              average_cost: selectedStock.current_price
-            });
-        }
-
-        // Record transaction
-        await supabase.from('transactions').insert({
-          portfolio_id: portfolio.id,
-          stock_id: selectedStock.id,
-          transaction_type: 'buy',
-          quantity: qty,
-          price_per_share: selectedStock.current_price,
-          total_amount: total
-        });
-
-        setPortfolio({ ...portfolio, cash_balance: newBalance });
-        
-      } else {
-        // Sell logic
-        const existingHolding = getHolding(selectedStock.id);
-        if (!existingHolding) return;
-
-        const newQty = existingHolding.quantity - qty;
-        const newBalance = Number(portfolio.cash_balance) + total;
-
-        await supabase
-          .from('portfolios')
-          .update({ cash_balance: newBalance })
-          .eq('id', portfolio.id);
-
-        if (newQty <= 0) {
-          await supabase
-            .from('stock_holdings')
-            .delete()
-            .eq('id', existingHolding.id);
-          setHoldings(holdings.filter(h => h.id !== existingHolding.id));
-        } else {
-          await supabase
-            .from('stock_holdings')
-            .update({ quantity: newQty })
-            .eq('id', existingHolding.id);
-          setHoldings(holdings.map(h => 
-            h.id === existingHolding.id ? { ...h, quantity: newQty } : h
-          ));
-        }
-
-        await supabase.from('transactions').insert({
-          portfolio_id: portfolio.id,
-          stock_id: selectedStock.id,
-          transaction_type: 'sell',
-          quantity: qty,
-          price_per_share: selectedStock.current_price,
-          total_amount: total
-        });
-
-        setPortfolio({ ...portfolio, cash_balance: newBalance });
+      if (isNaN(qty) || qty <= 0 || qty > 10000) {
+        toast({ title: 'Invalid quantity', description: 'Quantity must be between 1 and 10,000.', variant: 'destructive' });
+        return;
       }
+
+      const { data, error } = await supabase.rpc('execute_trade', {
+        p_stock_id: selectedStock.id,
+        p_transaction_type: tradeType,
+        p_quantity: qty,
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; price_per_share: number; total_amount: number; new_cash_balance: number };
+
+      // Update local state from server response
+      setPortfolio({ ...portfolio, cash_balance: result.new_cash_balance });
 
       toast({
         title: 'Trade Successful!',
-        description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${qty} shares of ${selectedStock.symbol} for $${total.toFixed(2)}`,
+        description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${qty} shares of ${selectedStock.symbol} for $${Number(result.total_amount).toFixed(2)}`,
       });
 
       setIsDialogOpen(false);
       setQuantity('');
       setSelectedStock(null);
 
-      // Refresh holdings
+      // Refresh holdings from server
       const { data: holdingsData } = await supabase
         .from('stock_holdings')
         .select('*')
         .eq('portfolio_id', portfolio.id);
       if (holdingsData) setHoldings(holdingsData as StockHolding[]);
 
-    } catch (error) {
+    } catch (error: any) {
+      const message = error?.message || 'Something went wrong. Please try again.';
       toast({
         title: 'Trade Failed',
-        description: 'Something went wrong. Please try again.',
+        description: message,
         variant: 'destructive',
       });
     } finally {

@@ -435,6 +435,26 @@ export type Database = {
       }
     }
     Functions: {
+      execute_trade: {
+        Args: {
+          p_quantity: number
+          p_stock_id: string
+          p_transaction_type: string
+        }
+        Returns: Json
+      }
+      get_leaderboard: {
+        Args: { limit_count?: number }
+        Returns: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          avatar_url: string
+          cash_balance: number
+          full_name: string
+          holdings_value: number
+          total_value: number
+          user_id: string
+        }[]
+      }
       owns_portfolio: { Args: { _portfolio_id: string }; Returns: boolean }
     }
     Enums: {
