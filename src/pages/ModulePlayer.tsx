@@ -3,11 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
-import { StatsBar } from '@/components/ui/stats-bar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
@@ -20,10 +17,11 @@ import {
   Award,
   Clock,
   Layers,
-  Cpu
+  Zap
 } from 'lucide-react';
 import type { Module, ModuleContent, Quiz, UserProgress } from '@/types';
 import { CERTIFICATE_INFO } from '@/types';
+import { CERT_COLORS } from '@/lib/cert-colors';
 
 export default function ModulePlayer() {
   const { id } = useParams<{ id: string }>();
@@ -107,7 +105,7 @@ export default function ModulePlayer() {
     setQuizSubmitted(true);
 
     toast({
-      title: passed ? '🎉 Quiz Passed!' : 'Quiz Not Passed',
+      title: passed ? 'Quiz Passed!' : 'Quiz Not Passed',
       description: passed 
         ? `You scored ${score}%! Module completed.`
         : `You scored ${score}%. You need 70% to pass. Try again!`,
@@ -150,14 +148,15 @@ export default function ModulePlayer() {
   const quizScore = progress?.quiz_score || 0;
   const quizPassed = progress?.quiz_passed || false;
   const certInfo = CERTIFICATE_INFO[module.certificate_level];
+  const certColor = CERT_COLORS[module.certificate_level];
   const completedSteps = [progress?.video_completed, quizPassed].filter(Boolean).length;
+  const totalSteps = module.has_simulation ? 3 : 2;
 
   return (
     <MainLayout>
-      {/* Hero Section */}
-      <div className="bg-muted/50 border-b">
+      {/* Hero Section — clean white bg */}
+      <div className="border-b border-[rgba(0,0,0,0.06)]">
         <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12">
-          {/* Breadcrumbs */}
           <BreadcrumbNav
             items={[
               { label: 'Dashboard', href: '/dashboard' },
@@ -166,56 +165,75 @@ export default function ModulePlayer() {
             ]}
           />
 
-          <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-start justify-between gap-4 mt-4">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className={`certificate-${module.certificate_level}`}>
-                  {module.certificate_level.toUpperCase()}
-                </Badge>
-                <span className="text-sm text-muted-foreground">Module {module.module_number}</span>
-              </div>
-              <h1 className="text-3xl font-display mb-2">{module.title}</h1>
+              {/* Certificate badge */}
+              <span
+                className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider border"
+                style={{
+                  backgroundColor: certColor.bg,
+                  color: certColor.accent,
+                  borderColor: certColor.border,
+                }}
+              >
+                {certInfo.name}
+              </span>
+
+              <h1 className="font-display font-bold tracking-[-0.03em] mt-2" style={{ fontSize: 'clamp(1.75rem, 3vw, 2.25rem)' }}>
+                {module.title}
+              </h1>
+
               {module.description && (
-                <p className="text-muted-foreground max-w-2xl">{module.description}</p>
+                <p className="text-muted-foreground text-[0.9375rem] mt-2 max-w-[600px]">
+                  {module.description}
+                </p>
+              )}
+
+              {/* Inline meta row */}
+              <div className="flex items-center gap-2 mt-4 text-[0.875rem] text-muted-foreground flex-wrap">
+                <Clock className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
+                <span>{module.duration_minutes} min</span>
+                <span className="text-[hsl(240_4%_82%)]">·</span>
+                <Award className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
+                <span>{certInfo.name}</span>
+                <span className="text-[hsl(240_4%_82%)]">·</span>
+                <Layers className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
+                <span>{completedSteps}/{totalSteps} complete</span>
+              </div>
+
+              {/* Slim progress bar */}
+              <div className="mt-4 max-w-md">
+                <div className="flex items-center justify-end mb-1">
+                  <span className="text-[0.75rem] font-medium" style={{ color: certColor.accent }}>
+                    {completedSteps}/{totalSteps} complete
+                  </span>
+                </div>
+                <div className="h-1 rounded-full bg-[hsl(0_0%_94%)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(completedSteps / totalSteps) * 100}%`,
+                      backgroundColor: certColor.accent,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Completion indicator */}
+            <div className="flex items-center gap-2 shrink-0">
+              {completedSteps === totalSteps && (
+                <span className="inline-flex items-center gap-1.5 text-[0.875rem] font-medium" style={{ color: '#16a34a' }}>
+                  <CheckCircle className="h-5 w-5" />
+                  Completed
+                </span>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {progress?.video_completed && <CheckCircle className="h-6 w-6 text-[hsl(var(--cflp-green))]" />}
-              {quizPassed && <Award className="h-6 w-6 text-[hsl(var(--cflp-gold))]" />}
-            </div>
           </div>
-
-          {/* Stats Bar */}
-          <StatsBar
-            items={[
-              { label: 'Duration', value: `${module.duration_minutes} min`, icon: <Clock className="h-4 w-4" /> },
-              { label: 'Certificate', value: certInfo.name, icon: <Award className="h-4 w-4" /> },
-              { label: 'Simulation', value: module.has_simulation ? 'Included' : 'None', icon: <Cpu className="h-4 w-4" /> },
-              { label: 'Progress', value: `${completedSteps}/2 complete`, icon: <Layers className="h-4 w-4" /> },
-            ]}
-          />
         </div>
       </div>
 
       <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-8">
-        {/* Progress Bar */}
-        <Card className="mb-8">
-          <CardContent className="py-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span>Module Progress</span>
-                  <span>{completedSteps}/2 complete</span>
-                </div>
-                <Progress 
-                  value={(completedSteps / 2) * 100} 
-                  className="h-2"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -223,15 +241,8 @@ export default function ModulePlayer() {
               <>
                 {/* Video Section */}
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <PlayCircle className="h-5 w-5" />
-                      Video Lesson
-                    </CardTitle>
-                    <CardDescription>{module.duration_minutes} minutes</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
+                  <CardContent className="p-0">
+                    <div className="aspect-video bg-muted rounded-t-[inherit] flex items-center justify-center">
                       <div className="text-center">
                         <PlayCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground">Video player placeholder</p>
@@ -240,16 +251,19 @@ export default function ModulePlayer() {
                         </p>
                       </div>
                     </div>
-                    {!progress?.video_completed ? (
-                      <Button onClick={markVideoComplete} className="w-full">
-                        Mark as Complete & Take Quiz
-                      </Button>
-                    ) : (
-                      <Button onClick={() => setShowQuiz(true)} className="w-full" variant="outline">
-                        <CheckCircle className="mr-2 h-4 w-4 text-[hsl(var(--cflp-green))]" />
-                        Video Completed - Go to Quiz
-                      </Button>
-                    )}
+                    <div className="p-5">
+                      <p className="text-[0.8125rem] text-muted-foreground mb-4">{module.duration_minutes} minutes</p>
+                      {!progress?.video_completed ? (
+                        <Button onClick={markVideoComplete} className="w-full">
+                          Mark as Complete & Take Quiz
+                        </Button>
+                      ) : (
+                        <Button onClick={() => setShowQuiz(true)} className="w-full" variant="outline">
+                          <CheckCircle className="mr-2 h-4 w-4" style={{ color: '#16a34a' }} />
+                          Video Completed - Go to Quiz
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -285,7 +299,7 @@ export default function ModulePlayer() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <HelpCircle className="h-5 w-5" />
-                    Module Quiz
+                    Knowledge Check
                   </CardTitle>
                   <CardDescription>
                     {quizSubmitted 
@@ -298,10 +312,10 @@ export default function ModulePlayer() {
                     quizSubmitted ? (
                       <div className="text-center py-8">
                         <div className={`h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                          quizPassed ? 'bg-[hsl(var(--cflp-green)/0.2)]' : 'bg-destructive/20'
+                          quizPassed ? 'bg-[#f0fdf4]' : 'bg-destructive/20'
                         }`}>
                           {quizPassed ? (
-                            <CheckCircle className="h-10 w-10 text-[hsl(var(--cflp-green))]" />
+                            <CheckCircle className="h-10 w-10" style={{ color: '#16a34a' }} />
                           ) : (
                             <HelpCircle className="h-10 w-10 text-destructive" />
                           )}
@@ -381,55 +395,69 @@ export default function ModulePlayer() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Module Info</CardTitle>
+                <CardTitle className="text-[0.9375rem] font-bold">About This Module</CardTitle>
               </CardHeader>
               <CardContent className="space-y-0 p-0">
-                <div className="flex items-center justify-between px-7 py-4 border-b">
-                  <span className="text-muted-foreground">Duration</span>
-                  <span className="font-medium">{module.duration_minutes} min</span>
+                <div className="flex items-center justify-between px-6 py-3 border-b border-[hsl(0_0%_96%)]">
+                  <span className="text-[0.8125rem] text-muted-foreground">Duration</span>
+                  <span className="text-[0.8125rem] font-semibold">{module.duration_minutes} min</span>
                 </div>
-                <div className="flex items-center justify-between px-7 py-4 border-b">
-                  <span className="text-muted-foreground">Certificate</span>
-                  <Badge className={`certificate-${module.certificate_level}`}>
-                    {module.certificate_level.toUpperCase()}
-                  </Badge>
+                <div className="flex items-center justify-between px-6 py-3 border-b border-[hsl(0_0%_96%)]">
+                  <span className="text-[0.8125rem] text-muted-foreground">Certificate</span>
+                  <span
+                    className="inline-flex items-center rounded-md px-2 py-0.5 text-[0.75rem] font-semibold border"
+                    style={{
+                      backgroundColor: certColor.bg,
+                      color: certColor.accent,
+                      borderColor: certColor.border,
+                    }}
+                  >
+                    {certInfo.name}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between px-7 py-4">
-                  <span className="text-muted-foreground">Simulation</span>
-                  <span className="font-medium">{module.has_simulation ? 'Yes' : 'No'}</span>
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-[0.8125rem] text-muted-foreground">Simulation</span>
+                  {module.has_simulation ? (
+                    <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-primary">
+                      <Zap className="h-3 w-3" />
+                      Included
+                    </span>
+                  ) : (
+                    <span className="text-[0.8125rem] text-[hsl(240_4%_66%)]">None</span>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Your Progress</CardTitle>
+                <CardTitle className="text-[0.9375rem] font-bold">Your Progress</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   {progress?.video_completed ? (
-                    <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
+                    <CheckCircle className="h-5 w-5" style={{ color: '#16a34a' }} />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2" />
                   )}
-                  <span>Watch Video</span>
+                  <span className="text-[0.875rem]">Watch Video</span>
                 </div>
                 <div className="flex items-center gap-3">
                   {quizPassed ? (
-                    <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
+                    <CheckCircle className="h-5 w-5" style={{ color: '#16a34a' }} />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2" />
                   )}
-                  <span>Pass Quiz (70%+)</span>
+                  <span className="text-[0.875rem]">Pass Quiz (70%+)</span>
                 </div>
                 {module.has_simulation && (
                   <div className="flex items-center gap-3">
                     {progress?.simulation_completed ? (
-                      <CheckCircle className="h-5 w-5 text-[hsl(var(--cflp-green))]" />
+                      <CheckCircle className="h-5 w-5" style={{ color: '#16a34a' }} />
                     ) : (
                       <div className="h-5 w-5 rounded-full border-2" />
                     )}
-                    <span>Complete Simulation</span>
+                    <span className="text-[0.875rem]">Complete Simulation</span>
                   </div>
                 )}
               </CardContent>

@@ -217,15 +217,19 @@
 
   /* Certificate utility classes */
   .certificate-green {
-    @apply bg-[hsl(var(--cflp-green))] text-[hsl(var(--cflp-green-foreground))];
+    background-color: #16a34a;
+    color: #ffffff;
   }
   .certificate-white {
-    @apply bg-[hsl(var(--cflp-white))] text-[hsl(var(--cflp-white-foreground))] border border-gray-300;
+    background-color: #3b82f6;
+    color: #ffffff;
   }
   .certificate-gold {
-    @apply bg-[hsl(var(--cflp-gold))] text-[hsl(var(--cflp-gold-foreground))];
+    background-color: #d97706;
+    color: #ffffff;
   }
   .certificate-blue {
-    @apply bg-[hsl(var(--cflp-blue))] text-[hsl(var(--cflp-blue-foreground))];
+    background-color: #6366f1;
+    color: #ffffff;
   }
 }

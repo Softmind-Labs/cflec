@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import type { Module, UserProgress, LeaderboardEntry } from '@/types';
 import { CERTIFICATE_INFO } from '@/types';
+import { CERT_COLORS } from '@/lib/cert-colors';
 
 export default function Dashboard() {
   const { profile } = useAuth();
@@ -150,13 +151,13 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: 'rgba(22,163,106,0.1)' }}>
-                    <Award className="h-5 w-5" style={{ color: '#16a34a' }} />
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: `${CERT_COLORS[certProgress.current].accent}1a` }}>
+                    <Award className="h-5 w-5" style={{ color: CERT_COLORS[certProgress.current].accent }} />
                   </div>
                 </div>
                 <div className="mb-2">
-                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold border" style={{ backgroundColor: '#f0fdf4', color: '#16a34a', borderColor: '#bbf7d0' }}>
-                    GREEN
+                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[0.75rem] font-semibold border" style={{ backgroundColor: CERT_COLORS[certProgress.current].bg, color: CERT_COLORS[certProgress.current].accent, borderColor: CERT_COLORS[certProgress.current].border }}>
+                    {certProgress.current.toUpperCase()}
                   </span>
                 </div>
                 <p className="text-[0.8125rem] text-muted-foreground tabular-nums">
@@ -391,7 +392,7 @@ export default function Dashboard() {
                             isEarned ? 'bg-muted/50' : 'opacity-50'
                           }`}
                         >
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center certificate-${level}`}>
+                          <div className={`h-8 w-8 rounded-full flex items-center justify-center`} style={{ backgroundColor: CERT_COLORS[level].accent, color: '#ffffff' }}>
                             {isEarned ? (
                               <CheckCircle className="h-4 w-4" />
                             ) : (
