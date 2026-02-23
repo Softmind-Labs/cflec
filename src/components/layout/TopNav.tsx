@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Search, Bell, Menu, X, User, LogOut } from 'lucide-react';
 import cflecLogo from '@/assets/cflec-logo.png';
+import { SearchDialog } from './SearchDialog';
 
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
@@ -26,6 +27,19 @@ export function TopNav() {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Ctrl+K / Cmd+K to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -54,6 +68,7 @@ export function TopNav() {
 
   return (
     <>
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       <nav className="sticky top-0 z-50 h-[68px] bg-white border-b border-[hsl(0_0%_94%)] px-5 md:px-12">
         <div className="flex items-center justify-between h-full max-w-[1440px] mx-auto">
           {/* Left — Logo */}
@@ -93,7 +108,7 @@ export function TopNav() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground">
+                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground" onClick={() => setSearchOpen(true)}>
                   <Search className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground">
