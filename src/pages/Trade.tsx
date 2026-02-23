@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,7 @@ import type { Portfolio, MockStock, StockHolding } from '@/types';
 export default function Trade() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [stocks, setStocks] = useState<MockStock[]>([]);
   const [holdings, setHoldings] = useState<StockHolding[]>([]);
@@ -50,7 +51,22 @@ export default function Trade() {
         supabase.from('portfolios').select('*').eq('user_id', user.id).maybeSingle(),
       ]);
 
-      if (stocksRes.data) setStocks(stocksRes.data as MockStock[]);
+      if (stocksRes.data) {
+        setStocks(stocksRes.data as MockStock[]);
+
+        // Auto-select stock from ?symbol= query param
+        const symbolParam = searchParams.get('symbol');
+        if (symbolParam) {
+          const match = (stocksRes.data as MockStock[]).find(
+            s => s.symbol.toLowerCase() === symbolParam.toLowerCase()
+          );
+          if (match) {
+            setSelectedStock(match);
+            setTradeType('buy');
+            setIsDialogOpen(true);
+          }
+        }
+      }
       
       if (portfolioRes.data) {
         setPortfolio(portfolioRes.data as Portfolio);
@@ -67,7 +83,7 @@ export default function Trade() {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, searchParams]);
 
   const filteredStocks = stocks.filter(s => 
     s.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||

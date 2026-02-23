@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataBadge } from '@/components/simulator/DataBadge';
+import { SimulationDialog } from '@/components/simulator/SimulationDialog';
 import { useMarketData } from '@/hooks/useMarketData';
 import {
   ArrowLeft,
@@ -27,6 +28,10 @@ export default function SimulatorBanking() {
   const [institution, setInstitution] = useState('');
   const [fdResult, setFdResult] = useState<{ maturity: number; interest: number; monthlyRate: number } | null>(null);
 
+  // Simulation dialog state
+  const [simOpen, setSimOpen] = useState(false);
+  const [simBill, setSimBill] = useState<{ rate: number; tenor: string; tenorDays: number } | null>(null);
+
   const calculateFD = () => {
     const p = parseFloat(principal) || 0;
     const r = parseFloat(rate) || 0;
@@ -35,6 +40,12 @@ export default function SimulatorBanking() {
     const maturity = p + interest;
     const monthlyRate = r / 12;
     setFdResult({ maturity, interest, monthlyRate });
+  };
+
+  const openTBillSim = (bill: any) => {
+    const tenorDays = bill.tenor.startsWith('91') ? 91 : bill.tenor.startsWith('182') ? 182 : 364;
+    setSimBill({ rate: bill.rate, tenor: bill.tenor, tenorDays });
+    setSimOpen(true);
   };
 
   const savingsRates = [
@@ -93,7 +104,7 @@ export default function SimulatorBanking() {
                     <p className="text-sm text-muted-foreground">Annual Yield</p>
                     <p className="text-xs text-muted-foreground">{bill.source}</p>
                     <p className="text-xs text-muted-foreground">Updated: {bill.updated}</p>
-                    <Button className="w-full mt-2" variant="outline">Simulated Investment</Button>
+                    <Button className="w-full mt-2" variant="outline" onClick={() => openTBillSim(bill)}>Simulated Investment</Button>
                   </CardContent>
                 </Card>
               ))}
@@ -167,7 +178,7 @@ export default function SimulatorBanking() {
                           style={{ width: `${(parseFloat(principal) / fdResult.maturity) * 100}%` }}
                         />
                         <div
-                          className="bg-green-500"
+                          className="bg-gain"
                           style={{ width: `${(fdResult.interest / fdResult.maturity) * 100}%` }}
                         />
                       </div>
@@ -219,6 +230,21 @@ export default function SimulatorBanking() {
           </Card>
         </div>
       </div>
+
+      {/* T-Bill Simulation Dialog */}
+      {simBill && (
+        <SimulationDialog
+          open={simOpen}
+          onOpenChange={setSimOpen}
+          assetName={`${simBill.tenor.replace('-', '-Day ').replace('day', '')} T-Bill`}
+          assetSymbol={simBill.tenor}
+          price={0}
+          assetType="tbill"
+          currency="GHS"
+          rate={simBill.rate}
+          tenorDays={simBill.tenorDays}
+        />
+      )}
     </MainLayout>
   );
 }
