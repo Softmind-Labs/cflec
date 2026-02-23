@@ -1,135 +1,146 @@
 
 
-# Surgical UI/UX Fix — Dashboard, Certificates, Courses, Modules
+# Comprehensive Final Fix — CFLEC Platform
 
 ## Scope
-Styling and presentation only across 4 pages + 1 shared component. No functionality, routing, data, or image changes.
 
-## Files to Modify
-
-### 1. `src/components/ui/card.tsx` — Remove hover lift globally
-
-Remove `hover:-translate-y-0.5` from the Card base class. Keep shadow and border hover changes only.
-
-### 2. `src/pages/Dashboard.tsx` — Full stat card redesign + emoji removal
-
-**Welcome section (lines 106-113):**
-- Remove `👋` emoji from heading
-- Change h1 to `font-display font-bold text-[2rem] text-[#0a0a0a]`
-- Add decorative rule div below subtitle: `w-12 h-[3px] bg-primary rounded-full mt-3`
-
-**Stat cards (lines 116-170) — complete restructure of all 4 cards:**
-
-Each card gets this new internal structure:
-- Top row: icon in 40px rounded-[12px] tinted circle (left), optional badge (right)
-- Large number: Fraunces 700 2rem tabular-nums
-- Label: Inter 500 0.8125rem uppercase tracking-[0.06em] #71717a
-- Remove `border-l-[3px] border-l-primary/30` from cards 1, 3, 4
-
-Card-by-card changes:
-- **Card 1 (Modules):** BookOpen icon in primary/10 circle. Number `0/27`. Label "MODULES COMPLETED". Add 3px progress bar below.
-- **Card 2 (Certificate):** Award icon in green (#16a34a) /10 circle. Replace current layout with a pill badge "GREEN" (bg-[#f0fdf4] text-[#16a34a] border border-[#bbf7d0]) + "0/10 modules" below. Label "CURRENT CERTIFICATE".
-- **Card 3 (Quiz):** Target icon (import from lucide) in amber (#d97706) /10 circle. Number "0%". Sub "0 quizzes passed". Label "QUIZ PASS RATE".
-- **Card 4 (Streak):** Flame icon (import from lucide) in orange (#f97316) /10 circle. Remove `🔥` emoji. Number "3". Sub "days · Keep it going!". Label "LEARNING STREAK".
-
-**Continue Learning card (lines 175-203):**
-- Change from `border-2 border-primary/20` white card to solid primary bg card
-- `bg-primary rounded-[20px] p-8 text-white border-none shadow-[0_8px_32px_rgba(0,0,0,0.15)]`
-- "Continue Learning" badge: `bg-white/15 text-white rounded-full px-3.5 py-1 text-xs font-medium`
-- Module number: `text-white/60 text-sm`
-- Title: `font-display font-semibold text-[1.5rem] text-white mt-4`
-- Description: `text-white/70 text-[0.9375rem] mt-2 max-w-[480px]`
-- Meta: `text-white/60` with clock icon
-- Certificate badge: `bg-white/15 text-white` (soft, not loud)
-- Button: `bg-white text-primary rounded-[10px] h-[42px] px-6 font-semibold` with ArrowRight icon. Hover: `bg-white/92`
-
-**Trading Simulator card (line 273):**
-- Remove `border-2 border-primary/20`, use default card border
-- Clean white card with TrendingUp icon 20px primary
-- Button: `variant="outline" w-full rounded-[10px]`
-
-**Top Traders card (line 293):**
-- Remove `border-2 border-[hsl(var(--cflp-gold)/0.3)]`
-- Trophy icon stays with `text-[#d97706]`
-- Rank circles: rank 1 gets `bg-[#fef9c3] text-[#ca8a04]`, others `bg-[#f4f4f5] text-[#52525b]`
-- Circle size: 24px, Inter 700 0.75rem
-- Amounts: `text-[#16a34a] tabular-nums`
-
-### 3. `src/pages/Certificates.tsx` — Color identity + refined cards
-
-**Page header (lines 81-87):**
-- Remove icon from h1 (Award icon before "Your Certificates")
-- Keep Fraunces font-display
-- Add decorative rule: `w-12 h-[3px] bg-primary rounded-full mt-3`
-
-**Certificate accent color map** — add a constant:
-```
-const certAccentColors = {
-  green: '#16a34a', white: '#3b82f6', gold: '#d97706', blue: '#6366f1'
-};
-```
-
-**Summary stat cards (lines 91-120):**
-- Each card: use matching accent color for progress bar fill
-- Active/current certificate card: add `border-[1.5px]` in accent color at 40% + `bg-[accentColor]/4`
-- Numbers: `font-display font-bold text-[1.25rem] tabular-nums`
-
-**Detail cards (lines 124-201):**
-- Replace top `h-2 certificate-${level}` bar with left border: `border-l-4` in accent color
-- Replace 16x16 round icon circle with 44px rounded-[12px] icon container in accent/12 bg
-- Status badge (top right): "Locked" (bg-[#f4f4f5] text-[#a1a1aa] with Lock icon 12px), "In Progress" (accent/8 bg, accent text), "Earned" (bg-[#f0fdf4] text-[#16a34a] with CheckCircle2 12px)
-- Certificate name: `font-display font-semibold text-[1.25rem]` in accent color
-- Progress bar: 6px height, accent color fill, `bg-[#f4f4f5]` track
-- Locked cards: `opacity-[0.65]`, gray out icon circle
-
-### 4. `src/pages/Courses.tsx` — Hero cleanup + card refinements
-
-**Hero section (lines 68-82):**
-- Remove entire stats row (the 4-stat block with "8 Courses", "Free Access", etc.)
-- Replace with single subtle line: `"8 short courses · Free with login · Ghana focused"` in `text-white/45 text-[0.875rem] mt-4`
-- Reduce hero padding: `py-12 md:py-16` (from py-16 md:py-20)
-
-**Course cards (lines 113-186):**
-- Remove `hover:-translate-y-1` from card div — use only `hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-[rgba(0,0,0,0.12)]`
-- Remove `"Free · Login required"` text (line 182-184) entirely
-- Category pill: change from `rounded-full` to `rounded-md` (6px), padding `px-2 py-0.5`
-- Icon: reduce from `h-12 w-12` to `h-10 w-10`
-- Color band: reduce from `h-[120px]` to `h-[110px]`
-- Button: change from outline style with onMouseEnter/Leave to a tinted bg button:
-  - Remove `variant="outline"`, onMouseEnter, onMouseLeave
-  - Style: `bg-[${color}]/8 text-[${color}] border-none hover:bg-[${color}] hover:text-white`
-  - Keep full width, rounded-lg, font-semibold
-
-### 5. `src/pages/Modules.tsx` — Header cleanup + stats bar + module card refinement
-
-**Page header (lines 123-131):**
-- Remove BookOpen icon from h1 (line 124-126)
-- Add decorative rule: `w-12 h-[3px] bg-primary rounded-full mt-3`
-
-**Stats bar (lines 134-142):**
-- Remove `🔥` emoji from streak value — replace with just `"3 days"`
-- The StatsBar component already renders cleanly; just fix the emoji in the data
-
-**Certificate tabs (lines 146-163):**
-- Add colored dots per tab matching certificate level (already has `certificate-${level}` span)
-- These look OK structurally — keep as-is
-
-**Module cards (lines 180-238) — gradient header reduction:**
-- Replace gradient header `h-24 bg-gradient-to-br ${levelColorMap[level]}` with flat tinted bg:
-  - `h-20` (reduced height)
-  - `bg-[certColor]/12` (flat, no gradient — using inline style)
-- Module number: reduce from `text-3xl` to `text-lg`, color: `certColor/60`
-- Simulation badge: change to `bg-primary/8 text-primary rounded px-1.5 py-0.5 text-[0.6875rem] font-semibold` with Zap icon 10px before text
-- Card hover: remove `hover:shadow-lg` (which includes lift via card base), just use default card hover (shadow + border only, no lift — already fixed in card.tsx)
+This plan covers 7 areas: certificate color constant, CourseDetail page rebuild, Simulator hub visual fix, ModulePlayer redesign, footer year fix, and font/badge consistency audit. Simulator modals (Part 7) are deferred — Trade.tsx already has a working trade dialog pattern; the other simulator pages need the same pattern replicated.
 
 ---
 
-## Implementation Order
-1. `card.tsx` — remove hover lift (affects everything)
-2. `Dashboard.tsx` — stat cards, emoji removal, continue learning card
-3. `Certificates.tsx` — color identity, refined cards
-4. `Courses.tsx` — hero cleanup, card fixes
-5. `Modules.tsx` — header, stats, module card cleanup
+## Files to Create
 
-## Files Count: 5 files modified, 0 new files
+### 1. `src/lib/cert-colors.ts` — Shared Certificate Color Constant
+
+Single source of truth for certificate colors used across all pages:
+
+```ts
+export const CERT_COLORS = {
+  green:  { accent: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+  white:  { accent: '#3b82f6', bg: '#eff6ff', border: '#bfdbfe' },
+  gold:   { accent: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+  blue:   { accent: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
+} as const;
+```
+
+Import this in `Dashboard.tsx`, `Modules.tsx`, `Certificates.tsx`, `ModulePlayer.tsx` — replacing any local `certAccentColors` maps.
+
+---
+
+## Files to Modify
+
+### 2. `src/pages/Certificates.tsx`
+
+- Replace local `certAccentColors` with import from `src/lib/cert-colors.ts`
+- Use `CERT_COLORS[level].accent` everywhere `accent` variable is used (already correct mapping, just centralize)
+
+### 3. `src/pages/Modules.tsx`
+
+- Replace local `certAccentColors` with import from `src/lib/cert-colors.ts`
+- Use `CERT_COLORS[level].accent` for tab dots, section dots, module card tinted headers
+- Module card header `style={{ backgroundColor: \`${accent}1f\` }}` stays — just uses centralized accent
+
+### 4. `src/pages/Dashboard.tsx`
+
+- Import `CERT_COLORS` from `src/lib/cert-colors.ts`
+- Line 158: Certificate badge — use `CERT_COLORS[certProgress.current]` for bg/color/border instead of hardcoded green
+- Line 394: Certificate sidebar section — replace `certificate-${level}` class with inline style using `CERT_COLORS[level]`
+
+### 5. `src/pages/ModulePlayer.tsx` — Redesign
+
+**Hero section (lines 158-198):**
+- Remove `StatsBar` component usage
+- Remove `<div className="bg-muted/50 border-b">` wrapper — replace with cleaner white bg section
+- Add breadcrumb (already has BreadcrumbNav — keep)
+- Certificate badge: use `CERT_COLORS[module.certificate_level]` for styling:
+  - `bg: CERT_COLORS[level].bg`, `color: CERT_COLORS[level].accent`, `border: 1px solid CERT_COLORS[level].border`
+  - `rounded-md` (6px), `px-2.5 py-0.5`, `text-xs font-semibold uppercase tracking-wider`
+- Module title: keep `font-display` (already has it)
+- Add inline meta row below description: Clock + duration · Award + cert name · Layers + progress — all `text-sm text-muted-foreground` in a flex row with dot separators
+- Add slim progress bar (4px) below meta row using `CERT_COLORS[level].accent` as fill color
+
+**Remove redundant progress card (lines 201-217):**
+- Delete the "Module Progress" card entirely — replaced by inline progress bar above
+
+**Sidebar module info card (lines 382-401):**
+- Replace `Badge className={certificate-${module.certificate_level}}` with styled span using `CERT_COLORS`
+- Simulation value: if has_simulation show Zap icon + "Included", else show "None" in muted color
+
+**Quiz toast (line 110):**
+- Replace `🎉` emoji with just text "Quiz Passed!"
+
+### 6. `src/pages/CourseDetail.tsx` — Full Rebuild
+
+Import courses data from Courses.tsx (extract courses array to a shared location or inline-duplicate it — simpler to duplicate since it's static data).
+
+**Structure:**
+- Full-bleed dark hero (`#0f0f0f`) with:
+  - Breadcrumb: Home > Courses > [title] in white/40
+  - Two columns (60/40):
+    - Left: category badge (course accent at 20%), title (Fraunces 700 clamp), subtitle, meta row (clock+duration, bookopen+lessons), CTA button "Start Learning →"
+    - Right: icon card (glass-like dark card with 64px Lucide icon in accent color, "Coming soon" badge)
+- Content area (max-w-1280, 2 columns):
+  - Left: "What You'll Learn" section (2-col grid of CheckCircle2 + topic text), "Course Lessons" section (numbered lesson rows with first = "Preview" badge, rest = Lock icon)
+  - Right: Sticky enroll sidebar card (icon circle, "Free Course" Fraunces heading, details list, CTA button, "Free · No payment required" note)
+
+Courses data (topics and lessons) will be generated per-course. Each course gets 4-6 "What You'll Learn" items and lesson titles matching their slug.
+
+### 7. `src/pages/Simulator.tsx` — Visual Refinement
+
+Replace the current tinted-background cards with clean white cards + left border accent:
+
+- Remove `<div className="absolute inset-0 ${category.bgColor} opacity-50" />` overlay
+- Remove `border-2 ${category.borderColor}` from card
+- Add `border-l-4` with specific accent colors:
+  - Banking: `#3b82f6`, Investment: `#16a34a`, Trading: `#d97706`, Capital Markets: `#6366f1`
+- Icon containers: 52x52px, rounded-[14px], accent/10 bg, 24px icon in accent color
+- Replace "4 Markets" Badge with plain muted text: `text-sm text-muted-foreground`
+- Replace colored dot bullets with CheckCircle2 icons (14px, accent at 60%)
+- Button: not full-width, `w-auto` + accent bg + white text + ArrowRight icon
+- Card layout: `min-h-[280px] flex flex-col`, button pushed to bottom with `mt-auto`
+- Remove leaderboard card `border-2 border-[hsl(var(--cflp-gold)/0.3)]`
+- Remove info banner `border-2 border-primary/20`
+
+### 8. `src/components/layout/Footer.tsx`
+
+- Change `© 2024` to `© 2025`
+
+### 9. `src/index.css` — Certificate CSS Classes
+
+Update `.certificate-green/white/gold/blue` classes to use the correct hex colors matching `CERT_COLORS`:
+- `.certificate-green`: bg `#16a34a`
+- `.certificate-white`: bg `#3b82f6` (not actual white)
+- `.certificate-gold`: bg `#d97706`
+- `.certificate-blue`: bg `#6366f1`
+
+---
+
+## Simulator Modals (Part 7) — Separate Implementation
+
+The Trade.tsx page already has a working trade dialog pattern. For Banking, Investment, Trading, and Capital Markets simulator pages, each "Trade"/"Buy"/"Sell"/"Invest" button needs a modal using the existing `Dialog` component. This is a significant functional addition (~200+ lines per page) and should be implemented as a follow-up task to keep this change focused on visual fixes.
+
+---
+
+## What Does NOT Change
+
+- No routing changes
+- No auth logic changes
+- No data fetching changes
+- No image changes
+- No new dependencies
+- AppSidebar.tsx stays unused
+
+## Implementation Order
+
+1. Create `src/lib/cert-colors.ts`
+2. Update `src/index.css` certificate classes
+3. Update `src/pages/Certificates.tsx` — import centralized colors
+4. Update `src/pages/Modules.tsx` — import centralized colors
+5. Update `src/pages/Dashboard.tsx` — import centralized colors, fix badge
+6. Rebuild `src/pages/ModulePlayer.tsx` — hero, meta, progress bar, remove redundant card
+7. Rebuild `src/pages/CourseDetail.tsx` — full course detail page
+8. Refine `src/pages/Simulator.tsx` — clean cards, left borders, buttons
+9. Fix `src/components/layout/Footer.tsx` — year
+
+## Files Count: 1 new, 8 modified
 
