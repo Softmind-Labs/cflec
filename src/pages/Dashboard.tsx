@@ -4,7 +4,6 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -15,7 +14,10 @@ import {
   Lock,
   CheckCircle,
   Trophy,
-  ArrowRight
+  ArrowRight,
+  Target,
+  Flame,
+  Clock
 } from 'lucide-react';
 import type { Module, UserProgress, LeaderboardEntry } from '@/types';
 import { CERTIFICATE_INFO } from '@/types';
@@ -98,109 +100,149 @@ export default function Dashboard() {
     );
   }
 
+  const quizPassRate = progress.length > 0
+    ? Math.round((progress.filter(p => p.quiz_passed).length / progress.length) * 100)
+    : 0;
+  const quizzesPassed = progress.filter(p => p.quiz_passed).length;
+  const completedCount = getCompletedModules();
+
   return (
     <MainLayout>
       <div className="min-h-full bg-background">
         <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-3xl font-display">
-              Welcome back, {profile?.full_name?.split(' ')[0]}! 👋
+            <h1 className="font-display font-bold text-[2rem] text-[hsl(0_0%_4%)]">
+              Welcome back, {profile?.full_name?.split(' ')[0]}!
             </h1>
             <p className="text-muted-foreground mt-1">
               Continue your financial literacy journey
             </p>
+            <div className="w-12 h-[3px] bg-primary rounded-full mt-3" />
           </div>
 
           {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
-            <Card className="border-l-[3px] border-l-primary/30">
-              <CardHeader className="pb-2">
-                <CardDescription>Modules Completed</CardDescription>
-                <CardTitle className="text-3xl tabular-nums">{getCompletedModules()}/{modules.length}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Progress value={(getCompletedModules() / modules.length) * 100} className="h-2" />
+            {/* Card 1 — Modules Completed */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-10 w-10 rounded-[12px] bg-primary/10 flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-primary" />
+                  </div>
+                </div>
+                <p className="font-display font-bold text-[2rem] tabular-nums text-[hsl(0_0%_4%)] leading-none">
+                  {completedCount}/{modules.length}
+                </p>
+                <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
+                  Modules Completed
+                </p>
+                <div className="mt-3 h-[3px] rounded-full bg-[hsl(0_0%_94%)] overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-400"
+                    style={{ width: `${modules.length > 0 ? (completedCount / modules.length) * 100 : 0}%` }}
+                  />
+                </div>
               </CardContent>
             </Card>
 
+            {/* Card 2 — Current Certificate */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Current Certificate</CardDescription>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-6 w-6 text-[hsl(var(--cflp-green))]" />
-                  {CERTIFICATE_INFO[certProgress.current].name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Progress value={certProgress.percentage} className="h-2 bg-[hsl(var(--cflp-green)/0.2)]" />
-                <p className="text-sm text-muted-foreground mt-2">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: 'rgba(22,163,106,0.1)' }}>
+                    <Award className="h-5 w-5" style={{ color: '#16a34a' }} />
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold border" style={{ backgroundColor: '#f0fdf4', color: '#16a34a', borderColor: '#bbf7d0' }}>
+                    GREEN
+                  </span>
+                </div>
+                <p className="text-[0.8125rem] text-muted-foreground tabular-nums">
                   {certProgress.completed}/{certProgress.total} modules
                 </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-l-[3px] border-l-primary/30">
-              <CardHeader className="pb-2">
-                <CardDescription>Quiz Pass Rate</CardDescription>
-                <CardTitle className="text-3xl tabular-nums">
-                  {progress.length > 0
-                    ? Math.round((progress.filter(p => p.quiz_passed).length / progress.length) * 100)
-                    : 0}%
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {progress.filter(p => p.quiz_passed).length} quizzes passed
+                <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
+                  Current Certificate
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-l-[3px] border-l-primary/30">
-              <CardHeader className="pb-2">
-                <CardDescription>Learning Streak</CardDescription>
-                <CardTitle className="text-3xl tabular-nums">🔥 3 days</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Keep it going!
+            {/* Card 3 — Quiz Pass Rate */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: 'rgba(217,119,6,0.1)' }}>
+                    <Target className="h-5 w-5" style={{ color: '#d97706' }} />
+                  </div>
+                </div>
+                <p className="font-display font-bold text-[2rem] tabular-nums text-[hsl(0_0%_4%)] leading-none">
+                  {quizPassRate}%
+                </p>
+                <p className="text-[0.8125rem] text-muted-foreground mt-1">
+                  {quizzesPassed} quizzes passed
+                </p>
+                <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
+                  Quiz Pass Rate
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Card 4 — Learning Streak */}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: 'rgba(249,115,22,0.1)' }}>
+                    <Flame className="h-5 w-5" style={{ color: '#f97316' }} />
+                  </div>
+                </div>
+                <p className="font-display font-bold text-[2rem] tabular-nums text-[hsl(0_0%_4%)] leading-none">
+                  3
+                </p>
+                <p className="text-[0.8125rem] text-muted-foreground mt-1">
+                  days · Keep it going!
+                </p>
+                <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
+                  Learning Streak
                 </p>
               </CardContent>
             </Card>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Current Module */}
+            {/* Current Module — Continue Learning */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="border-2 border-primary/20">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary">Continue Learning</Badge>
-                    <span className="text-sm text-muted-foreground">
-                      Module {currentModule?.module_number}
-                    </span>
-                  </div>
-                  <CardTitle className="text-2xl font-display mt-2">{currentModule?.title}</CardTitle>
-                  <CardDescription>{currentModule?.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1">
-                      <PlayCircle className="h-4 w-4" />
-                      {currentModule?.duration_minutes} min
-                    </span>
-                    <Badge className={`certificate-${currentModule?.certificate_level}`}>
-                      {currentModule?.certificate_level?.toUpperCase()}
-                    </Badge>
-                  </div>
-                  <Link to={`/modules/${currentModule?.id}`}>
-                    <Button className="gap-2">
-                      Continue Learning
-                      <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <div className="bg-primary rounded-[20px] p-8 text-white border-none shadow-[0_8px_32px_rgba(0,0,0,0.15)]">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center bg-white/15 text-white rounded-full px-3.5 py-1 text-xs font-medium">
+                    Continue Learning
+                  </span>
+                  <span className="text-white/60 text-sm">
+                    Module {currentModule?.module_number}
+                  </span>
+                </div>
+                <h2 className="font-display font-semibold text-[1.5rem] text-white mt-4 tracking-[-0.02em]">
+                  {currentModule?.title}
+                </h2>
+                <p className="text-white/70 text-[0.9375rem] mt-2 max-w-[480px]">
+                  {currentModule?.description}
+                </p>
+                <div className="flex items-center gap-4 mt-4">
+                  <span className="flex items-center gap-1.5 text-white/60 text-[0.8125rem]">
+                    <Clock className="h-3.5 w-3.5" />
+                    {currentModule?.duration_minutes} min
+                  </span>
+                  <span className="inline-flex items-center bg-white/15 text-white rounded-full px-2.5 py-0.5 text-xs">
+                    {currentModule?.certificate_level?.toUpperCase()}
+                  </span>
+                </div>
+                <Link to={`/modules/${currentModule?.id}`} className="inline-block mt-6">
+                  <button className="inline-flex items-center gap-2 bg-white text-primary rounded-[10px] h-[42px] px-6 font-semibold text-[0.875rem] hover:bg-white/90 transition-colors">
+                    Continue Learning
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              </div>
 
               {/* Upcoming Modules */}
               <Card>
@@ -270,7 +312,7 @@ export default function Dashboard() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Trading Simulator Card */}
-              <Card className="border-2 border-primary/20">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
@@ -282,7 +324,7 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <Link to="/simulator">
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full rounded-[10px]" variant="outline">
                       Open Simulator
                     </Button>
                   </Link>
@@ -290,10 +332,10 @@ export default function Dashboard() {
               </Card>
 
               {/* Leaderboard Preview */}
-              <Card className="border-2 border-[hsl(var(--cflp-gold)/0.3)]">
+              <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-[hsl(var(--cflp-gold))]" />
+                    <Trophy className="h-5 w-5" style={{ color: '#d97706' }} />
                     Top Traders
                   </CardTitle>
                 </CardHeader>
@@ -302,16 +344,14 @@ export default function Dashboard() {
                     <div className="space-y-3">
                       {leaderboard.map((entry, index) => (
                         <div key={entry.user_id} className="flex items-center gap-3">
-                          <span className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            index === 0 ? 'bg-[hsl(var(--cflp-gold))] text-white' :
-                            index === 1 ? 'bg-gray-300 text-gray-700' :
-                            index === 2 ? 'bg-amber-600 text-white' :
-                            'bg-muted text-muted-foreground'
+                          <span className={`h-6 w-6 rounded-full flex items-center justify-center text-[0.75rem] font-bold ${
+                            index === 0 ? 'bg-[hsl(51_92%_91%)] text-[hsl(46_97%_40%)]' :
+                            'bg-[hsl(240_6%_96%)] text-[hsl(240_4%_36%)]'
                           }`}>
                             {index + 1}
                           </span>
-                          <span className="flex-1 truncate">{entry.full_name}</span>
-                          <span className="text-sm font-medium text-[hsl(var(--cflp-green))] tabular-nums">
+                          <span className="flex-1 truncate text-[0.875rem] font-medium">{entry.full_name}</span>
+                          <span className="text-[0.875rem] font-semibold tabular-nums" style={{ color: '#16a34a' }}>
                             ${Number(entry.total_value).toLocaleString()}
                           </span>
                         </div>
@@ -342,7 +382,7 @@ export default function Dashboard() {
                   <div className="space-y-3">
                     {(['green', 'white', 'gold', 'blue'] as const).map((level) => {
                       const info = CERTIFICATE_INFO[level];
-                      const isEarned = false; // TODO: Check from certificates table
+                      const isEarned = false;
                       
                       return (
                         <div 
