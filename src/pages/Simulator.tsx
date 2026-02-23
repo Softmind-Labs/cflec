@@ -63,12 +63,12 @@ const marketCategories = [
 export default function Simulator() {
   return (
     <MainLayout>
-      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
+      <div className="min-h-full bg-background">
         <div className="container py-8">
           {/* Header */}
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4">Practice Trading</Badge>
-            <h1 className="text-4xl font-bold mb-4">Market Simulator</h1>
+            <h1 className="text-4xl font-display mb-4">Market Simulator</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Learn to invest with virtual money. Choose a market category to start practicing your trading skills risk-free.
             </p>
@@ -82,7 +82,7 @@ export default function Simulator() {
                   <Wallet className="h-4 w-4" />
                   Starting Balance
                 </CardDescription>
-                <CardTitle className="text-3xl text-[hsl(var(--cflp-green))]">$500.00</CardTitle>
+                <CardTitle className="text-3xl text-[hsl(var(--cflp-green))] tabular-nums">$500.00</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Virtual funds to practice with</p>

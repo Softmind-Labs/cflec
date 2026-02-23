@@ -78,7 +78,7 @@ export default function Certificates() {
     <MainLayout>
       <div className="container py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-3xl font-display flex items-center gap-2">
             <Award className="h-8 w-8" />
             Your Certificates
           </h1>
@@ -149,7 +149,7 @@ export default function Certificates() {
                         )}
                       </div>
                       <div>
-                        <CardTitle className="text-xl">{info.name}</CardTitle>
+                        <CardTitle className="text-xl font-display">{info.name}</CardTitle>
                         <CardDescription>{info.description}</CardDescription>
                       </div>
                     </div>

@@ -62,10 +62,10 @@ export default function KidsLanding() {
             <Star className="h-5 w-5 text-kids-secondary fill-kids-secondary" />
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold mb-6" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
-            <span className="text-white">Learn About</span>{' '}
-            <span className="text-kids-secondary">Money!</span>
-          </h1>
+           <h1 className="text-5xl md:text-7xl font-display mb-6" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+             <span className="text-white">Learn About</span>{' '}
+             <span className="text-kids-secondary">Money!</span>
+           </h1>
           
           <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
             Join thousands of kids learning how to save, spend wisely, and become money smart! 
@@ -152,7 +152,7 @@ export default function KidsLanding() {
               <div className="h-20 w-20 rounded-full bg-cflp-green flex items-center justify-center mx-auto mb-4">
                 <Trophy className="h-10 w-10 text-white" />
               </div>
-              <CardTitle className="text-2xl text-cflp-green">Green Certificate</CardTitle>
+              <CardTitle className="text-2xl text-cflp-green font-display">Green Certificate</CardTitle>
               <CardDescription className="text-base">Financial Fundamentals</CardDescription>
             </CardHeader>
             <CardContent>

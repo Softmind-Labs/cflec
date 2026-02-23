@@ -107,7 +107,7 @@ export default function Index() {
             Trusted by 10,000+ learners
           </Badge>
           
-          <h1 className="text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
+          <h1 className="text-5xl font-display tracking-tight text-white sm:text-6xl md:text-7xl lg:text-8xl" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.3)' }}>
             Master Your
             <br />
             <span className="text-cflp-gold">Financial Future</span>
@@ -145,7 +145,7 @@ export default function Index() {
       <section className="py-20 bg-muted/50">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold md:text-4xl">Everything You Need to Succeed</h2>
+            <h2 className="text-3xl font-bold md:text-4xl text-foreground">Everything You Need to Succeed</h2>
             <p className="mt-4 text-muted-foreground">
               Comprehensive financial education designed for all ages and skill levels
             </p>
@@ -249,9 +249,9 @@ export default function Index() {
             </div>
             <div className="space-y-6">
               <p className="text-sm font-medium text-primary uppercase tracking-wide">Adults & Teens</p>
-              <h3 className="text-3xl md:text-4xl font-bold">
-                Master Financial Literacy
-              </h3>
+               <h3 className="text-3xl md:text-4xl font-display font-bold">
+                 Master Financial Literacy
+               </h3>
               <p className="text-muted-foreground text-lg">
                 High Schoolers (13-17) and Adults (18+) can access our full curriculum with 27 modules, stock trading simulator, and earn all 4 certificate levels.
               </p>
@@ -268,9 +268,9 @@ export default function Index() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 md:order-1">
               <p className="text-sm font-medium text-kids-primary uppercase tracking-wide">Kids Zone</p>
-              <h3 className="text-3xl md:text-4xl font-bold">
-                Fun Financial Adventures
-              </h3>
+               <h3 className="text-3xl md:text-4xl font-display font-bold">
+                 Fun Financial Adventures
+               </h3>
               <p className="text-muted-foreground text-lg">
                 Young learners (6-12) enjoy interactive lessons, games, rewards, and work toward their Green certificate in a colorful, engaging environment.
               </p>

@@ -29,8 +29,8 @@ export function StatsBar({ items, className }: StatsBarProps) {
         >
           {item.icon && <span className="text-muted-foreground">{item.icon}</span>}
           <div className="flex flex-col">
-            <span className="text-sm font-semibold leading-tight">{item.value}</span>
-            <span className="text-xs text-muted-foreground leading-tight">{item.label}</span>
+            <span className="text-sm font-semibold leading-tight tabular-nums">{item.value}</span>
+            <span className="text-[0.8125rem] font-medium tracking-[0.01em] text-muted-foreground leading-tight">{item.label}</span>
           </div>
         </div>
       ))}

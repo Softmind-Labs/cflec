@@ -82,7 +82,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
+        <div className="min-h-full bg-background">
           <div className="container py-8">
             <div className="animate-pulse space-y-6">
               <div className="h-8 bg-muted rounded w-1/4" />
@@ -100,11 +100,11 @@ export default function Dashboard() {
 
   return (
     <MainLayout>
-      <div className="min-h-full bg-gradient-to-br from-primary/5 via-transparent to-[hsl(var(--cflp-gold)/0.05)]">
+      <div className="min-h-full bg-background">
         <div className="container py-8">
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-display">
               Welcome back, {profile?.full_name?.split(' ')[0]}! 👋
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -114,10 +114,10 @@ export default function Dashboard() {
 
           {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
-            <Card>
+            <Card className="border-l-[3px] border-l-primary/30">
               <CardHeader className="pb-2">
                 <CardDescription>Modules Completed</CardDescription>
-                <CardTitle className="text-3xl">{getCompletedModules()}/{modules.length}</CardTitle>
+                <CardTitle className="text-3xl tabular-nums">{getCompletedModules()}/{modules.length}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Progress value={(getCompletedModules() / modules.length) * 100} className="h-2" />
@@ -140,11 +140,11 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-[3px] border-l-primary/30">
               <CardHeader className="pb-2">
                 <CardDescription>Quiz Pass Rate</CardDescription>
-                <CardTitle className="text-3xl">
-                  {progress.length > 0 
+                <CardTitle className="text-3xl tabular-nums">
+                  {progress.length > 0
                     ? Math.round((progress.filter(p => p.quiz_passed).length / progress.length) * 100)
                     : 0}%
                 </CardTitle>
@@ -156,10 +156,10 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-l-[3px] border-l-primary/30">
               <CardHeader className="pb-2">
                 <CardDescription>Learning Streak</CardDescription>
-                <CardTitle className="text-3xl">🔥 3 days</CardTitle>
+                <CardTitle className="text-3xl tabular-nums">🔥 3 days</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
@@ -180,7 +180,7 @@ export default function Dashboard() {
                       Module {currentModule?.module_number}
                     </span>
                   </div>
-                  <CardTitle className="text-2xl mt-2">{currentModule?.title}</CardTitle>
+                  <CardTitle className="text-2xl font-display mt-2">{currentModule?.title}</CardTitle>
                   <CardDescription>{currentModule?.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -311,7 +311,7 @@ export default function Dashboard() {
                             {index + 1}
                           </span>
                           <span className="flex-1 truncate">{entry.full_name}</span>
-                          <span className="text-sm font-medium text-[hsl(var(--cflp-green))]">
+                          <span className="text-sm font-medium text-[hsl(var(--cflp-green))] tabular-nums">
                             ${Number(entry.total_value).toLocaleString()}
                           </span>
                         </div>

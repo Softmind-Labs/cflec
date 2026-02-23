@@ -48,31 +48,31 @@ export default function SimulatorCapitalMarkets() {
         <div className="flex items-center gap-4 mb-8">
           <Link to="/simulator"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2"><Landmark className="h-8 w-8" />Capital Markets Simulator</h1>
+            <h1 className="text-3xl font-display flex items-center gap-2"><Landmark className="h-8 w-8" />Capital Markets Simulator</h1>
             <p className="text-muted-foreground">Invest in Bonds, Mutual Funds, and ETFs</p>
           </div>
         </div>
 
         {/* Portfolio Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="glass-card-primary">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Capital Markets Portfolio</CardDescription>
-              <CardTitle className="text-3xl">${capitalBalance.toLocaleString()}</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">${capitalBalance.toLocaleString()}</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Total invested value</p></CardContent>
           </Card>
-          <Card className="glass-card">
+           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Annual Yield</CardDescription>
-              <CardTitle className="text-3xl text-cflp-green">18.5%</CardTitle>
+              <CardTitle className="text-3xl text-cflp-green tabular-nums">18.5%</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Weighted average</p></CardContent>
           </Card>
-          <Card className="glass-card">
+          <Card>
             <CardHeader className="pb-2">
               <CardDescription>Active Investments</CardDescription>
-              <CardTitle className="text-3xl">5</CardTitle>
+              <CardTitle className="text-3xl tabular-nums">5</CardTitle>
             </CardHeader>
             <CardContent><p className="text-sm text-muted-foreground">Across all categories</p></CardContent>
           </Card>
@@ -108,7 +108,7 @@ export default function SimulatorCapitalMarkets() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-cflp-green">{bond.yield}%</p>
+                          <p className="text-2xl font-bold text-cflp-green tabular-nums">{bond.yield}%</p>
                           <p className="text-sm text-muted-foreground">Yield p.a.</p>
                         </div>
                       </div>
@@ -141,8 +141,8 @@ export default function SimulatorCapitalMarkets() {
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center"><PieChart className="h-6 w-6 text-primary" /></div>
                       </div>
                       <div className="grid grid-cols-2 gap-4 my-4">
-                        <div><p className="text-sm text-muted-foreground">NAV</p><p className="font-semibold">GHS {fund.nav.toFixed(2)}</p></div>
-                        <div><p className="text-sm text-muted-foreground">YTD Return</p><p className="font-semibold text-cflp-green">+{fund.ytdReturn}%</p></div>
+                         <div><p className="text-sm text-muted-foreground">NAV</p><p className="font-semibold tabular-nums">GHS {fund.nav.toFixed(2)}</p></div>
+                         <div><p className="text-sm text-muted-foreground">YTD Return</p><p className="font-semibold text-cflp-green tabular-nums">+{fund.ytdReturn}%</p></div>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Min: GHS {fund.minInvestment}</span>
@@ -181,10 +181,10 @@ export default function SimulatorCapitalMarkets() {
                           <div><p className="font-semibold">{etf.name}</p><p className="text-sm text-muted-foreground">{etf.symbol}</p></div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold">${Number(etf.price).toFixed(2)}</p>
-                          <p className={`text-sm ${etf.change_percent >= 0 ? 'text-cflp-green' : 'text-destructive'}`}>
-                            {etf.change_percent >= 0 ? '+' : ''}{Number(etf.change_percent).toFixed(2)}%
-                          </p>
+                          <p className="font-semibold tabular-nums">${Number(etf.price).toFixed(2)}</p>
+                           <p className={`text-sm tabular-nums ${etf.change_percent >= 0 ? 'text-gain' : 'text-loss'}`}>
+                             {etf.change_percent >= 0 ? '+' : ''}{Number(etf.change_percent).toFixed(2)}%
+                           </p>
                         </div>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline">Buy</Button>

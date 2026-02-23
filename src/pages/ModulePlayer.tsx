@@ -174,7 +174,7 @@ export default function ModulePlayer() {
                 </Badge>
                 <span className="text-sm text-muted-foreground">Module {module.module_number}</span>
               </div>
-              <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
+              <h1 className="text-3xl font-display mb-2">{module.title}</h1>
               {module.description && (
                 <p className="text-muted-foreground max-w-2xl">{module.description}</p>
               )}
@@ -306,11 +306,11 @@ export default function ModulePlayer() {
                             <HelpCircle className="h-10 w-10 text-destructive" />
                           )}
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">
+                        <h3 className="text-2xl font-display font-bold mb-2">
                           {quizPassed ? 'Congratulations!' : 'Keep Learning!'}
                         </h3>
                         <p className="text-muted-foreground mb-4">
-                          You scored {quizScore}%. {quizPassed ? 'You passed!' : 'You need 70% to pass.'}
+                          You scored <span className="tabular-nums">{quizScore}%</span>. {quizPassed ? 'You passed!' : 'You need 70% to pass.'}
                         </p>
                         {!quizPassed && (
                           <Button onClick={resetQuiz}>Try Again</Button>
