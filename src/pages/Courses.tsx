@@ -51,8 +51,8 @@ export default function Courses() {
   return (
     <MainLayout>
       {/* Full-bleed dark hero */}
-      <div className="bg-[#0f0f0f] w-full">
-        <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-16 md:py-20">
+      <div className="bg-[hsl(0_0%_6%)] w-full">
+        <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-12 md:py-16">
           {/* Breadcrumb */}
           <p className="text-[0.8125rem] text-white/45 mb-4">
             Home › Courses
@@ -64,26 +64,14 @@ export default function Courses() {
           <p className="text-white/60 mt-3 text-base max-w-xl">
             Pick a topic. Learn it in under an hour. Apply it today.
           </p>
-
-          {/* Stats row */}
-          <div className="flex flex-wrap gap-8 md:gap-12 mt-8">
-            {[
-              { number: '8', label: 'Courses' },
-              { number: 'Free', label: 'Access' },
-              { number: 'Login', label: 'Required' },
-              { number: 'Ghana', label: 'Focused' },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="font-display font-bold text-white text-[1.75rem] tabular-nums">{stat.number}</p>
-                <p className="text-[0.8125rem] text-white/50">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+          <p className="text-white/45 text-[0.875rem] mt-4">
+            8 short courses · Free with login · Ghana focused
+          </p>
         </div>
       </div>
 
       {/* Sticky filter bar */}
-      <div className="sticky top-[68px] z-40 bg-white border-b border-[hsl(0_0%_94%)]">
+      <div className="sticky top-[68px] z-40 bg-white border-b border-[hsl(0_0%_94%)] shadow-[0_1px_0_hsl(0_0%_94%)]">
         <div className="max-w-[1280px] mx-auto px-5 md:px-12 flex items-center gap-2 h-[52px] overflow-x-auto">
           {categories.map((cat) => (
             <button
@@ -117,17 +105,17 @@ export default function Courses() {
                 className="bg-white rounded-2xl border border-[rgba(0,0,0,0.06)] overflow-hidden cursor-pointer
                   shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.05)]
                   transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
-                  hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] hover:border-[rgba(0,0,0,0.1)]"
+                  hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:border-[rgba(0,0,0,0.12)]"
               >
                 {/* Color band */}
                 <div
-                  className="h-[120px] flex items-center justify-center relative"
+                  className="h-[110px] flex items-center justify-center relative"
                   style={{ backgroundColor: `${course.color}10` }}
                 >
-                  <Icon className="h-12 w-12" style={{ color: course.color }} strokeWidth={1.5} />
+                  <Icon className="h-10 w-10" style={{ color: course.color }} strokeWidth={1.5} />
                   {/* Category pill */}
                   <span
-                    className="absolute top-3 right-3 bg-white rounded-full px-2.5 py-0.5 text-[0.6875rem] font-semibold shadow-[0_1px_4px_rgba(0,0,0,0.1)]"
+                    className="absolute top-3 right-3 bg-white rounded-md px-2 py-0.5 text-[0.6875rem] font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
                     style={{ color: course.color }}
                   >
                     {course.category}
@@ -155,12 +143,11 @@ export default function Courses() {
                     </span>
                   </div>
 
-                  {/* Button */}
+                  {/* Button — tinted bg */}
                   <Button
-                    variant="outline"
-                    className="w-full rounded-lg text-[0.875rem] font-semibold"
+                    className="w-full rounded-lg text-[0.875rem] font-semibold h-10 border-none transition-colors"
                     style={{
-                      borderColor: course.color,
+                      backgroundColor: `${course.color}14`,
                       color: course.color,
                     }}
                     onMouseEnter={(e) => {
@@ -168,7 +155,7 @@ export default function Courses() {
                       e.currentTarget.style.color = '#ffffff';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.backgroundColor = `${course.color}14`;
                       e.currentTarget.style.color = course.color;
                     }}
                     onClick={(e) => {
@@ -178,10 +165,6 @@ export default function Courses() {
                   >
                     Start Course
                   </Button>
-
-                  <p className="text-center mt-2.5 text-[0.75rem] text-[hsl(240_4%_65%)]">
-                    Free · Login required
-                  </p>
                 </div>
               </div>
             );
