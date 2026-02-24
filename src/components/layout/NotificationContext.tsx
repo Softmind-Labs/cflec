@@ -14,6 +14,8 @@ interface NotificationContextType {
   addNotification: (message: string, icon?: Notification['icon']) => void;
   markAllRead: () => void;
   clearAll: () => void;
+  latestNotification: Notification | null;
+  clearLatest: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -22,13 +24,13 @@ let idCounter = 0;
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
 
   const addNotification = useCallback((message: string, icon: Notification['icon'] = 'info') => {
     const id = `notif-${++idCounter}-${Date.now()}`;
-    setNotifications((prev) => [
-      { id, message, timestamp: new Date(), read: false, icon },
-      ...prev,
-    ].slice(0, 50)); // keep max 50
+    const notif: Notification = { id, message, timestamp: new Date(), read: false, icon };
+    setNotifications((prev) => [notif, ...prev].slice(0, 50));
+    setLatestNotification(notif);
   }, []);
 
   const markAllRead = useCallback(() => {
@@ -39,10 +41,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     setNotifications([]);
   }, []);
 
+  const clearLatest = useCallback(() => {
+    setLatestNotification(null);
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, addNotification, markAllRead, clearAll }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, addNotification, markAllRead, clearAll, latestNotification, clearLatest }}>
       {children}
     </NotificationContext.Provider>
   );
