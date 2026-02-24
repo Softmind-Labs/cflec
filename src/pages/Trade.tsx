@@ -18,6 +18,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/components/layout/NotificationContext';
 import { 
   ArrowLeft,
   Search,
@@ -30,6 +31,7 @@ import type { Portfolio, MockStock, StockHolding } from '@/types';
 export default function Trade() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [searchParams] = useSearchParams();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [stocks, setStocks] = useState<MockStock[]>([]);
@@ -136,6 +138,7 @@ export default function Trade() {
         title: 'Trade Successful!',
         description: `${tradeType === 'buy' ? 'Bought' : 'Sold'} ${qty} shares of ${selectedStock.symbol} for $${Number(result.total_amount).toFixed(2)}`,
       });
+      addNotification(`${tradeType === 'buy' ? 'Bought' : 'Sold'} ${qty} shares of ${selectedStock.symbol}`, 'trade');
 
       setIsDialogOpen(false);
       setQuantity('');
@@ -155,6 +158,7 @@ export default function Trade() {
         description: message,
         variant: 'destructive',
       });
+      addNotification(`Trade failed: ${message}`, 'warning');
     } finally {
       setIsSubmitting(false);
     }
