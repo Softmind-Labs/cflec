@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { toast } from 'sonner';
+import { useNotifications } from '@/components/layout/NotificationContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -132,6 +133,7 @@ const courseData: Record<string, CourseData> = {
 export default function CourseDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { addNotification } = useNotifications();
   const course = slug ? courseData[slug] : null;
 
   if (!course) {
@@ -209,7 +211,10 @@ export default function CourseDetail() {
               </div>
 
               <Button
-                onClick={() => toast.info('Course content coming soon!')}
+                onClick={() => {
+                  toast.info('Course content coming soon!');
+                  addNotification(`${course.title} — Course content coming soon!`, 'course');
+                }}
                 className="h-12 px-8 rounded-[10px] text-base font-semibold gap-2 mt-7"
               >
                 Start Learning
@@ -327,7 +332,10 @@ export default function CourseDetail() {
                 </div>
 
                 <Button
-                  onClick={() => toast.info('Course content coming soon!')}
+                  onClick={() => {
+                    toast.info('Course content coming soon!');
+                    addNotification(`${course.title} — Course content coming soon!`, 'course');
+                  }}
                   className="w-full h-12 rounded-[10px] text-[0.9375rem] font-semibold gap-2 mt-6"
                 >
                   Start Learning
