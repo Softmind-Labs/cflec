@@ -14,6 +14,7 @@ import { Search, Menu, X, User, LogOut } from 'lucide-react';
 import cflecLogo from '@/assets/cflec-logo.png';
 import { SearchDialog } from './SearchDialog';
 import { NotificationDropdown } from './NotificationDropdown';
+import { NotificationToast } from './NotificationToast';
 
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
@@ -69,6 +70,7 @@ export function TopNav() {
 
   return (
     <>
+      <NotificationToast />
       <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
       <nav className="sticky top-0 z-50 h-[68px] bg-white border-b border-[hsl(0_0%_94%)] px-5 md:px-12">
         <div className="flex items-center justify-between h-full max-w-[1440px] mx-auto">
