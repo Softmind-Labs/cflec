@@ -1,6 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { toast } from 'sonner';
 import { useNotifications } from '@/components/layout/NotificationContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -212,7 +211,6 @@ export default function CourseDetail() {
 
               <Button
                 onClick={() => {
-                  toast.info('Course content coming soon!');
                   addNotification(`${course.title} — Course content coming soon!`, 'course');
                 }}
                 className="h-12 px-8 rounded-[10px] text-base font-semibold gap-2 mt-7"
@@ -333,7 +331,6 @@ export default function CourseDetail() {
 
                 <Button
                   onClick={() => {
-                    toast.info('Course content coming soon!');
                     addNotification(`${course.title} — Course content coming soon!`, 'course');
                   }}
                   className="w-full h-12 rounded-[10px] text-[0.9375rem] font-semibold gap-2 mt-6"

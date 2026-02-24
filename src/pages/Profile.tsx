@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/components/layout/NotificationContext';
 import { 
   User, 
   Mail, 
@@ -24,6 +25,7 @@ import { ACCOUNT_TYPE_LABELS } from '@/lib/constants';
 export default function Profile() {
   const { profile, refreshProfile, signOut } = useAuth();
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,6 +57,7 @@ export default function Profile() {
         title: 'Profile Updated',
         description: 'Your profile has been saved successfully.',
       });
+      addNotification('Profile updated successfully', 'success');
       await refreshProfile();
       setIsEditing(false);
     }

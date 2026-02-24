@@ -8,6 +8,7 @@ import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/components/layout/NotificationContext';
 import { 
   PlayCircle, 
   CheckCircle,
@@ -27,6 +28,7 @@ export default function ModulePlayer() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { addNotification } = useNotifications();
   const [module, setModule] = useState<Module | null>(null);
   const [content, setContent] = useState<ModuleContent[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -80,6 +82,7 @@ export default function ModulePlayer() {
       title: 'Video Completed!',
       description: 'Great job! Now take the quiz to complete this module.',
     });
+    addNotification('Video completed!', 'success');
     setShowQuiz(true);
   };
 
@@ -111,6 +114,10 @@ export default function ModulePlayer() {
         : `You scored ${score}%. You need 70% to pass. Try again!`,
       variant: passed ? 'default' : 'destructive',
     });
+    addNotification(
+      passed ? `Quiz passed — module complete! (${score}%)` : `Quiz not passed — try again (${score}%)`,
+      passed ? 'certificate' : 'warning'
+    );
   };
 
   const resetQuiz = () => {
