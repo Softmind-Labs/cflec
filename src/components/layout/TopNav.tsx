@@ -10,9 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Bell, Menu, X, User, LogOut } from 'lucide-react';
+import { Search, Menu, X, User, LogOut } from 'lucide-react';
 import cflecLogo from '@/assets/cflec-logo.png';
 import { SearchDialog } from './SearchDialog';
+import { NotificationDropdown } from './NotificationDropdown';
 
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
@@ -111,9 +112,7 @@ export function TopNav() {
                 <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground" onClick={() => setSearchOpen(true)}>
                   <Search className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 text-muted-foreground hover:text-foreground">
-                  <Bell className="h-5 w-5" />
-                </Button>
+                <NotificationDropdown />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
