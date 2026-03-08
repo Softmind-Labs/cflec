@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      bands: {
+        Row: {
+          created_at: string | null
+          id: number
+          label: string
+          module_end: number
+          module_start: number
+          name: string
+          sort_order: number
+          stage_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          label: string
+          module_end: number
+          module_start: number
+          name: string
+          sort_order: number
+          stage_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          label?: string
+          module_end?: number
+          module_start?: number
+          name?: string
+          sort_order?: number
+          stage_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bands_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificates: {
         Row: {
           certificate_level: Database["public"]["Enums"]["certificate_level"]
@@ -37,6 +78,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      certification_requirements: {
+        Row: {
+          created_at: string | null
+          id: number
+          requirement_text: string
+          requirement_type: string
+          sort_order: number
+          stage_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          requirement_text: string
+          requirement_type: string
+          sort_order: number
+          stage_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          requirement_text?: string
+          requirement_type?: string
+          sort_order?: number
+          stage_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certification_requirements_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mock_stocks: {
         Row: {
@@ -120,6 +196,8 @@ export type Database = {
       }
       modules: {
         Row: {
+          assessment_check: string | null
+          band_id: number | null
           certificate_level: Database["public"]["Enums"]["certificate_level"]
           created_at: string
           description: string | null
@@ -127,12 +205,22 @@ export type Database = {
           has_simulation: boolean | null
           id: string
           is_active: boolean | null
+          is_compulsory: boolean | null
+          key_ideas: string | null
+          learning_objective: string | null
           module_number: number
+          practical_activity: string | null
+          progression_link: string | null
+          sort_order: number | null
+          stage_id: number | null
+          teaching_guide: string | null
           thumbnail_url: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          assessment_check?: string | null
+          band_id?: number | null
           certificate_level: Database["public"]["Enums"]["certificate_level"]
           created_at?: string
           description?: string | null
@@ -140,12 +228,22 @@ export type Database = {
           has_simulation?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_compulsory?: boolean | null
+          key_ideas?: string | null
+          learning_objective?: string | null
           module_number: number
+          practical_activity?: string | null
+          progression_link?: string | null
+          sort_order?: number | null
+          stage_id?: number | null
+          teaching_guide?: string | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          assessment_check?: string | null
+          band_id?: number | null
           certificate_level?: Database["public"]["Enums"]["certificate_level"]
           created_at?: string
           description?: string | null
@@ -153,12 +251,35 @@ export type Database = {
           has_simulation?: boolean | null
           id?: string
           is_active?: boolean | null
+          is_compulsory?: boolean | null
+          key_ideas?: string | null
+          learning_objective?: string | null
           module_number?: number
+          practical_activity?: string | null
+          progression_link?: string | null
+          sort_order?: number | null
+          stage_id?: number | null
+          teaching_guide?: string | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "modules_band_id_fkey"
+            columns: ["band_id"]
+            isOneToOne: false
+            referencedRelation: "bands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "modules_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "stages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       portfolios: {
         Row: {
@@ -187,6 +308,7 @@ export type Database = {
       profiles: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"]
+          age: number | null
           avatar_url: string | null
           created_at: string
           date_of_birth: string | null
@@ -195,6 +317,7 @@ export type Database = {
           id: string
           mothers_first_name: string | null
           phone: string | null
+          primary_stage_id: number | null
           subscription_expires_at: string | null
           subscription_status:
             | Database["public"]["Enums"]["subscription_status"]
@@ -204,6 +327,7 @@ export type Database = {
         }
         Insert: {
           account_type?: Database["public"]["Enums"]["account_type"]
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -212,6 +336,7 @@ export type Database = {
           id?: string
           mothers_first_name?: string | null
           phone?: string | null
+          primary_stage_id?: number | null
           subscription_expires_at?: string | null
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
@@ -221,6 +346,7 @@ export type Database = {
         }
         Update: {
           account_type?: Database["public"]["Enums"]["account_type"]
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
           date_of_birth?: string | null
@@ -229,6 +355,7 @@ export type Database = {
           id?: string
           mothers_first_name?: string | null
           phone?: string | null
+          primary_stage_id?: number | null
           subscription_expires_at?: string | null
           subscription_status?:
             | Database["public"]["Enums"]["subscription_status"]
@@ -278,6 +405,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stages: {
+        Row: {
+          age_range_max: number | null
+          age_range_min: number | null
+          audience_coverage: Json | null
+          certificate_name: string
+          color_primary: string | null
+          color_secondary: string | null
+          core_goals: Json | null
+          created_at: string | null
+          id: number
+          learning_outcomes: Json | null
+          pedagogical_principle: string | null
+          stage_number: number
+          target_group: string | null
+          title: string
+          total_modules: number
+        }
+        Insert: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          audience_coverage?: Json | null
+          certificate_name: string
+          color_primary?: string | null
+          color_secondary?: string | null
+          core_goals?: Json | null
+          created_at?: string | null
+          id?: number
+          learning_outcomes?: Json | null
+          pedagogical_principle?: string | null
+          stage_number: number
+          target_group?: string | null
+          title: string
+          total_modules: number
+        }
+        Update: {
+          age_range_max?: number | null
+          age_range_min?: number | null
+          audience_coverage?: Json | null
+          certificate_name?: string
+          color_primary?: string | null
+          color_secondary?: string | null
+          core_goals?: Json | null
+          created_at?: string | null
+          id?: number
+          learning_outcomes?: Json | null
+          pedagogical_principle?: string | null
+          stage_number?: number
+          target_group?: string | null
+          title?: string
+          total_modules?: number
+        }
+        Relationships: []
       }
       stock_holdings: {
         Row: {
