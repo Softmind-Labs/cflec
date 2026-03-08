@@ -15,25 +15,11 @@ import certificatesImg from '@/assets/features/certificates.jpg';
 import tradingSimulatorImg from '@/assets/features/trading-simulator.jpg';
 import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
 
-const steps = [
-  {
-    num: '01',
-    title: 'Watch & Learn',
-    icon: PlayCircle,
-    description: '41 video modules covering money basics to professional investing. Each lesson builds on the last — learn at your own pace.',
-  },
-  {
-    num: '02',
-    title: 'Practice Trading',
-    icon: BarChart3,
-    description: '$500 in virtual money, real market conditions. Build confidence with our stock trading simulator before risking a single cedi.',
-  },
-  {
-    num: '03',
-    title: 'Earn Certificates',
-    icon: Award,
-    description: '5 recognized certificates from Green to Black. Prove your knowledge and stand out to employers, schools, and peers.',
-  },
+const features = [
+  { title: '41 Modules', description: 'Structured video lessons from money basics to professional investing.', image: onlineLearningImg },
+  { title: '5 Certificates', description: 'Achieve Green, White, Gold, Blue, and Black certifications as you level up.', image: certificatesImg },
+  { title: 'Stock Simulator', description: 'Practice with $500 virtual money in real market conditions risk-free.', image: tradingSimulatorImg },
+  { title: 'AI-Powered Support', description: 'Get personalized guidance and instant answers as you learn.', image: aiAssistedImg },
 ];
 
 const certificates = [
