@@ -401,33 +401,38 @@ export default function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {(['green', 'white', 'gold', 'blue'] as const).map((level) => {
-                      const info = CERTIFICATE_INFO[level];
-                      const isEarned = false;
-                      
-                      return (
-                        <div 
-                          key={level}
-                          className={`flex items-center gap-3 p-2 rounded-lg ${
-                            isEarned ? 'bg-muted/50' : 'opacity-50'
-                          }`}
-                        >
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center`} style={{ backgroundColor: CERT_COLORS[level].accent, color: '#ffffff' }}>
-                            {isEarned ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : (
-                              <Lock className="h-4 w-4" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{info.name}</p>
-                            <p className="text-xs text-muted-foreground">{info.description}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                   <div className="space-y-3">
+                     {stages.map((stage) => {
+                       const color = stage.color_primary || STAGE_COLORS[stage.stage_number] || '#6b7280';
+                       const stageModules = modules.filter(m => m.stage_id === stage.id && m.module_number !== 99);
+                       const completedInStage = progress.filter(p => {
+                         const mod = stageModules.find(m => m.id === p.module_id);
+                         return mod && p.video_completed && p.quiz_passed;
+                       }).length;
+                       const isEarned = completedInStage >= stageModules.length && stageModules.length > 0;
+                       
+                       return (
+                         <div 
+                           key={stage.id}
+                           className={`flex items-center gap-3 p-2 rounded-lg ${
+                             isEarned ? 'bg-muted/50' : 'opacity-50'
+                           }`}
+                         >
+                           <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: color, color: stage.stage_number === 2 ? '#374151' : '#ffffff' }}>
+                             {isEarned ? (
+                               <CheckCircle className="h-4 w-4" />
+                             ) : (
+                               <Lock className="h-4 w-4" />
+                             )}
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium">{stage.title} Certificate</p>
+                             <p className="text-xs text-muted-foreground">{stage.certificate_name}</p>
+                           </div>
+                         </div>
+                       );
+                     })}
+                   </div>
                   <Link to="/certificates" className="block mt-4">
                     <Button variant="ghost" className="w-full" size="sm">
                       View All Certificates
