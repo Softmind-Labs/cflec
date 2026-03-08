@@ -73,19 +73,31 @@ export default function Dashboard() {
     return modules.find(m => !completedIds.has(m.id)) || modules[0];
   };
 
-  const getCertificateProgress = () => {
-    const greenModules = modules.filter(m => m.certificate_level === 'green');
-    const completedGreen = progress.filter(p => {
-      const mod = modules.find(m => m.id === p.module_id);
-      return mod?.certificate_level === 'green' && p.video_completed && p.quiz_passed;
-    }).length;
-    
-    return {
-      current: 'green' as const,
-      completed: completedGreen,
-      total: greenModules.length,
-      percentage: greenModules.length > 0 ? (completedGreen / greenModules.length) * 100 : 0,
-    };
+  const getCurrentStageProgress = () => {
+    // Find the first stage that isn't fully completed
+    for (const stage of stages) {
+      const stageModules = modules.filter(m => m.stage_id === stage.id && m.module_number !== 99);
+      const completedInStage = progress.filter(p => {
+        const mod = stageModules.find(m => m.id === p.module_id);
+        return mod && p.video_completed && p.quiz_passed;
+      }).length;
+      if (completedInStage < stageModules.length) {
+        const color = stage.color_primary || STAGE_COLORS[stage.stage_number] || '#6b7280';
+        return {
+          stage,
+          completed: completedInStage,
+          total: stageModules.length,
+          percentage: stageModules.length > 0 ? (completedInStage / stageModules.length) * 100 : 0,
+          color,
+        };
+      }
+    }
+    // All done — show last stage
+    const last = stages[stages.length - 1];
+    if (!last) return null;
+    const stageModules = modules.filter(m => m.stage_id === last.id && m.module_number !== 99);
+    const color = last.color_primary || STAGE_COLORS[last.stage_number] || '#6b7280';
+    return { stage: last, completed: stageModules.length, total: stageModules.length, percentage: 100, color };
   };
 
   const certProgress = getCertificateProgress();
