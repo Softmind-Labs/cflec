@@ -55,7 +55,7 @@ export default function Courses() {
         <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-12 md:py-16">
           {/* Breadcrumb */}
           <p className="text-[0.8125rem] text-white/45 mb-4">
-            Home › Courses
+            Home › Masterclass
           </p>
 
           <h1 className="font-display font-bold text-white tracking-[-0.03em] leading-[1.2]" style={{ fontSize: 'clamp(2rem, 4vw, 3.25rem)' }}>
