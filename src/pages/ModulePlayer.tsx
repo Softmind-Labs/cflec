@@ -181,12 +181,6 @@ export default function ModulePlayer() {
   const accentColor = getStageColor(stage?.stage_number ?? (module.is_compulsory ? 99 : null));
   const completedSteps = [progress?.video_completed, quizPassed].filter(Boolean).length;
   const totalSteps = module.has_simulation ? 3 : 2;
-  const hasProgressionLink = !!module.progression_link;
-
-  // Parse key_ideas (semicolon-separated)
-  const keyIdeasList = module.key_ideas
-    ? module.key_ideas.split(';').map(s => s.trim()).filter(Boolean)
-    : [];
 
   return (
     <MainLayout>
