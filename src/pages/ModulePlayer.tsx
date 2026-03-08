@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { BreadcrumbNav } from '@/components/ui/breadcrumb-nav';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,14 +16,31 @@ import {
   BookOpen,
   HelpCircle,
   ChevronRight,
-  Award,
   Clock,
   Layers,
-  Zap
+  Target,
+  Lightbulb,
+  ClipboardCheck,
+  CircleCheckBig,
+  ArrowRight,
+  GraduationCap
 } from 'lucide-react';
-import type { Module, ModuleContent, Quiz, UserProgress } from '@/types';
-import { CERTIFICATE_INFO } from '@/types';
-import { CERT_COLORS } from '@/lib/cert-colors';
+import type { Module, ModuleContent, Quiz, UserProgress, Stage, Band } from '@/types';
+
+// Stage accent colors
+const STAGE_COLORS: Record<number, string> = {
+  1: '#22c55e',
+  2: '#14b8a6',
+  3: '#1d4ed8',
+  4: '#1e3a5f',
+  5: '#000000',
+  99: '#CE1126',
+};
+
+function getStageColor(stageNumber: number | null | undefined): string {
+  if (!stageNumber) return '#CE1126';
+  return STAGE_COLORS[stageNumber] || '#6b7280';
+}
 
 export default function ModulePlayer() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +48,8 @@ export default function ModulePlayer() {
   const { toast } = useToast();
   const { addNotification } = useNotifications();
   const [module, setModule] = useState<Module | null>(null);
+  const [stage, setStage] = useState<Stage | null>(null);
+  const [band, setBand] = useState<Band | null>(null);
   const [content, setContent] = useState<ModuleContent[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -50,7 +70,18 @@ export default function ModulePlayer() {
         supabase.from('user_progress').select('*').eq('module_id', id).eq('user_id', user.id).maybeSingle(),
       ]);
 
-      if (moduleRes.data) setModule(moduleRes.data as Module);
+      if (moduleRes.data) {
+        const mod = moduleRes.data as Module;
+        setModule(mod);
+
+        // Fetch stage and band
+        const [stageRes, bandRes] = await Promise.all([
+          mod.stage_id ? supabase.from('stages').select('*').eq('id', mod.stage_id).single() : Promise.resolve({ data: null }),
+          mod.band_id ? supabase.from('bands').select('*').eq('id', mod.band_id).single() : Promise.resolve({ data: null }),
+        ]);
+        if (stageRes.data) setStage(stageRes.data as Stage);
+        if (bandRes.data) setBand(bandRes.data as Band);
+      }
       if (contentRes.data) setContent(contentRes.data as ModuleContent[]);
       if (quizRes.data) setQuizzes(quizRes.data as Quiz[]);
       if (progressRes.data) setProgress(progressRes.data as UserProgress);
@@ -154,15 +185,20 @@ export default function ModulePlayer() {
 
   const quizScore = progress?.quiz_score || 0;
   const quizPassed = progress?.quiz_passed || false;
-  const certInfo = CERTIFICATE_INFO[module.certificate_level];
-  const certColor = CERT_COLORS[module.certificate_level];
+  const accentColor = getStageColor(stage?.stage_number ?? (module.is_compulsory ? 99 : null));
   const completedSteps = [progress?.video_completed, quizPassed].filter(Boolean).length;
   const totalSteps = module.has_simulation ? 3 : 2;
+  const hasProgressionLink = !!module.progression_link;
+
+  // Parse key_ideas (semicolon-separated)
+  const keyIdeasList = module.key_ideas
+    ? module.key_ideas.split(';').map(s => s.trim()).filter(Boolean)
+    : [];
 
   return (
     <MainLayout>
-      {/* Hero Section — clean white bg */}
-      <div className="border-b border-[rgba(0,0,0,0.06)]">
+      {/* Hero Section */}
+      <div className="border-b border-border/40">
         <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12">
           <BreadcrumbNav
             items={[
@@ -174,17 +210,25 @@ export default function ModulePlayer() {
 
           <div className="flex items-start justify-between gap-4 mt-4">
             <div className="flex-1">
-              {/* Certificate badge */}
-              <span
-                className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider border"
-                style={{
-                  backgroundColor: certColor.bg,
-                  color: certColor.accent,
-                  borderColor: certColor.border,
-                }}
-              >
-                {certInfo.name}
-              </span>
+              {/* Badges */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {stage && (
+                  <span
+                    className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    Stage {stage.stage_number}: {stage.title}
+                  </span>
+                )}
+                {module.is_compulsory && (
+                  <span
+                    className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white"
+                    style={{ backgroundColor: '#CE1126' }}
+                  >
+                    Compulsory — All Levels
+                  </span>
+                )}
+              </div>
 
               <h1 className="font-display font-bold tracking-[-0.03em] mt-2" style={{ fontSize: 'clamp(1.75rem, 3vw, 2.25rem)' }}>
                 {module.title}
@@ -198,29 +242,38 @@ export default function ModulePlayer() {
 
               {/* Inline meta row */}
               <div className="flex items-center gap-2 mt-4 text-[0.875rem] text-muted-foreground flex-wrap">
-                <Clock className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
+                <Clock className="h-3.5 w-3.5" />
                 <span>{module.duration_minutes} min</span>
-                <span className="text-[hsl(240_4%_82%)]">·</span>
-                <Award className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
-                <span>{certInfo.name}</span>
-                <span className="text-[hsl(240_4%_82%)]">·</span>
-                <Layers className="h-3.5 w-3.5 text-[hsl(240_4%_66%)]" />
+                {stage && (
+                  <>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span>Stage {stage.stage_number}: {stage.title}</span>
+                  </>
+                )}
+                {band && (
+                  <>
+                    <span className="text-muted-foreground/40">·</span>
+                    <span>{band.label}</span>
+                  </>
+                )}
+                <span className="text-muted-foreground/40">·</span>
+                <Layers className="h-3.5 w-3.5" />
                 <span>{completedSteps}/{totalSteps} complete</span>
               </div>
 
               {/* Slim progress bar */}
               <div className="mt-4 max-w-md">
                 <div className="flex items-center justify-end mb-1">
-                  <span className="text-[0.75rem] font-medium" style={{ color: certColor.accent }}>
+                  <span className="text-[0.75rem] font-medium" style={{ color: accentColor }}>
                     {completedSteps}/{totalSteps} complete
                   </span>
                 </div>
-                <div className="h-1 rounded-full bg-[hsl(0_0%_94%)] overflow-hidden">
+                <div className="h-1 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${(completedSteps / totalSteps) * 100}%`,
-                      backgroundColor: certColor.accent,
+                      backgroundColor: accentColor,
                     }}
                   />
                 </div>
@@ -274,6 +327,132 @@ export default function ModulePlayer() {
                   </CardContent>
                 </Card>
 
+                {/* Tabbed Curriculum Content */}
+                {(module.learning_objective || module.key_ideas || module.practical_activity || module.assessment_check || hasProgressionLink) && (
+                  <Card>
+                    <CardContent className="p-0">
+                      <Tabs defaultValue="overview">
+                        <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+                          <TabsTrigger
+                            value="overview"
+                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-muted-foreground data-[state=active]:font-semibold"
+                            style={{ '--tw-border-opacity': 1 } as React.CSSProperties}
+                            data-accent={accentColor}
+                          >
+                            Overview
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="activity"
+                            className="rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-muted-foreground data-[state=active]:font-semibold"
+                          >
+                            Activity & Assessment
+                          </TabsTrigger>
+                          {hasProgressionLink && (
+                            <TabsTrigger
+                              value="next"
+                              className="rounded-none border-b-2 border-transparent data-[state=active]:border-current data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-3 text-muted-foreground data-[state=active]:font-semibold"
+                            >
+                              What's Next
+                            </TabsTrigger>
+                          )}
+                        </TabsList>
+
+                        <TabsContent value="overview" className="p-6 space-y-6 mt-0">
+                          {module.learning_objective && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Target className="h-4 w-4" style={{ color: accentColor }} />
+                                <h3 className="font-semibold text-[0.9375rem]">Learning Objective</h3>
+                              </div>
+                              <p className="text-[0.875rem] text-muted-foreground leading-relaxed pl-6">
+                                {module.learning_objective}
+                              </p>
+                            </div>
+                          )}
+                          {keyIdeasList.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Lightbulb className="h-4 w-4" style={{ color: accentColor }} />
+                                <h3 className="font-semibold text-[0.9375rem]">Key Ideas</h3>
+                              </div>
+                              <ul className="space-y-1.5 pl-6">
+                                {keyIdeasList.map((idea, i) => (
+                                  <li key={i} className="text-[0.875rem] text-muted-foreground leading-relaxed flex items-start gap-2">
+                                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ backgroundColor: accentColor }} />
+                                    {idea}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </TabsContent>
+
+                        <TabsContent value="activity" className="p-6 space-y-6 mt-0">
+                          {module.practical_activity && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <ClipboardCheck className="h-4 w-4" style={{ color: accentColor }} />
+                                <h3 className="font-semibold text-[0.9375rem]">Practical Activity</h3>
+                              </div>
+                              <p className="text-[0.875rem] text-muted-foreground leading-relaxed pl-6">
+                                {module.practical_activity}
+                              </p>
+                            </div>
+                          )}
+                          {module.practical_activity && module.assessment_check && (
+                            <hr className="border-border/40" />
+                          )}
+                          {module.assessment_check && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <CircleCheckBig className="h-4 w-4" style={{ color: accentColor }} />
+                                <h3 className="font-semibold text-[0.9375rem]">Assessment Check</h3>
+                              </div>
+                              <p className="text-[0.875rem] text-muted-foreground leading-relaxed pl-6">
+                                {module.assessment_check}
+                              </p>
+                            </div>
+                          )}
+                        </TabsContent>
+
+                        {hasProgressionLink && (
+                          <TabsContent value="next" className="p-6 mt-0">
+                            <div className="flex items-start gap-3">
+                              <ArrowRight className="h-4 w-4 mt-0.5 shrink-0" style={{ color: accentColor }} />
+                              <p className="text-[0.875rem] text-muted-foreground leading-relaxed">
+                                {module.progression_link}
+                              </p>
+                            </div>
+                          </TabsContent>
+                        )}
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Teaching Guide Accordion */}
+                {module.teaching_guide && (
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-0">
+                      <Accordion type="single" collapsible>
+                        <AccordionItem value="teaching-guide" className="border-none">
+                          <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                            <div className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" style={{ color: accentColor }} />
+                              <span className="font-semibold text-[0.9375rem]">Teaching Guide</span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-6 pb-5">
+                            <p className="text-[0.875rem] text-muted-foreground leading-relaxed pl-6">
+                              {module.teaching_guide}
+                            </p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Reading Materials */}
                 {content.length > 0 && (
                   <Card>
@@ -308,11 +487,11 @@ export default function ModulePlayer() {
                     <HelpCircle className="h-5 w-5" />
                     Knowledge Check
                   </CardTitle>
-                  <CardDescription>
+                  <p className="text-sm text-muted-foreground">
                     {quizSubmitted 
                       ? `Your score: ${quizScore}%`
                       : `Question ${currentQuiz + 1} of ${quizzes.length}`}
-                  </CardDescription>
+                  </p>
                 </CardHeader>
                 <CardContent>
                   {quizzes.length > 0 ? (
@@ -405,33 +584,30 @@ export default function ModulePlayer() {
                 <CardTitle className="text-[0.9375rem] font-bold">About This Module</CardTitle>
               </CardHeader>
               <CardContent className="space-y-0 p-0">
-                <div className="flex items-center justify-between px-6 py-3 border-b border-[hsl(0_0%_96%)]">
+                <div className="flex items-center justify-between px-6 py-3 border-b border-border/40">
                   <span className="text-[0.8125rem] text-muted-foreground">Duration</span>
                   <span className="text-[0.8125rem] font-semibold">{module.duration_minutes} min</span>
                 </div>
-                <div className="flex items-center justify-between px-6 py-3 border-b border-[hsl(0_0%_96%)]">
-                  <span className="text-[0.8125rem] text-muted-foreground">Certificate</span>
-                  <span
-                    className="inline-flex items-center rounded-md px-2 py-0.5 text-[0.75rem] font-semibold border"
-                    style={{
-                      backgroundColor: certColor.bg,
-                      color: certColor.accent,
-                      borderColor: certColor.border,
-                    }}
-                  >
-                    {certInfo.name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between px-6 py-3">
-                  <span className="text-[0.8125rem] text-muted-foreground">Simulation</span>
-                  {module.has_simulation ? (
-                    <span className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-primary">
-                      <Zap className="h-3 w-3" />
-                      Included
+                {stage && (
+                  <div className="flex items-center justify-between px-6 py-3 border-b border-border/40">
+                    <span className="text-[0.8125rem] text-muted-foreground">Stage</span>
+                    <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
+                      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
+                      Stage {stage.stage_number}: {stage.title}
                     </span>
-                  ) : (
-                    <span className="text-[0.8125rem] text-[hsl(240_4%_66%)]">None</span>
-                  )}
+                  </div>
+                )}
+                {band && (
+                  <div className="flex items-center justify-between px-6 py-3 border-b border-border/40">
+                    <span className="text-[0.8125rem] text-muted-foreground">Band</span>
+                    <span className="text-[0.8125rem] font-semibold">{band.label}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-[0.8125rem] text-muted-foreground">Certificate</span>
+                  <span className="text-[0.8125rem] font-semibold">
+                    {stage ? stage.certificate_name : (module.is_compulsory ? 'Required for all levels' : '—')}
+                  </span>
                 </div>
               </CardContent>
             </Card>
