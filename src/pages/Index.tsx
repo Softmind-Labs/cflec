@@ -1,15 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  GraduationCap, 
-  Award, 
   PlayCircle, 
-  CheckCircle,
   ChevronRight,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { APP_FULL_NAME } from '@/lib/constants';
 import cflecLogo from '@/assets/cflec-logo.png';
@@ -20,48 +17,49 @@ import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
 import adultsImg from '@/assets/portals/adults.jpg';
 import kidsImg from '@/assets/portals/kids.jpg';
 
+const features = [
+  {
+    image: onlineLearningImg,
+    title: '41 Modules',
+    description: 'Structured video lessons from money basics to professional investing',
+    cta: 'Start Learning',
+    link: '/auth',
+  },
+  {
+    image: certificatesImg,
+    title: '5 Certificates',
+    description: 'Achieve Green, White, Gold, Blue, and Black certifications as you level up',
+    cta: 'View Certificates',
+    link: '/auth',
+  },
+  {
+    image: tradingSimulatorImg,
+    title: 'Stock Simulator',
+    description: 'Practice trading with $500 in virtual money',
+    cta: 'Try Simulator',
+    link: '/auth',
+  },
+  {
+    image: aiAssistedImg,
+    title: 'AI-Powered Support',
+    description: 'Get personalized guidance and instant answers',
+    cta: 'Learn More',
+    link: '/auth',
+  },
+];
+
+const certificateTiers = [
+  { color: 'Green', formal: 'Foundation in Money Awareness', modules: 10, audience: 'Ages 6–11', accent: '#22c55e' },
+  { color: 'White', formal: 'Personal Financial Skills', modules: 10, audience: 'Ages 12–15', accent: '#9CA3AF' },
+  { color: 'Gold', formal: 'Wealth Building & Markets', modules: 10, audience: 'Ages 16–18', accent: '#d4a017' },
+  { color: 'Blue', formal: 'Financial Systems & Investing', modules: 5, audience: 'University+', accent: '#1e3a5f' },
+  { color: 'Black', formal: 'Markets, Crypto & Wealth Strategy', modules: 5, audience: 'Professionals', accent: '#000000' },
+];
+
 export default function Index() {
-  const features = [
-    {
-      image: onlineLearningImg,
-      title: 'Structured Learning',
-      description: 'Progress through 27 expertly crafted modules',
-      cta: 'Start Learning',
-      link: '/auth',
-    },
-    {
-      image: certificatesImg,
-      title: 'Earn Certificates',
-      description: 'Achieve Green, White, Gold, and Blue certifications',
-      cta: 'View Certificates',
-      link: '/auth',
-    },
-    {
-      image: tradingSimulatorImg,
-      title: 'Stock Simulator',
-      description: 'Practice trading with $500 in virtual money',
-      cta: 'Try Simulator',
-      link: '/auth',
-    },
-    {
-      image: aiAssistedImg,
-      title: 'AI-Powered Support',
-      description: 'Get personalized guidance and instant answers',
-      cta: 'Learn More',
-      link: '/auth',
-    },
-  ];
-
-  const certificates = [
-    { level: 'Green', modules: '1-10', color: 'bg-cflp-green', description: 'Financial Fundamentals' },
-    { level: 'White', modules: '11-20', color: 'bg-cflp-white border border-gray-300', description: 'Investment Basics' },
-    { level: 'Gold', modules: '21-26', color: 'bg-cflp-gold', description: 'Advanced Strategies' },
-    { level: 'Blue', modules: '99', color: 'bg-cflp-blue', description: 'Wealth Management' },
-  ];
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Transparent Header for Hero */}
+      {/* Transparent Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -78,9 +76,8 @@ export default function Index() {
         </div>
       </header>
 
-      {/* Hero Section with Video Background */}
+      {/* Hero Section */}
       <section className="relative h-screen w-full overflow-hidden">
-        {/* Video Background */}
         <video
           autoPlay
           muted
@@ -92,15 +89,13 @@ export default function Index() {
           <source src="/videos/money.mp4" type="video/mp4" />
         </video>
         
-        {/* Dark Gradient Overlay */}
         <div 
           className="absolute inset-0"
           style={{
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.7) 100%)'
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.8) 90%, rgba(0,0,0,0.95) 100%)'
           }}
         />
         
-        {/* Hero Content */}
         <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
           <Badge className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
             <Sparkles className="mr-1 h-3 w-3" />
@@ -114,9 +109,7 @@ export default function Index() {
           </h1>
           
           <p className="mt-6 max-w-2xl text-lg text-white/90 md:text-xl" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.3)' }}>
-            {APP_FULL_NAME} — Your journey to financial literacy starts here. 
-            Learn, practice, earn certificates, and compete with others in our 
-            risk-free trading simulator.
+            Ghana's certified financial literacy platform. Learn, earn certificates, and practice with our trading simulator — completely free.
           </p>
           
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -135,7 +128,6 @@ export default function Index() {
           </div>
         </div>
         
-        {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
           <ChevronDown className="h-8 w-8 text-white/60" />
         </div>
@@ -153,18 +145,13 @@ export default function Index() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
               <Link key={feature.title} to={feature.link}>
-                <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer">
-                  {/* Background Image */}
+                <div className="relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden group cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-xl">
                   <img 
                     src={feature.image} 
                     alt={feature.title}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  
-                  {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
-                  
-                  {/* Content */}
                   <div className="relative z-10 h-full flex flex-col justify-end p-6">
                     <h3 className="text-2xl font-bold text-white mb-2">
                       {feature.title}
@@ -183,47 +170,89 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Certificate Levels */}
-      <section className="py-20">
+      {/* Certificate Pathway */}
+      <section className="py-20 bg-[hsl(0_0%_98%)]">
         <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold md:text-4xl">Earn Recognized Certificates</h2>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold md:text-4xl text-foreground">Earn Recognized Certificates</h2>
             <p className="mt-4 text-muted-foreground">
-              Progress through four levels of mastery and earn certificates to showcase your skills
+              Five levels of mastery — from money basics to professional investing
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {certificates.map((cert) => (
-              <Card key={cert.level} className="relative overflow-hidden">
-                <div className={`absolute top-0 left-0 right-0 h-2 ${cert.color}`} />
-                <CardHeader className="pt-6">
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
-                    {cert.level} Certificate
-                  </CardTitle>
-                  <CardDescription>{cert.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Modules {cert.modules}
+
+          {/* Desktop: horizontal progression */}
+          <div className="hidden md:flex items-start justify-center gap-0">
+            {certificateTiers.map((cert, i) => (
+              <div key={cert.color} className="flex items-start">
+                {/* Certificate unit */}
+                <div className="flex flex-col items-center text-center w-[180px]">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${cert.color === 'Black' ? 'ring-2 ring-[hsl(43_76%_47%)]' : ''}`}
+                    style={{ backgroundColor: cert.accent }}
+                  >
+                    <Award className="h-5 w-5 text-white" />
+                  </div>
+                  <p className="mt-3 font-semibold text-foreground text-sm">
+                    {cert.color} Certificate
                   </p>
-                  <ul className="mt-4 space-y-2">
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      Video Lessons
-                    </li>
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      Quizzes
-                    </li>
-                    <li className="flex items-center gap-2 text-sm">
-                      <CheckCircle className="h-4 w-4 text-cflp-green" />
-                      Practical Simulations
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
+                  <p className="mt-1 text-xs text-muted-foreground leading-tight">
+                    {cert.formal}
+                  </p>
+                  <span className="mt-2 inline-block text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+                    {cert.modules} Modules
+                  </span>
+                  <span className="mt-1 text-[11px] text-muted-foreground/70">
+                    {cert.audience}
+                  </span>
+                </div>
+                {/* Connector arrow */}
+                {i < certificateTiers.length - 1 && (
+                  <div className="flex items-center pt-5">
+                    <ChevronRight className="h-4 w-4 text-[hsl(220_9%_83%)] mx-1" />
+                  </div>
+                )}
+              </div>
             ))}
+          </div>
+
+          {/* Mobile: vertical stack */}
+          <div className="flex flex-col gap-4 md:hidden">
+            {certificateTiers.map((cert, i) => (
+              <div key={cert.color}>
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center ${cert.color === 'Black' ? 'ring-2 ring-[hsl(43_76%_47%)]' : ''}`}
+                    style={{ backgroundColor: cert.accent }}
+                  >
+                    <Award className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground text-sm">{cert.color} Certificate</p>
+                    <p className="text-xs text-muted-foreground">{cert.formal}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+                        {cert.modules} Modules
+                      </span>
+                      <span className="text-[11px] text-muted-foreground/70">{cert.audience}</span>
+                    </div>
+                  </div>
+                </div>
+                {i < certificateTiers.length - 1 && (
+                  <div className="flex justify-center py-1">
+                    <ChevronDown className="h-4 w-4 text-[hsl(220_9%_83%)]" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link to="/auth">
+              <Button size="lg" className="bg-[hsl(217_91%_60%)] hover:bg-[hsl(217_91%_55%)] text-white px-8">
+                Start Your Journey
+                <ChevronRight className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -238,7 +267,7 @@ export default function Index() {
             </p>
           </div>
           
-          {/* Adults & Teens Row - Image Left, Text Right */}
+          {/* Adults & Teens */}
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="relative">
               <img 
@@ -249,11 +278,11 @@ export default function Index() {
             </div>
             <div className="space-y-6">
               <p className="text-sm font-medium text-primary uppercase tracking-wide">Adults & Teens</p>
-               <h3 className="text-3xl md:text-4xl font-display font-bold">
-                 Master Financial Literacy
-               </h3>
+              <h3 className="text-3xl md:text-4xl font-display font-bold">
+                Master Financial Literacy
+              </h3>
               <p className="text-muted-foreground text-lg">
-                High Schoolers (13-17) and Adults (18+) can access our full curriculum with 27 modules, stock trading simulator, and earn all 4 certificate levels.
+                High Schoolers (13-17) and Adults (18+) can access our full curriculum with 41 modules, stock trading simulator, and earn all 5 certificate levels.
               </p>
               <Link to="/auth?mode=signup">
                 <Button className="bg-cflp-blue hover:bg-cflp-blue/90 text-cflp-blue-foreground" size="lg">
@@ -264,13 +293,13 @@ export default function Index() {
             </div>
           </div>
           
-          {/* Kids Zone Row - Text Left, Image Right */}
+          {/* Kids Zone */}
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 order-2 md:order-1">
               <p className="text-sm font-medium text-kids-primary uppercase tracking-wide">Kids Zone</p>
-               <h3 className="text-3xl md:text-4xl font-display font-bold">
-                 Fun Financial Adventures
-               </h3>
+              <h3 className="text-3xl md:text-4xl font-display font-bold">
+                Fun Financial Adventures
+              </h3>
               <p className="text-muted-foreground text-lg">
                 Young learners (6-12) enjoy interactive lessons, games, rewards, and work toward their Green certificate in a colorful, engaging environment.
               </p>
