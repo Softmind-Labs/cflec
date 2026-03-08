@@ -19,7 +19,7 @@ import { NotificationToast } from './NotificationToast';
 const navLinks = [
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Modules', path: '/modules' },
-  { label: 'Courses', path: '/courses' },
+  { label: 'Masterclass', path: '/courses' },
   { label: 'Simulator', path: '/simulator' },
   { label: 'Certificates', path: '/certificates' },
 ];

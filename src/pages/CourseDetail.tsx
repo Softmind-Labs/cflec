@@ -142,7 +142,7 @@ export default function CourseDetail() {
           <h1 className="font-display font-bold text-2xl mb-3">Course Not Found</h1>
           <p className="text-muted-foreground mb-6">The course you're looking for doesn't exist.</p>
           <Link to="/courses">
-            <Button>Browse Courses</Button>
+            <Button>Browse Masterclass</Button>
           </Link>
         </div>
       </MainLayout>
@@ -163,12 +163,12 @@ export default function CourseDetail() {
             className="inline-flex items-center gap-1 text-[0.875rem] font-medium text-white/50 hover:text-white/80 transition-colors mb-6"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
-            Back to Courses
+            Back to Masterclass
           </button>
 
           {/* Breadcrumb */}
           <p className="text-[0.8125rem] text-white/40 mb-6">
-            Home › Courses › {course.title}
+            Home › Masterclass › {course.title}
           </p>
 
           <div className="grid md:grid-cols-5 gap-10 items-start">

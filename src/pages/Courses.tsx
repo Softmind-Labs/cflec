@@ -55,17 +55,17 @@ export default function Courses() {
         <div className="max-w-[1280px] mx-auto px-5 md:px-12 py-12 md:py-16">
           {/* Breadcrumb */}
           <p className="text-[0.8125rem] text-white/45 mb-4">
-            Home › Courses
+            Home › Masterclass
           </p>
 
           <h1 className="font-display font-bold text-white tracking-[-0.03em] leading-[1.2]" style={{ fontSize: 'clamp(2rem, 4vw, 3.25rem)' }}>
-            Short Courses
+            Masterclass
           </h1>
           <p className="text-white/60 mt-3 text-base max-w-xl">
             Pick a topic. Learn it in under an hour. Apply it today.
           </p>
           <p className="text-white/45 text-[0.875rem] mt-4">
-            8 short courses · Free with login · Ghana focused
+            8 masterclasses · Free with login · Ghana focused
           </p>
         </div>
       </div>
