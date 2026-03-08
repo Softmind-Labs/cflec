@@ -1,59 +1,36 @@
 
 
-# Step 4: Certificates Page — Journey/Pathway Redesign
+# Top-of-Screen Notification Toast Near Bell Icon
 
-## Summary
-Full rewrite of `src/pages/Certificates.tsx` — replace the 4-card Green/White/Gold/Blue grid with a vertical journey timeline showing 5 stages as connected milestones with progressive unlocking.
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## File Changed
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
+
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
+
+## Files Changed
+
 | File | Change |
 |---|---|
-| `src/pages/Certificates.tsx` | Complete rewrite |
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-## Data Fetching (replaces current)
-- Fetch `stages` ordered by `stage_number`, filtered to stages 1–5 only (exclude Module 99's stage)
-- Fetch `modules` with `stage_id` and count per stage
-- Fetch `user_progress` for current user (video_completed + quiz_passed = completed)
-- Calculate per stage: `completedCount` / `totalModules`
-- Lock logic: Stage 1 always unlocked. Stage N locked if Stage N-1 is not fully complete
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
 
-## Layout Structure
-
-**Header**: "Your Learning Journey" + subtitle + blue underline accent
-
-**Summary cards row** (5 cards, horizontal, scrollable on mobile):
-- Each card: colored dot (stage.color_primary) + "Stage {n}" + completed/total + thin progress bar
-- Locked cards: faded with lock icon
-
-**Vertical Journey Timeline** (centerpiece):
-- Vertical track line runs top to bottom
-- Line colored with stage.color_primary for completed stages, dashed gray for locked
-- Each stage = milestone node on the line
-
-**Milestone card per stage:**
-- **Completed**: Colored circle with checkmark, certificate_name bold, stage title subtitle, full progress bar, green "Completed ✓" badge + Download button
-- **In Progress**: Colored circle with stage number, certificate_name, progress bar partially filled, blue "In Progress" badge + "X/Y modules" text
-- **Not Started (unlocked)**: Colored circle, neutral "Not Started" badge
-- **Locked**: Gray circle with lock overlay, muted text, no progress bar, gray "Locked" badge + "Complete Stage N-1 to unlock" text
-
-**Active node**: subtle pulse/glow CSS animation
-
-**Motivational footer**: Dynamic text based on completion count (0, partial, all 5)
-
-## Responsive
-- Mobile: timeline track along left edge, cards stack full-width
-- Summary cards: horizontal scroll on small screens (`overflow-x-auto flex`)
-
-## What's Removed
-- All `CERTIFICATE_INFO`, `CERT_COLORS`, `certAccentColors`, `CertificateLevel` imports
-- Green/White/Gold/Blue card grid
-- "Not available for high_schooler accounts" logic
-
-## Icons Used
-`Award`, `Lock`, `CheckCircle2`, `Download`, `Trophy` from lucide-react
-
-## Stage Colors (from DB `stages.color_primary`, with fallback)
-```
-1 → #22c55e, 2 → #14b8a6, 3 → #1d4ed8, 4 → #1e3a5f, 5 → #000000
-```
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 
