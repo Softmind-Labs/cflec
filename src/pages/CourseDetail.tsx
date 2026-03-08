@@ -142,7 +142,7 @@ export default function CourseDetail() {
           <h1 className="font-display font-bold text-2xl mb-3">Course Not Found</h1>
           <p className="text-muted-foreground mb-6">The course you're looking for doesn't exist.</p>
           <Link to="/courses">
-            <Button>Browse Courses</Button>
+            <Button>Browse Masterclass</Button>
           </Link>
         </div>
       </MainLayout>
