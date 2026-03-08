@@ -95,6 +95,16 @@ export interface Module {
   duration_minutes: number;
   has_simulation: boolean;
   is_active: boolean;
+  stage_id: number | null;
+  band_id: number | null;
+  learning_objective: string | null;
+  key_ideas: string | null;
+  teaching_guide: string | null;
+  practical_activity: string | null;
+  assessment_check: string | null;
+  progression_link: string | null;
+  is_compulsory: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
