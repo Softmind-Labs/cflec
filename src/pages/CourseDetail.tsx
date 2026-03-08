@@ -163,7 +163,7 @@ export default function CourseDetail() {
             className="inline-flex items-center gap-1 text-[0.875rem] font-medium text-white/50 hover:text-white/80 transition-colors mb-6"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
-            Back to Courses
+            Back to Masterclass
           </button>
 
           {/* Breadcrumb */}
