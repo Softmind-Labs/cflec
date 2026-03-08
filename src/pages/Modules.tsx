@@ -240,8 +240,8 @@ export default function Modules() {
                   className="gap-2"
                 >
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <span className="hidden sm:inline">Stage {stage.stage_number}</span>
-                  <span className="sm:hidden">S{stage.stage_number}</span>
+                   <span className="hidden sm:inline">{stage.title} Certificate</span>
+                   <span className="sm:hidden">{stage.title}</span>
                   <Badge variant="secondary" className="ml-1 text-[0.75rem]">
                     {completed}/{stageModules.length}
                   </Badge>
