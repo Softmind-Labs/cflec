@@ -1,6 +1,36 @@
 // CFLP Platform Type Definitions
 
 export type AccountType = 'kid' | 'high_schooler' | 'adult';
+
+// Stage & Band types (curriculum hierarchy)
+export interface Stage {
+  id: number;
+  stage_number: number;
+  title: string;
+  certificate_name: string;
+  total_modules: number;
+  age_range_min: number | null;
+  age_range_max: number | null;
+  color_primary: string | null;
+  color_secondary: string | null;
+  target_group: string | null;
+  pedagogical_principle: string | null;
+  core_goals: string[] | null;
+  learning_outcomes: string[] | null;
+  audience_coverage: string[] | null;
+  created_at: string | null;
+}
+
+export interface Band {
+  id: number;
+  name: string;
+  label: string;
+  stage_id: number | null;
+  module_start: number;
+  module_end: number;
+  sort_order: number;
+  created_at: string | null;
+}
 export type CertificateLevel = 'green' | 'white' | 'gold' | 'blue';
 export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'pending';
 export type GhanaianBank = 'absa' | 'fidelity' | 'ecobank' | 'gcb' | 'access' | 'umb' | 'uba';
@@ -65,6 +95,16 @@ export interface Module {
   duration_minutes: number;
   has_simulation: boolean;
   is_active: boolean;
+  stage_id: number | null;
+  band_id: number | null;
+  learning_objective: string | null;
+  key_ideas: string | null;
+  teaching_guide: string | null;
+  practical_activity: string | null;
+  assessment_check: string | null;
+  progression_link: string | null;
+  is_compulsory: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }

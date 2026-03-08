@@ -1,64 +1,36 @@
 
 
-# Step 2: Modules Page Restructure
+# Top-of-Screen Notification Toast Near Bell Icon
 
-## Summary
-Replace the old certificate-level tabs (Green/White/Gold/Blue) with stage-based tabs fetched from the database. Group modules by bands within stages 1-3, show flat lists for stages 4-5, and add a Module 99 tab.
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## Files to Change
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
 
-### 1. `src/types/index.ts`
-- Add `Stage` interface: `id`, `stage_number`, `title`, `certificate_name`, `total_modules`, `color_primary`, `color_secondary`, etc.
-- Add `Band` interface: `id`, `name`, `label`, `stage_id`, `module_start`, `module_end`, `sort_order`
-- Update `Module` interface: add `stage_id`, `band_id`, `learning_objective`, `key_ideas`, `is_compulsory`, `sort_order`, `estimated_minutes` (alias for `duration_minutes`), `practical_activity`, `assessment_check`, `progression_link`, `teaching_guide`
-- Keep old types for now (other pages still use them)
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
 
-### 2. `src/pages/Modules.tsx` — Full rewrite of data fetching and rendering
+## Files Changed
 
-**Data fetching** (replace current `useEffect`):
-- Fetch `stages` ordered by `stage_number`
-- Fetch `bands` ordered by `sort_order`
-- Fetch `modules` with `stage_id`, `band_id`, ordered by `sort_order`
-- Fetch `user_progress` for current user
+| File | Change |
+|---|---|
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-**State**:
-- `activeTab`: string — `"stage-1"` through `"stage-5"` or `"module-99"` (default `"stage-1"`)
-- Remove `CertificateLevel` dependency
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
 
-**Tabs**: 6 tabs derived from `stages` rows + a hardcoded "Module 99" tab
-- Each tab shows color dot from `stages.color_primary`, label like "Stage 1: Primary", and `completed/total` badge
-- Module 99 tab uses red accent (#CE1126)
-
-**Tab content for stages 1-3** (have bands):
-- Sub-header: certificate name + progress count
-- Group modules by `band_id`, render band sections with `band.label` as section header
-- Module cards grid within each band
-
-**Tab content for stages 4-5** (no bands):
-- Sub-header: certificate name + progress count
-- Flat grid of module cards
-
-**Tab content for Module 99**:
-- Sub-header with "Required at every level" note
-- Single module card with "Compulsory — All Levels" badge
-
-**Module card updates**:
-- Description: use `module.learning_objective` instead of `module.description`
-- Time: use `module.duration_minutes` (field already exists, now populated as `estimated_minutes` in seed)
-- Remove "Simulation" badge (per spec)
-- Lock logic: Module 1 within each stage is always unlocked; subsequent modules unlock when previous in same stage is completed
-
-**Stats bar**: Already dynamic (`modules.length`), will auto-show 41. No code change needed.
-
-**Remove**: All imports/references to `CERTIFICATE_INFO`, `CERT_COLORS`, `certAccentColors`, `CertificateLevel` from this file.
-
-### 3. Stage accent colors
-Define inline in `Modules.tsx` as a simple map from `stage_number` to color:
-```
-1 → #22c55e, 2 → #14b8a6, 3 → #1d4ed8, 4 → #1e3a5f, 5 → #000000, 99 → #CE1126
-```
-
-## No changes to
-- Dashboard, Certificates, Landing, CourseDetail, or any other pages
-- Database (Step 1 already complete)
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 
