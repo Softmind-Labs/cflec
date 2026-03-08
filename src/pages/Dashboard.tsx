@@ -39,13 +39,15 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [modulesRes, progressRes, leaderboardRes] = await Promise.all([
+      const [modulesRes, stagesRes, progressRes, leaderboardRes] = await Promise.all([
         supabase.from('modules').select('*').order('module_number'),
+        supabase.from('stages').select('*').gte('stage_number', 1).lte('stage_number', 5).order('stage_number'),
         supabase.from('user_progress').select('*'),
         supabase.rpc('get_leaderboard', { limit_count: 5 }),
       ]);
 
       if (modulesRes.data) setModules(modulesRes.data as Module[]);
+      if (stagesRes.data) setStages(stagesRes.data as unknown as Stage[]);
       if (progressRes.data) setProgress(progressRes.data as UserProgress[]);
       if (leaderboardRes.data) setLeaderboard(leaderboardRes.data as LeaderboardEntry[]);
       setLoading(false);
