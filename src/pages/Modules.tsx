@@ -277,7 +277,7 @@ export default function Modules() {
                     <span className="h-3 w-3 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: accent }} />
                     <div>
                       <h2 className="text-[1.125rem] font-bold text-foreground">
-                        Stage {stage.stage_number}: {stage.title}
+                        {stage.title} Certificate
                       </h2>
                       <p className="text-[0.875rem] text-muted-foreground">{stage.certificate_name}</p>
                     </div>

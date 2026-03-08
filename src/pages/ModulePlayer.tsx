@@ -456,7 +456,7 @@ export default function ModulePlayer() {
                     <span className="text-[0.8125rem] text-muted-foreground">Stage</span>
                     <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
-                      Stage {stage.stage_number}: {stage.title}
+                      {stage.title} Certificate
                     </span>
                   </div>
                 )}

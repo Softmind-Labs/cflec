@@ -283,15 +283,15 @@ export default function Certificates() {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h3
-                            className="font-display font-semibold text-[1.125rem] leading-snug"
-                            style={{ color: isLocked ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))' }}
-                          >
-                            {stage.certificate_name}
-                          </h3>
-                          <p className="text-[0.8125rem] text-muted-foreground mt-0.5">
-                            Stage {stage.stage_number}: {stage.title}
-                          </p>
+                           <h3
+                             className="font-display font-semibold text-[1.125rem] leading-snug"
+                             style={{ color: isLocked ? 'hsl(var(--muted-foreground))' : 'hsl(var(--foreground))' }}
+                           >
+                             {stage.title} Certificate: {stage.certificate_name}
+                           </h3>
+                           <p className="text-[0.8125rem] text-muted-foreground mt-0.5">
+                             Stage {stage.stage_number}
+                           </p>
                         </div>
                       </div>
 
