@@ -212,8 +212,8 @@ export default function Index() {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Teens & Adults */}
             <div className="rounded-2xl overflow-hidden bg-background shadow-sm border border-border">
-              <div className="relative h-64">
-                <img src={adultsImg} alt="Adults and teens learning financial literacy" className="w-full h-full object-cover" />
+              <div className="relative h-72">
+                <img src={adultsImg} alt="Adults and teens learning financial literacy" className="w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
               </div>
               <div className="p-8 space-y-4">
