@@ -94,7 +94,7 @@ export default function Index() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <div key={feature.title} className="rounded-2xl overflow-hidden bg-background border border-border hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+              <div key={feature.title} className="rounded-2xl overflow-hidden bg-background border border-border">
                 <img src={feature.image} alt={feature.title} className="w-full h-44 object-cover" />
                 <div className="p-5">
                   <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
