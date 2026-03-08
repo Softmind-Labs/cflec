@@ -21,8 +21,8 @@ import type { Module, UserProgress, Stage, Band } from '@/types';
 
 const STAGE_COLORS: Record<number, string> = {
   1: '#22c55e',
-  2: '#14b8a6',
-  3: '#1d4ed8',
+  2: '#9CA3AF',
+  3: '#d4a017',
   4: '#1e3a5f',
   5: '#000000',
   99: '#CE1126',
@@ -240,8 +240,8 @@ export default function Modules() {
                   className="gap-2"
                 >
                   <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <span className="hidden sm:inline">Stage {stage.stage_number}</span>
-                  <span className="sm:hidden">S{stage.stage_number}</span>
+                   <span className="hidden sm:inline">{stage.title} Certificate</span>
+                   <span className="sm:hidden">{stage.title}</span>
                   <Badge variant="secondary" className="ml-1 text-[0.75rem]">
                     {completed}/{stageModules.length}
                   </Badge>
@@ -277,7 +277,7 @@ export default function Modules() {
                     <span className="h-3 w-3 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: accent }} />
                     <div>
                       <h2 className="text-[1.125rem] font-bold text-foreground">
-                        Stage {stage.stage_number}: {stage.title}
+                        {stage.title} Certificate
                       </h2>
                       <p className="text-[0.875rem] text-muted-foreground">{stage.certificate_name}</p>
                     </div>

@@ -23,8 +23,8 @@ import type { Module, ModuleContent, Quiz, UserProgress, Stage, Band } from '@/t
 // Stage accent colors
 const STAGE_COLORS: Record<number, string> = {
   1: '#22c55e',
-  2: '#14b8a6',
-  3: '#1d4ed8',
+  2: '#9CA3AF',
+  3: '#d4a017',
   4: '#1e3a5f',
   5: '#000000',
   99: '#CE1126',
@@ -204,7 +204,7 @@ export default function ModulePlayer() {
                     className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white"
                     style={{ backgroundColor: accentColor }}
                   >
-                    Stage {stage.stage_number}: {stage.title}
+                    {stage.title} Certificate
                   </span>
                 )}
                 {module.is_compulsory && (
@@ -234,7 +234,7 @@ export default function ModulePlayer() {
                 {stage && (
                   <>
                     <span className="text-muted-foreground/40">·</span>
-                    <span>Stage {stage.stage_number}: {stage.title}</span>
+                    <span>{stage.title} Certificate</span>
                   </>
                 )}
                 {band && (
@@ -456,7 +456,7 @@ export default function ModulePlayer() {
                     <span className="text-[0.8125rem] text-muted-foreground">Stage</span>
                     <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: accentColor }} />
-                      Stage {stage.stage_number}: {stage.title}
+                      {stage.title} Certificate
                     </span>
                   </div>
                 )}

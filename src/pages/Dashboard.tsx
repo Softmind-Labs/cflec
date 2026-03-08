@@ -19,26 +19,35 @@ import {
   Flame,
   Clock
 } from 'lucide-react';
-import type { Module, UserProgress, LeaderboardEntry } from '@/types';
-import { CERTIFICATE_INFO } from '@/types';
-import { CERT_COLORS } from '@/lib/cert-colors';
+import type { Module, UserProgress, LeaderboardEntry, Stage } from '@/types';
+
+const STAGE_COLORS: Record<number, string> = {
+  1: '#22c55e',
+  2: '#9CA3AF',
+  3: '#d4a017',
+  4: '#1e3a5f',
+  5: '#000000',
+};
 
 export default function Dashboard() {
   const { profile } = useAuth();
   const [modules, setModules] = useState<Module[]>([]);
+  const [stages, setStages] = useState<Stage[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [modulesRes, progressRes, leaderboardRes] = await Promise.all([
+      const [modulesRes, stagesRes, progressRes, leaderboardRes] = await Promise.all([
         supabase.from('modules').select('*').order('module_number'),
+        supabase.from('stages').select('*').gte('stage_number', 1).lte('stage_number', 5).order('stage_number'),
         supabase.from('user_progress').select('*'),
         supabase.rpc('get_leaderboard', { limit_count: 5 }),
       ]);
 
       if (modulesRes.data) setModules(modulesRes.data as Module[]);
+      if (stagesRes.data) setStages(stagesRes.data as unknown as Stage[]);
       if (progressRes.data) setProgress(progressRes.data as UserProgress[]);
       if (leaderboardRes.data) setLeaderboard(leaderboardRes.data as LeaderboardEntry[]);
       setLoading(false);
@@ -64,22 +73,34 @@ export default function Dashboard() {
     return modules.find(m => !completedIds.has(m.id)) || modules[0];
   };
 
-  const getCertificateProgress = () => {
-    const greenModules = modules.filter(m => m.certificate_level === 'green');
-    const completedGreen = progress.filter(p => {
-      const mod = modules.find(m => m.id === p.module_id);
-      return mod?.certificate_level === 'green' && p.video_completed && p.quiz_passed;
-    }).length;
-    
-    return {
-      current: 'green' as const,
-      completed: completedGreen,
-      total: greenModules.length,
-      percentage: greenModules.length > 0 ? (completedGreen / greenModules.length) * 100 : 0,
-    };
+  const getCurrentStageProgress = () => {
+    // Find the first stage that isn't fully completed
+    for (const stage of stages) {
+      const stageModules = modules.filter(m => m.stage_id === stage.id && m.module_number !== 99);
+      const completedInStage = progress.filter(p => {
+        const mod = stageModules.find(m => m.id === p.module_id);
+        return mod && p.video_completed && p.quiz_passed;
+      }).length;
+      if (completedInStage < stageModules.length) {
+        const color = stage.color_primary || STAGE_COLORS[stage.stage_number] || '#6b7280';
+        return {
+          stage,
+          completed: completedInStage,
+          total: stageModules.length,
+          percentage: stageModules.length > 0 ? (completedInStage / stageModules.length) * 100 : 0,
+          color,
+        };
+      }
+    }
+    // All done — show last stage
+    const last = stages[stages.length - 1];
+    if (!last) return null;
+    const stageModules = modules.filter(m => m.stage_id === last.id && m.module_number !== 99);
+    const color = last.color_primary || STAGE_COLORS[last.stage_number] || '#6b7280';
+    return { stage: last, completed: stageModules.length, total: stageModules.length, percentage: 100, color };
   };
 
-  const certProgress = getCertificateProgress();
+  const stageProgress = getCurrentStageProgress();
   const currentModule = getCurrentModule();
 
   if (loading) {
@@ -151,17 +172,17 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: `${CERT_COLORS[certProgress.current].accent}1a` }}>
-                    <Award className="h-5 w-5" style={{ color: CERT_COLORS[certProgress.current].accent }} />
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: stageProgress ? `${stageProgress.color}1a` : 'hsl(var(--muted))' }}>
+                    <Award className="h-5 w-5" style={{ color: stageProgress?.color || 'hsl(var(--muted-foreground))' }} />
                   </div>
                 </div>
                 <div className="mb-2">
-                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[0.75rem] font-semibold border" style={{ backgroundColor: CERT_COLORS[certProgress.current].bg, color: CERT_COLORS[certProgress.current].accent, borderColor: CERT_COLORS[certProgress.current].border }}>
-                    {certProgress.current.toUpperCase()}
+                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[0.75rem] font-semibold text-white" style={{ backgroundColor: stageProgress?.color || '#6b7280' }}>
+                    {stageProgress?.stage.title || '—'}
                   </span>
                 </div>
                 <p className="text-[0.8125rem] text-muted-foreground tabular-nums">
-                  {certProgress.completed}/{certProgress.total} modules
+                  {stageProgress ? `${stageProgress.completed}/${stageProgress.total} modules` : '—'}
                 </p>
                 <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
                   Current Certificate
@@ -380,33 +401,38 @@ export default function Dashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {(['green', 'white', 'gold', 'blue'] as const).map((level) => {
-                      const info = CERTIFICATE_INFO[level];
-                      const isEarned = false;
-                      
-                      return (
-                        <div 
-                          key={level}
-                          className={`flex items-center gap-3 p-2 rounded-lg ${
-                            isEarned ? 'bg-muted/50' : 'opacity-50'
-                          }`}
-                        >
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center`} style={{ backgroundColor: CERT_COLORS[level].accent, color: '#ffffff' }}>
-                            {isEarned ? (
-                              <CheckCircle className="h-4 w-4" />
-                            ) : (
-                              <Lock className="h-4 w-4" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{info.name}</p>
-                            <p className="text-xs text-muted-foreground">{info.description}</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                   <div className="space-y-3">
+                     {stages.map((stage) => {
+                       const color = stage.color_primary || STAGE_COLORS[stage.stage_number] || '#6b7280';
+                       const stageModules = modules.filter(m => m.stage_id === stage.id && m.module_number !== 99);
+                       const completedInStage = progress.filter(p => {
+                         const mod = stageModules.find(m => m.id === p.module_id);
+                         return mod && p.video_completed && p.quiz_passed;
+                       }).length;
+                       const isEarned = completedInStage >= stageModules.length && stageModules.length > 0;
+                       
+                       return (
+                         <div 
+                           key={stage.id}
+                           className={`flex items-center gap-3 p-2 rounded-lg ${
+                             isEarned ? 'bg-muted/50' : 'opacity-50'
+                           }`}
+                         >
+                           <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: color, color: stage.stage_number === 2 ? '#374151' : '#ffffff' }}>
+                             {isEarned ? (
+                               <CheckCircle className="h-4 w-4" />
+                             ) : (
+                               <Lock className="h-4 w-4" />
+                             )}
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium">{stage.title} Certificate</p>
+                             <p className="text-xs text-muted-foreground">{stage.certificate_name}</p>
+                           </div>
+                         </div>
+                       );
+                     })}
+                   </div>
                   <Link to="/certificates" className="block mt-4">
                     <Button variant="ghost" className="w-full" size="sm">
                       View All Certificates
