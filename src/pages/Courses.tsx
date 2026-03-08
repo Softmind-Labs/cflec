@@ -59,7 +59,7 @@ export default function Courses() {
           </p>
 
           <h1 className="font-display font-bold text-white tracking-[-0.03em] leading-[1.2]" style={{ fontSize: 'clamp(2rem, 4vw, 3.25rem)' }}>
-            Short Courses
+            Masterclass
           </h1>
           <p className="text-white/60 mt-3 text-base max-w-xl">
             Pick a topic. Learn it in under an hour. Apply it today.
