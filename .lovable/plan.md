@@ -1,42 +1,36 @@
 
 
-# Step 1: Database Restructure & Data Seeding
+# Top-of-Screen Notification Toast Near Bell Icon
 
-## Current State
-- **modules** table: 27 modules with wrong titles, uses `certificate_level` enum (green/white/gold/blue), UUID primary keys
-- **No** `stages`, `bands`, or `certification_requirements` tables exist
-- **profiles** table: missing `primary_stage_id` and `age` columns
-- `user_progress`, `module_content`, `quizzes` all reference `modules.id` via foreign keys
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## What This Migration Does
-One large SQL migration file that:
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
 
-### 1. Creates new tables
-- **`stages`** (5 rows): stage_number, title, certificate_name, age ranges, colors, learning outcomes (JSONB)
-- **`bands`** (9 rows): sub-groups within stages 1-3 (Band A/B/C, JHS 1/2/3, SHS 1/2/3)
-- **`certification_requirements`**: per-stage requirements for earning certificates
-
-### 2. Alters existing tables
-- **`modules`**: Add columns `stage_id`, `band_id`, `learning_objective`, `key_ideas`, `teaching_guide`, `practical_activity`, `assessment_check`, `progression_link`, `is_compulsory`, `sort_order`. Drop old data, reseed with 41 correct modules + Module 99.
-- **`profiles`**: Add `primary_stage_id` (integer) and `age` (integer) columns
-
-### 3. Clears dependent data (pre-production reset)
-- Delete `user_progress`, `module_content`, `quizzes` rows (they reference old module IDs)
-- Delete old modules
-- Seed 41 new modules + Module 99 with correct CFLP curriculum data
-
-### 4. Enables RLS on new tables
-- Read access for authenticated users on `stages`, `bands`, `certification_requirements`
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
 
 ## Files Changed
 
 | File | Change |
 |---|---|
-| `supabase/migrations/[timestamp]_database_restructure.sql` | Single migration: create tables, alter modules/profiles, clear old data, seed stages/bands/modules/certification_requirements, enable RLS |
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-## Important Notes
-- **No frontend/UI changes** in this step (per the document's instruction)
-- This is a **destructive migration** — it deletes existing module data, user_progress, module_content, and quizzes. Acceptable for pre-production.
-- The `certificate_level` enum (green/white/gold/blue) stays in the DB for now — we won't break existing code. It will be updated in a later step.
-- `stages` and `bands` use `SERIAL` integer PKs. `modules` keeps its UUID pk but gains `stage_id` and `band_id` foreign keys.
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
+
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 
