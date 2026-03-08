@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,20 +32,28 @@ const certificates = [
 ];
 
 export default function Index() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-transparent">
+      <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-background shadow-sm' : 'bg-transparent'}`}>
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={cflecLogo} alt="CFLEC Logo" className="h-10 w-auto" />
           </div>
           <nav className="flex items-center gap-4">
             <Link to="/auth">
-              <Button variant="ghost" className="text-white hover:bg-white/10 hover:text-white">Login</Button>
+              <Button variant="ghost" className={`${scrolled ? 'text-foreground hover:bg-muted' : 'text-white hover:bg-white/10 hover:text-white'}`}>Login</Button>
             </Link>
             <Link to="/auth">
-              <Button className="bg-white text-foreground hover:bg-white/90">Get Started</Button>
+              <Button className={`${scrolled ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-white text-foreground hover:bg-white/90'}`}>Get Started</Button>
             </Link>
           </nav>
         </div>
