@@ -175,9 +175,9 @@ export default function Certificates() {
                         style={{ backgroundColor: color }}
                       />
                     )}
-                    <span className="text-[0.75rem] font-medium text-muted-foreground truncate">
-                      Stage {stage.stage_number}
-                    </span>
+                     <span className="text-[0.75rem] font-medium text-muted-foreground truncate">
+                       {stage.title} Certificate
+                     </span>
                   </div>
                   <p className="font-display font-bold text-[1.125rem] tabular-nums text-foreground">
                     {completed}/{total}
