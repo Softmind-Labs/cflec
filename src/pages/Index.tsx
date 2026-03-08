@@ -94,7 +94,7 @@ export default function Index() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <div key={feature.title} className="rounded-2xl overflow-hidden bg-background border border-border hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+              <div key={feature.title} className="rounded-2xl overflow-hidden bg-background border border-border">
                 <img src={feature.image} alt={feature.title} className="w-full h-44 object-cover" />
                 <div className="p-5">
                   <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
@@ -246,22 +246,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 bg-[hsl(0_0%_10%)]">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold md:text-4xl text-white">Ready to start?</h2>
-          <p className="mt-4 text-white/70 max-w-lg mx-auto">
-            Join thousands of learners across Ghana building real financial skills. No experience needed.
-          </p>
-          <Link to="/auth?mode=signup">
-            <Button size="lg" className="mt-8 bg-white text-foreground hover:bg-white/90 px-10 text-base">
-              Get Started Free
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
-          <p className="mt-4 text-white/40 text-sm">No credit card required · Free forever</p>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t py-12 bg-muted/30">
