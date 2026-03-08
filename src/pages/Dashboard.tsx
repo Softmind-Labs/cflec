@@ -172,17 +172,17 @@ export default function Dashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: `${CERT_COLORS[certProgress.current].accent}1a` }}>
-                    <Award className="h-5 w-5" style={{ color: CERT_COLORS[certProgress.current].accent }} />
+                  <div className="h-10 w-10 rounded-[12px] flex items-center justify-center" style={{ backgroundColor: stageProgress ? `${stageProgress.color}1a` : 'hsl(var(--muted))' }}>
+                    <Award className="h-5 w-5" style={{ color: stageProgress?.color || 'hsl(var(--muted-foreground))' }} />
                   </div>
                 </div>
                 <div className="mb-2">
-                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[0.75rem] font-semibold border" style={{ backgroundColor: CERT_COLORS[certProgress.current].bg, color: CERT_COLORS[certProgress.current].accent, borderColor: CERT_COLORS[certProgress.current].border }}>
-                    {certProgress.current.toUpperCase()}
+                  <span className="inline-flex items-center rounded-md px-2.5 py-0.5 text-[0.75rem] font-semibold text-white" style={{ backgroundColor: stageProgress?.color || '#6b7280' }}>
+                    {stageProgress?.stage.title || '—'}
                   </span>
                 </div>
                 <p className="text-[0.8125rem] text-muted-foreground tabular-nums">
-                  {certProgress.completed}/{certProgress.total} modules
+                  {stageProgress ? `${stageProgress.completed}/${stageProgress.total} modules` : '—'}
                 </p>
                 <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
                   Current Certificate
