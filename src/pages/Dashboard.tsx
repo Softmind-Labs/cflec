@@ -32,6 +32,7 @@ const STAGE_COLORS: Record<number, string> = {
 export default function Dashboard() {
   const { profile } = useAuth();
   const [modules, setModules] = useState<Module[]>([]);
+  const [stages, setStages] = useState<Stage[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
