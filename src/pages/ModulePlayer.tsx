@@ -234,7 +234,7 @@ export default function ModulePlayer() {
                 {stage && (
                   <>
                     <span className="text-muted-foreground/40">·</span>
-                    <span>Stage {stage.stage_number}: {stage.title}</span>
+                    <span>{stage.title} Certificate</span>
                   </>
                 )}
                 {band && (
