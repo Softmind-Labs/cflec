@@ -25,8 +25,8 @@ interface StageProgress {
 
 const COLOR_FALLBACKS: Record<number, string> = {
   1: '#22c55e',
-  2: '#14b8a6',
-  3: '#1d4ed8',
+  2: '#9CA3AF',
+  3: '#d4a017',
   4: '#1e3a5f',
   5: '#000000',
 };
