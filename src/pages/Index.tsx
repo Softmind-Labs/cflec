@@ -233,8 +233,8 @@ export default function Index() {
 
             {/* Kids Zone */}
             <div className="rounded-2xl overflow-hidden bg-background shadow-sm border border-border">
-              <div className="relative h-64">
-                <img src={kidsImg} alt="Kids learning about finance through fun activities" className="w-full h-full object-cover" />
+              <div className="relative h-72">
+                <img src={kidsImg} alt="Kids learning about finance through fun activities" className="w-full h-full object-cover object-top" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
               </div>
               <div className="p-8 space-y-4">
