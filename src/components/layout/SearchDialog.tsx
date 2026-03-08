@@ -30,7 +30,7 @@ import {
 const pages = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, keywords: 'home overview progress stats' },
   { label: 'Modules', path: '/modules', icon: BookOpen, keywords: 'lessons learning education videos quiz' },
-  { label: 'Courses', path: '/courses', icon: GraduationCap, keywords: 'classes training short courses' },
+  { label: 'Masterclass', path: '/courses', icon: GraduationCap, keywords: 'classes training masterclass' },
   { label: 'Simulator', path: '/simulator', icon: LineChart, keywords: 'practice trading simulation virtual' },
   { label: 'Certificates', path: '/certificates', icon: Award, keywords: 'achievements badges credentials' },
   { label: 'Profile', path: '/profile', icon: User, keywords: 'account settings preferences' },
