@@ -65,7 +65,7 @@ export default function Courses() {
             Pick a topic. Learn it in under an hour. Apply it today.
           </p>
           <p className="text-white/45 text-[0.875rem] mt-4">
-            8 short courses · Free with login · Ghana focused
+            8 masterclasses · Free with login · Ghana focused
           </p>
         </div>
       </div>

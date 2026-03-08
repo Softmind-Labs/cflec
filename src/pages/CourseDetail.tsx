@@ -168,7 +168,7 @@ export default function CourseDetail() {
 
           {/* Breadcrumb */}
           <p className="text-[0.8125rem] text-white/40 mb-6">
-            Home › Courses › {course.title}
+            Home › Masterclass › {course.title}
           </p>
 
           <div className="grid md:grid-cols-5 gap-10 items-start">

@@ -88,7 +88,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
             </CommandItem>
           ))}
         </CommandGroup>
-        <CommandGroup heading="Courses">
+        <CommandGroup heading="Masterclass">
           {courses.map((course) => (
             <CommandItem
               key={course.path}
