@@ -204,7 +204,7 @@ export default function ModulePlayer() {
                     className="inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-white"
                     style={{ backgroundColor: accentColor }}
                   >
-                    Stage {stage.stage_number}: {stage.title}
+                    {stage.title} Certificate
                   </span>
                 )}
                 {module.is_compulsory && (
