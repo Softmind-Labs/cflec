@@ -5,12 +5,15 @@ import {
   PlayCircle, 
   ChevronRight,
   Sparkles,
-  Award,
-  BarChart3
+  Award
 } from 'lucide-react';
 import cflecLogo from '@/assets/cflec-logo.png';
 import adultsImg from '@/assets/portals/adults.jpg';
 import kidsImg from '@/assets/portals/kids.jpg';
+import onlineLearningImg from '@/assets/features/online-learning.jpg';
+import certificatesImg from '@/assets/features/certificates.jpg';
+import tradingSimulatorImg from '@/assets/features/trading-simulator.jpg';
+import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
 
 const steps = [
   {
