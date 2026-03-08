@@ -246,22 +246,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 bg-[hsl(0_0%_10%)]">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold md:text-4xl text-white">Ready to start?</h2>
-          <p className="mt-4 text-white/70 max-w-lg mx-auto">
-            Join thousands of learners across Ghana building real financial skills. No experience needed.
-          </p>
-          <Link to="/auth?mode=signup">
-            <Button size="lg" className="mt-8 bg-white text-foreground hover:bg-white/90 px-10 text-base">
-              Get Started Free
-              <ChevronRight className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
-          <p className="mt-4 text-white/40 text-sm">No credit card required · Free forever</p>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="border-t py-12 bg-muted/30">
