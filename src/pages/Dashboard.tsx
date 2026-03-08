@@ -100,7 +100,7 @@ export default function Dashboard() {
     return { stage: last, completed: stageModules.length, total: stageModules.length, percentage: 100, color };
   };
 
-  const certProgress = getCertificateProgress();
+  const stageProgress = getCurrentStageProgress();
   const currentModule = getCurrentModule();
 
   if (loading) {
