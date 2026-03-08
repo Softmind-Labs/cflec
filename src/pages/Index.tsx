@@ -150,7 +150,7 @@ export default function Index() {
                     <div key={cert.color} className="flex flex-col items-center text-center" style={{ width: '18%' }}>
                       <div
                         className={`relative z-10 flex items-center justify-center rounded-full bg-background ${isBlack ? 'w-[72px] h-[72px] ring-2' : 'w-16 h-16'}`}
-                        style={isBlack ? { ringColor: '#EAB308' } : {}}
+                        style={isBlack ? { ['--tw-ring-color' as string]: '#EAB308' } : {}}
                       >
                         <div
                           className={`flex items-center justify-center rounded-full ${isBlack ? 'w-16 h-16 ring-2 ring-[#EAB308]' : 'w-14 h-14'}`}
