@@ -16,13 +16,7 @@ import {
   HelpCircle,
   ChevronRight,
   Clock,
-  Layers,
-  Target,
-  Lightbulb,
-  ClipboardCheck,
-  CircleCheckBig,
-  ArrowRight,
-  GraduationCap
+  Layers
 } from 'lucide-react';
 import type { Module, ModuleContent, Quiz, UserProgress, Stage, Band } from '@/types';
 
