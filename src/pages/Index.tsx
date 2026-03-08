@@ -5,32 +5,21 @@ import {
   PlayCircle, 
   ChevronRight,
   Sparkles,
-  Award,
-  BarChart3
+  Award
 } from 'lucide-react';
 import cflecLogo from '@/assets/cflec-logo.png';
 import adultsImg from '@/assets/portals/adults.jpg';
 import kidsImg from '@/assets/portals/kids.jpg';
+import onlineLearningImg from '@/assets/features/online-learning.jpg';
+import certificatesImg from '@/assets/features/certificates.jpg';
+import tradingSimulatorImg from '@/assets/features/trading-simulator.jpg';
+import aiAssistedImg from '@/assets/features/ai-assisted.jpg';
 
-const steps = [
-  {
-    num: '01',
-    title: 'Watch & Learn',
-    icon: PlayCircle,
-    description: '41 video modules covering money basics to professional investing. Each lesson builds on the last — learn at your own pace.',
-  },
-  {
-    num: '02',
-    title: 'Practice Trading',
-    icon: BarChart3,
-    description: '$500 in virtual money, real market conditions. Build confidence with our stock trading simulator before risking a single cedi.',
-  },
-  {
-    num: '03',
-    title: 'Earn Certificates',
-    icon: Award,
-    description: '5 recognized certificates from Green to Black. Prove your knowledge and stand out to employers, schools, and peers.',
-  },
+const features = [
+  { title: '41 Modules', description: 'Structured video lessons from money basics to professional investing.', image: onlineLearningImg },
+  { title: '5 Certificates', description: 'Achieve Green, White, Gold, Blue, and Black certifications as you level up.', image: certificatesImg },
+  { title: 'Stock Simulator', description: 'Practice with $500 virtual money in real market conditions risk-free.', image: tradingSimulatorImg },
+  { title: 'AI-Powered Support', description: 'Get personalized guidance and instant answers as you learn.', image: aiAssistedImg },
 ];
 
 const certificates = [
@@ -96,33 +85,21 @@ export default function Index() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* Everything You Need to Succeed */}
       <section className="py-20 bg-muted/50">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold md:text-4xl text-foreground">How It Works</h2>
-            <p className="mt-4 text-muted-foreground">Three steps to financial mastery</p>
+            <h2 className="text-3xl font-bold md:text-4xl text-foreground">Everything You Need to Succeed</h2>
+            <p className="mt-4 text-muted-foreground">Tools and resources designed for your financial journey</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 md:gap-4">
-            {steps.map((step, i) => (
-              <div key={step.num} className="flex items-start">
-                <div className="relative flex-1 text-center px-4">
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 text-8xl font-bold text-muted/60 select-none pointer-events-none leading-none">
-                    {step.num}
-                  </span>
-                  <div className="relative pt-12">
-                    <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-                      <step.icon className="h-7 w-7 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-3">{step.title}</h3>
-                    <p className="text-muted-foreground leading-relaxed">{step.description}</p>
-                  </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature) => (
+              <div key={feature.title} className="rounded-2xl overflow-hidden bg-background border border-border hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+                <img src={feature.image} alt={feature.title} className="w-full h-44 object-cover" />
+                <div className="p-5">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
                 </div>
-                {i < steps.length - 1 && (
-                  <div className="hidden md:flex items-center pt-20 px-1">
-                    <ChevronRight className="h-5 w-5 text-border" />
-                  </div>
-                )}
               </div>
             ))}
           </div>
