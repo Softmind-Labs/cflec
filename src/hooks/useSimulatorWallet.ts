@@ -25,6 +25,19 @@ export interface SimulatorWallet {
   initial_balance: number;
 }
 
+export interface Trade {
+  id: string;
+  simulator_type: string;
+  category: string;
+  asset_symbol: string;
+  asset_name: string;
+  trade_type: string;
+  quantity: number;
+  price_at_execution: number;
+  total_value: number;
+  created_at: string;
+}
+
 export interface PositionSummary {
   count: number;
   totalInvested: number;
