@@ -126,6 +126,7 @@ export default function Simulator() {
   } = useSimulatorWallet();
 
   const isPositive = totalReturn >= 0;
+  const [resetting, setResetting] = useState(false);
 
   // Sell from hub
   const [sellOpen, setSellOpen] = useState(false);
@@ -134,6 +135,20 @@ export default function Simulator() {
   const openSell = (pos: Position) => {
     setSellPosition(pos);
     setSellOpen(true);
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.rpc('reset_simulator_wallet');
+      if (error) throw error;
+      toast.success('Portfolio reset to starting balance');
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reset portfolio');
+    } finally {
+      setResetting(false);
+    }
   };
 
   return (
