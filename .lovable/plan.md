@@ -1,42 +1,36 @@
 
 
-# Phase 3: Portfolio Performance Chart & Wallet Reset
+# Top-of-Screen Notification Toast Near Bell Icon
 
-With trading, positions, and trade history complete, the next logical step is adding visual portfolio analytics and a wallet management feature.
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## What to build
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
 
-### 1. Portfolio Performance Summary (Hub page)
-Add a visual breakdown below the stats bar on the simulator hub showing how the $500 is allocated across categories. Uses recharts (already installed).
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
 
-- **Donut/Pie chart** showing allocation: Cash vs Banking vs Investment vs Trading vs Capital Markets
-- Compact card layout beside the chart showing top 3 holdings by value
-- Only renders when user has at least 1 position (otherwise skip)
-
-### 2. Wallet Reset
-Add a "Reset Portfolio" button on the hub page that:
-- Calls an RPC `reset_simulator_wallet` that deletes all positions, all trades, and resets `portfolio_wallet.cash_balance` back to `initial_balance`
-- Requires confirmation dialog ("This will delete all positions and trade history")
-- Useful for students who want to start over
-
-### Files to create/modify
+## Files Changed
 
 | File | Change |
 |---|---|
-| `src/pages/Simulator.tsx` | Add allocation chart section + Reset Portfolio button with confirmation dialog |
-| `src/components/simulator/AllocationChart.tsx` | **New** — Recharts PieChart showing cash vs category breakdown |
-| New migration | `reset_simulator_wallet` RPC (SECURITY DEFINER) |
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-### RPC: `reset_simulator_wallet`
-```text
-- Delete all rows from `positions` where user_id = auth.uid()
-- Delete all rows from `trades` where user_id = auth.uid()
-- Update `portfolio_wallet` set cash_balance = initial_balance
-- Return { success: true, new_balance }
-```
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
 
-### Allocation Chart Data
-Derived from existing `useSimulatorWallet` data — no new queries needed:
-- Cash: `cashBalance`
-- Per category: `positionsByType[type].totalInvested`
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 

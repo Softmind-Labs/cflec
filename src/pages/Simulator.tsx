@@ -8,9 +8,23 @@ import { StatsBar } from '@/components/ui/stats-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { AllocationChart } from '@/components/simulator/AllocationChart';
 import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Building2,
   TrendingUp,
@@ -23,6 +37,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
+  RotateCcw,
 } from 'lucide-react';
 
 const accentColors = {
@@ -111,6 +126,7 @@ export default function Simulator() {
   } = useSimulatorWallet();
 
   const isPositive = totalReturn >= 0;
+  const [resetting, setResetting] = useState(false);
 
   // Sell from hub
   const [sellOpen, setSellOpen] = useState(false);
@@ -119,6 +135,20 @@ export default function Simulator() {
   const openSell = (pos: Position) => {
     setSellPosition(pos);
     setSellOpen(true);
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    try {
+      const { data, error } = await supabase.rpc('reset_simulator_wallet');
+      if (error) throw error;
+      toast.success('Portfolio reset to starting balance');
+      refetch();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to reset portfolio');
+    } finally {
+      setResetting(false);
+    }
   };
 
   return (
@@ -167,6 +197,47 @@ export default function Simulator() {
                   ]}
                 />
               )}
+            </div>
+          )}
+
+          {/* Allocation Chart + Reset */}
+          {user && !loading && positions.length > 0 && (
+            <div className="mb-10 flex flex-col md:flex-row gap-6">
+              <div className="flex-1">
+                <AllocationChart
+                  cashBalance={cashBalance}
+                  positionsByType={positionsByType}
+                  totalPortfolio={totalPortfolio}
+                />
+              </div>
+              <div className="flex items-end">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 text-destructive">
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reset Portfolio
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset your portfolio?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will delete all your positions and trade history, and reset your cash balance back to the starting amount. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleReset}
+                        disabled={resetting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {resetting ? 'Resetting…' : 'Yes, reset everything'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           )}
 

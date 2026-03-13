@@ -778,6 +778,7 @@ export type Database = {
         }[]
       }
       owns_portfolio: { Args: { _portfolio_id: string }; Returns: boolean }
+      reset_simulator_wallet: { Args: never; Returns: Json }
     }
     Enums: {
       account_type: "kid" | "high_schooler" | "adult"
