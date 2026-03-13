@@ -11,9 +11,9 @@ import { Input } from '@/components/ui/input';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
-import { SimulationDialog } from '@/components/simulator/SimulationDialog';
+import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { supabase } from '@/integrations/supabase/client';
+import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import {
   ArrowLeft,
   TrendingUp,
@@ -24,8 +24,6 @@ import {
   Building,
   Search,
 } from 'lucide-react';
-import type { MockStock, Portfolio, StockHolding } from '@/types';
-import { STARTING_PORTFOLIO_BALANCE } from '@/lib/constants';
 
 const SECTOR_COLORS: Record<string, string> = {
   Technology: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -40,16 +38,15 @@ const SECTOR_COLORS: Record<string, string> = {
 const SECTOR_TABS = ['All', 'Technology', 'Finance', 'Healthcare', 'Energy', 'Consumer', 'ETF'];
 
 export default function SimulatorInvestment() {
-  const { user } = useAuth();
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [holdings, setHoldings] = useState<(StockHolding & { stock: MockStock })[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cashBalance, totalInvested, positionsByType, refetch } = useSimulatorWallet();
   const [searchQuery, setSearchQuery] = useState('');
   const [sectorTab, setSectorTab] = useState('All');
 
-  // Simulation dialog state
-  const [simOpen, setSimOpen] = useState(false);
-  const [simStock, setSimStock] = useState<{ name: string; symbol: string; price: number } | null>(null);
+  // Trade panel state
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const [tradeStock, setTradeStock] = useState<{
+    name: string; symbol: string; price: number; currency: string; tradeType: TradeType;
+  } | null>(null);
 
   const { data: gseResult, isLoading: gseLoading, isError: gseError, refetch: refetchGse } = useMarketDataWithTimestamp('gse');
   const { data: stocksResult, isLoading: stocksLoading, isError: stocksError, refetch: refetchStocks } = useMarketDataWithTimestamp('stocks');
@@ -69,61 +66,11 @@ export default function SimulatorInvestment() {
     return list;
   }, [worldStocks, sectorTab, searchQuery]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user) return;
+  const investmentPositions = positionsByType['investment'];
 
-      let { data: portfolioData } = await supabase
-        .from('portfolios')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!portfolioData) {
-        const { data: newPortfolio } = await supabase
-          .from('portfolios')
-          .insert({ user_id: user.id, cash_balance: STARTING_PORTFOLIO_BALANCE })
-          .select()
-          .single();
-        portfolioData = newPortfolio;
-      }
-
-      if (portfolioData) {
-        setPortfolio(portfolioData as Portfolio);
-
-        const { data: stocksData } = await supabase.from('mock_stocks').select('*');
-        const { data: holdingsData } = await supabase
-          .from('stock_holdings')
-          .select('*')
-          .eq('portfolio_id', portfolioData.id);
-
-        if (holdingsData && stocksData) {
-          const holdingsWithStocks = holdingsData.map(h => ({
-            ...h,
-            stock: stocksData.find(s => s.id === h.stock_id)!
-          }));
-          setHoldings(holdingsWithStocks as (StockHolding & { stock: MockStock })[]);
-        }
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [user]);
-
-  const calculateTotalValue = () => {
-    const holdingsValue = holdings.reduce((sum, h) =>
-      sum + (h.quantity * Number(h.stock.current_price)), 0
-    );
-    return Number(portfolio?.cash_balance || 0) + holdingsValue;
-  };
-
-  const calculatePL = () => {
-    const totalValue = calculateTotalValue();
-    const pl = totalValue - STARTING_PORTFOLIO_BALANCE;
-    const plPercent = STARTING_PORTFOLIO_BALANCE > 0 ? (pl / STARTING_PORTFOLIO_BALANCE) * 100 : 0;
-    return { pl, plPercent };
+  const openTrade = (name: string, symbol: string, price: number, currency: string, tradeType: TradeType) => {
+    setTradeStock({ name, symbol, price, currency, tradeType });
+    setTradeOpen(true);
   };
 
   const SkeletonRows = () => (
@@ -141,23 +88,6 @@ export default function SimulatorInvestment() {
     </div>
   );
 
-  if (loading) {
-    return (
-      <MainLayout>
-        <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-muted rounded w-1/4" />
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map(i => (<div key={i} className="h-32 bg-muted rounded-lg" />))}
-            </div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  const { pl, plPercent } = calculatePL();
-
   return (
     <MainLayout>
       <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
@@ -168,36 +98,30 @@ export default function SimulatorInvestment() {
             <h1 className="text-3xl font-display flex items-center gap-2"><TrendingUp className="h-8 w-8" />Investment Simulator</h1>
             <p className="text-muted-foreground">Trade stocks on Ghana Stock Exchange and World Markets</p>
           </div>
-          <Link to="/simulator/trade"><Button className="gap-2"><TrendingUp className="h-4 w-4" />Trade Now</Button></Link>
         </div>
 
         {/* Portfolio Overview */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Total Portfolio Value</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">${calculateTotalValue().toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Cash Available</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">${cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className={`flex items-center gap-1 text-sm ${pl >= 0 ? 'text-gain' : 'text-loss'}`}>
-                {pl >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                {pl >= 0 ? '+' : ''}{plPercent.toFixed(1)}% all time
-              </div>
-            </CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">From shared wallet</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Cash Balance</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">${Number(portfolio?.cash_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardDescription>Investment Positions</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">{investmentPositions?.count ?? 0}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Available to invest</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Stocks held</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Holdings Value</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">${holdings.reduce((sum, h) => sum + (h.quantity * Number(h.stock.current_price)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardDescription>Invested Value</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">${(investmentPositions?.totalInvested ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">{holdings.length} positions</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Total in stocks</p></CardContent>
           </Card>
         </div>
 
@@ -208,7 +132,7 @@ export default function SimulatorInvestment() {
             <TabsTrigger value="world" className="gap-2"><Globe className="h-4 w-4" />World Markets</TabsTrigger>
           </TabsList>
 
-          {/* GSE - show ALL stocks */}
+          {/* GSE */}
           <TabsContent value="gse">
             <Card>
               <CardHeader>
@@ -233,7 +157,10 @@ export default function SimulatorInvestment() {
                             {stock.change >= 0 ? '+' : ''}{Number(stock.change).toFixed(2)}%
                           </p>
                         </div>
-                        <Button size="sm" onClick={() => { setSimStock({ name: stock.name, symbol: stock.symbol, price: stock.price }); setSimOpen(true); }}>Trade</Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => openTrade(stock.name, stock.symbol, stock.price, 'GHS', 'buy')}>Buy</Button>
+                          <Button size="sm" variant="outline" onClick={() => openTrade(stock.name, stock.symbol, stock.price, 'GHS', 'sell')}>Sell</Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -305,7 +232,10 @@ export default function SimulatorInvestment() {
                           <p>L: ${Number(stock.day_low).toFixed(2)}</p>
                         </div>
                         <DataBadge meta={stock._meta} />
-                        <Link to={`/simulator/trade?symbol=${stock.symbol}`}><Button size="sm">Trade</Button></Link>
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => openTrade(stock.name, stock.symbol, stock.price, 'USD', 'buy')}>Buy</Button>
+                          <Button size="sm" variant="outline" onClick={() => openTrade(stock.name, stock.symbol, stock.price, 'USD', 'sell')}>Sell</Button>
+                        </div>
                       </div>
                     ))}
                     {filteredStocks.length === 0 && (
@@ -319,16 +249,21 @@ export default function SimulatorInvestment() {
         </Tabs>
       </div>
 
-      {/* GSE Stock Simulation Dialog */}
-      {simStock && (
-        <SimulationDialog
-          open={simOpen}
-          onOpenChange={setSimOpen}
-          assetName={simStock.name}
-          assetSymbol={simStock.symbol}
-          price={simStock.price}
-          assetType="gse-stock"
-          currency="GHS"
+      {/* Trade Panel */}
+      {tradeStock && (
+        <TradePanel
+          open={tradeOpen}
+          onOpenChange={setTradeOpen}
+          assetName={tradeStock.name}
+          assetSymbol={tradeStock.symbol}
+          price={tradeStock.price}
+          simulatorType="investment"
+          category={tradeStock.currency === 'GHS' ? 'gse-stock' : 'stock'}
+          positionType="market"
+          tradeType={tradeStock.tradeType}
+          currency={tradeStock.currency}
+          cashBalance={cashBalance}
+          onSuccess={refetch}
         />
       )}
     </MainLayout>

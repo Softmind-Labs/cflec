@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { MarketError } from '@/components/simulator/MarketError';
-import { SimulationDialog, type SimAssetType } from '@/components/simulator/SimulationDialog';
+import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
+import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import { 
   ArrowLeft, 
   Landmark,
@@ -39,36 +38,28 @@ const mutualFunds = [
 ];
 
 export default function SimulatorCapitalMarkets() {
-  const { user } = useAuth();
-  const [portfolioBalance, setPortfolioBalance] = useState(0);
-  const [holdingsCount, setHoldingsCount] = useState(0);
+  const { cashBalance, positionsByType, refetch } = useSimulatorWallet();
 
-  // Simulation dialog state
-  const [simOpen, setSimOpen] = useState(false);
-  const [simAsset, setSimAsset] = useState<{
-    name: string; symbol?: string; price: number; type: SimAssetType;
-    yieldPct?: number; maturity?: string; ytdReturn?: number;
+  // Trade panel state
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const [tradeAsset, setTradeAsset] = useState<{
+    name: string; symbol: string; price: number; category: string;
+    positionType: 'market' | 'fixed_term'; tradeType: TradeType;
+    interestRate?: number; termDays?: number;
   } | null>(null);
 
   const { data: etfResult, isLoading: etfLoading, isError: etfError, refetch: refetchEtf } = useMarketDataWithTimestamp('stocks', { symbols: 'SPY,GLD,QQQ,VTI,IVV,AGG' });
   const etfs = etfResult?.data ?? [];
 
-  useEffect(() => {
-    const fetchPortfolio = async () => {
-      if (!user) return;
-      const { data: p } = await supabase.from('portfolios').select('*').eq('user_id', user.id).maybeSingle();
-      if (p) {
-        setPortfolioBalance(Number(p.cash_balance));
-        const { data: h } = await supabase.from('stock_holdings').select('id').eq('portfolio_id', p.id);
-        setHoldingsCount(h?.length || 0);
-      }
-    };
-    fetchPortfolio();
-  }, [user]);
+  const capitalPositions = positionsByType['capital_markets'];
 
-  const openSim = (name: string, price: number, type: SimAssetType, extra?: { symbol?: string; yieldPct?: number; maturity?: string; ytdReturn?: number }) => {
-    setSimAsset({ name, price, type, ...extra });
-    setSimOpen(true);
+  const openTrade = (
+    name: string, symbol: string, price: number, category: string,
+    positionType: 'market' | 'fixed_term', tradeType: TradeType,
+    extra?: { interestRate?: number; termDays?: number }
+  ) => {
+    setTradeAsset({ name, symbol, price, category, positionType, tradeType, ...extra });
+    setTradeOpen(true);
   };
 
   return (
@@ -87,24 +78,24 @@ export default function SimulatorCapitalMarkets() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Portfolio Balance</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">${portfolioBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
+              <CardDescription className="flex items-center gap-1"><Wallet className="h-4 w-4" />Cash Available</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">${cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Available cash</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">From shared wallet</p></CardContent>
           </Card>
            <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Stock Holdings</CardDescription>
-              <CardTitle className="text-3xl tabular-nums">{holdingsCount}</CardTitle>
+              <CardDescription>Capital Market Positions</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">{capitalPositions?.count ?? 0}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Open positions</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Bonds, funds & ETFs</p></CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Capital Markets</CardDescription>
-              <CardTitle className="text-3xl text-muted-foreground tabular-nums">Simulation</CardTitle>
+              <CardDescription>Invested Value</CardDescription>
+              <CardTitle className="text-3xl tabular-nums">${(capitalPositions?.totalInvested ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</CardTitle>
             </CardHeader>
-            <CardContent><p className="text-sm text-muted-foreground">Educational simulations only</p></CardContent>
+            <CardContent><p className="text-sm text-muted-foreground">Total in capital markets</p></CardContent>
           </Card>
         </div>
 
@@ -127,27 +118,33 @@ export default function SimulatorCapitalMarkets() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {bonds.map((bond, index) => (
-                    <div key={index} className="p-4 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="font-semibold">{bond.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline">Rating: {bond.rating}</Badge>
-                            <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Matures: {bond.maturity}</span>
+                  {bonds.map((bond, index) => {
+                    const maturityYear = parseInt(bond.maturity);
+                    const termDays = Math.round((maturityYear - 2026) * 365);
+                    return (
+                      <div key={index} className="p-4 rounded-lg border bg-muted/20 hover:bg-muted/40 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="font-semibold">{bond.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline">Rating: {bond.rating}</Badge>
+                              <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />Matures: {bond.maturity}</span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-gain tabular-nums">{bond.yield}%</p>
+                            <p className="text-sm text-muted-foreground">Yield p.a.</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-gain tabular-nums">{bond.yield}%</p>
-                          <p className="text-sm text-muted-foreground">Yield p.a.</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">Min. Investment: GHS {bond.minInvestment.toLocaleString()}</span>
+                          <Button size="sm" onClick={() => openTrade(bond.name, bond.name.replace(/\s+/g, '-'), 0, 'bond', 'fixed_term', 'invest', { interestRate: bond.yield, termDays })}>
+                            Invest
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Min. Investment: GHS {bond.minInvestment.toLocaleString()}</span>
-                        <Button size="sm" onClick={() => openSim(bond.name, 0, 'bond', { yieldPct: bond.yield, maturity: bond.maturity })}>Invest</Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -176,7 +173,9 @@ export default function SimulatorCapitalMarkets() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">Min: GHS {fund.minInvestment}</span>
-                        <Button size="sm" onClick={() => openSim(fund.name, fund.nav, 'fund', { ytdReturn: fund.ytdReturn })}>Invest</Button>
+                        <Button size="sm" onClick={() => openTrade(fund.name, fund.name.replace(/\s+/g, '-'), fund.nav, 'fund', 'market', 'buy')}>
+                          Invest
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -217,8 +216,8 @@ export default function SimulatorCapitalMarkets() {
                            </p>
                         </div>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openSim(etf.name, etf.price, 'etf', { symbol: etf.symbol })}>Buy</Button>
-                          <Button size="sm" variant="outline" onClick={() => openSim(etf.name, etf.price, 'etf', { symbol: etf.symbol })}>Sell</Button>
+                          <Button size="sm" onClick={() => openTrade(etf.name, etf.symbol, etf.price, 'etf', 'market', 'buy')}>Buy</Button>
+                          <Button size="sm" variant="outline" onClick={() => openTrade(etf.name, etf.symbol, etf.price, 'etf', 'market', 'sell')}>Sell</Button>
                         </div>
                       </div>
                     ))}
@@ -230,19 +229,23 @@ export default function SimulatorCapitalMarkets() {
         </Tabs>
       </div>
 
-      {/* Simulation Dialog */}
-      {simAsset && (
-        <SimulationDialog
-          open={simOpen}
-          onOpenChange={setSimOpen}
-          assetName={simAsset.name}
-          assetSymbol={simAsset.symbol}
-          price={simAsset.price}
-          assetType={simAsset.type}
-          currency="GHS"
-          yieldPct={simAsset.yieldPct}
-          maturity={simAsset.maturity}
-          ytdReturn={simAsset.ytdReturn}
+      {/* Trade Panel */}
+      {tradeAsset && (
+        <TradePanel
+          open={tradeOpen}
+          onOpenChange={setTradeOpen}
+          assetName={tradeAsset.name}
+          assetSymbol={tradeAsset.symbol}
+          price={tradeAsset.price}
+          simulatorType="capital_markets"
+          category={tradeAsset.category}
+          positionType={tradeAsset.positionType}
+          tradeType={tradeAsset.tradeType}
+          currency="USD"
+          cashBalance={cashBalance}
+          interestRate={tradeAsset.interestRate}
+          termDays={tradeAsset.termDays}
+          onSuccess={refetch}
         />
       )}
     </MainLayout>
