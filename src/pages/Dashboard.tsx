@@ -257,10 +257,10 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <p className="font-display font-bold text-[2rem] tabular-nums text-[hsl(0_0%_4%)] leading-none">
-                  3
+                  {learningStreak}
                 </p>
                 <p className="text-[0.8125rem] text-muted-foreground mt-1">
-                  days · Keep it going!
+                  {learningStreak === 1 ? 'day' : 'days'} · {learningStreak > 0 ? 'Keep it going!' : 'Start today!'}
                 </p>
                 <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
                   Learning Streak
