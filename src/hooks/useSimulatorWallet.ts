@@ -47,6 +47,7 @@ export function useSimulatorWallet() {
   const { user } = useAuth();
   const [wallet, setWallet] = useState<SimulatorWallet | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
