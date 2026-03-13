@@ -378,11 +378,37 @@ export default function Dashboard() {
                     <TrendingUp className="h-5 w-5 text-primary" />
                     Trading Simulator
                   </CardTitle>
-                  <CardDescription>
-                    Practice trading with $500 in virtual money
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <Wallet className="h-3.5 w-3.5" />
+                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.04em]">Cash</span>
+                      </div>
+                      <p className="font-display font-bold text-[1.25rem] tabular-nums text-foreground leading-none">
+                        ${cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.04em]">Portfolio</span>
+                      </div>
+                      <p className="font-display font-bold text-[1.25rem] tabular-nums text-foreground leading-none">
+                        ${totalPortfolio.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-4 text-[0.8125rem]">
+                    <span className={`font-semibold tabular-nums ${totalReturn >= 0 ? 'text-[hsl(142_71%_35%)]' : 'text-destructive'}`}>
+                      {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}%
+                    </span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">
+                      {positions.length} {positions.length === 1 ? 'position' : 'positions'}
+                    </span>
+                  </div>
                   <Link to="/simulator">
                     <Button className="w-full rounded-[10px]" variant="outline">
                       Open Simulator
