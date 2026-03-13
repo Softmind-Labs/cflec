@@ -57,6 +57,10 @@ export default function SimulatorTrading() {
     setTradeOpen(true);
   };
 
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, pos.category, 'sell');
+  };
+
   const africanForex = useMemo(() => forex.filter(p => AFRICAN_PAIRS.includes(p.pair)), [forex]);
   const majorForex = useMemo(() => forex.filter(p => !AFRICAN_PAIRS.includes(p.pair)), [forex]);
 
