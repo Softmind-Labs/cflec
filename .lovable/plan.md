@@ -1,36 +1,117 @@
 
 
-# Top-of-Screen Notification Toast Near Bell Icon
+# Database Foundation for Unified Simulator
 
-## Problem
-When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
+Create the core tables (`portfolio_wallet`, `positions`, `trades`) that will power the unified simulator across all 4 categories. No UI changes — just the backend foundation with proper RLS.
 
-## Solution
-Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
+## Database Migration
 
-**Design:**
-- 320px wide, right-aligned (matching the bell's horizontal position)
-- Slides down from top with a subtle spring animation
-- Shows the notification icon (colored circle), message text, and "Just now" timestamp
-- White card with the standard 1px border and shadow (matches existing card style)
-- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
-- Max 1 visible at a time (new one replaces old)
+### 1. `portfolio_wallet` table
+Replaces the concept of the current `portfolios` table for the unified wallet. Since `portfolios` already exists with active data, we'll create `portfolio_wallet` as the new unified wallet alongside it, and migrate later.
 
-## Files Changed
+```sql
+create table public.portfolio_wallet (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  cash_balance decimal not null default 500.00,
+  initial_balance decimal not null default 500.00,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id)
+);
 
-| File | Change |
-|---|---|
-| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
-| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
-| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
+alter table public.portfolio_wallet enable row level security;
 
-## NotificationToast Behavior
-1. `addNotification()` fires → sets `latestNotification` in context
-2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
-3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
-4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
-5. X button for immediate dismiss
+create policy "Users can view own wallet" on public.portfolio_wallet
+  for select to authenticated using (auth.uid() = user_id);
+create policy "Users can insert own wallet" on public.portfolio_wallet
+  for insert to authenticated with check (auth.uid() = user_id);
+create policy "Users can update own wallet" on public.portfolio_wallet
+  for update to authenticated using (auth.uid() = user_id);
+```
 
-## No changes to existing toast calls
-The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
+### 2. `positions` table
+Tracks all open positions across all 4 simulator categories.
+
+```sql
+create table public.positions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  simulator_type text not null,          -- 'banking', 'investment', 'trading', 'capital_markets'
+  category text not null,                -- 'tbill', 'fixed_deposit', 'savings', 'stock_gse', 'stock_world', 'crypto', 'forex', 'commodity', 'bond', 'mutual_fund', 'etf'
+  asset_symbol text not null,
+  asset_name text not null,
+  position_type text not null,           -- 'market', 'fixed_term', 'yield'
+  quantity decimal not null default 0,
+  entry_price decimal not null default 0,
+  total_invested decimal not null default 0,
+  interest_rate decimal,                 -- for fixed_term/yield
+  term_days integer,                     -- for fixed_term
+  maturity_date timestamptz,             -- for fixed_term
+  is_matured boolean default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.positions enable row level security;
+
+create policy "Users can view own positions" on public.positions
+  for select to authenticated using (auth.uid() = user_id);
+create policy "Users can insert own positions" on public.positions
+  for insert to authenticated with check (auth.uid() = user_id);
+create policy "Users can update own positions" on public.positions
+  for update to authenticated using (auth.uid() = user_id);
+create policy "Users can delete own positions" on public.positions
+  for delete to authenticated using (auth.uid() = user_id);
+```
+
+### 3. `trades` table
+Immutable log of every transaction.
+
+```sql
+create table public.trades (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  simulator_type text not null,
+  category text not null,
+  asset_symbol text not null,
+  asset_name text not null,
+  trade_type text not null,              -- 'buy', 'sell', 'invest', 'withdraw', 'matured'
+  quantity decimal not null default 0,
+  price_at_execution decimal not null default 0,
+  total_value decimal not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.trades enable row level security;
+
+create policy "Users can view own trades" on public.trades
+  for select to authenticated using (auth.uid() = user_id);
+create policy "Users can insert own trades" on public.trades
+  for insert to authenticated with check (auth.uid() = user_id);
+```
+
+### 4. Updated_at trigger
+```sql
+create trigger update_portfolio_wallet_updated_at
+  before update on public.portfolio_wallet
+  for each row execute function public.update_updated_at_column();
+
+create trigger update_positions_updated_at
+  before update on public.positions
+  for each row execute function public.update_updated_at_column();
+```
+
+## What this enables
+- Unified $500 wallet shared across all 4 simulator categories
+- Positions tracked with type awareness (market-priced, fixed-term, yield)
+- Full trade history log for every action
+- RLS ensures users only see their own data
+- The existing `portfolios`/`stock_holdings`/`transactions` tables remain untouched — the new system runs in parallel
+
+## What's NOT included (future phases)
+- No UI changes
+- No `market_data_cache` or `fixed_rate_cache` tables (current edge function caching still works)
+- No `api_health_log` table
+- No RPC functions for trade execution (Phase 1 UI work)
 
