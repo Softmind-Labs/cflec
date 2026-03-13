@@ -23,7 +23,9 @@ import {
 
 export default function SimulatorBanking() {
   const { data: tbills, isLoading: tbillsLoading } = useMarketData('tbills');
-  const { cashBalance, refetch } = useSimulatorWallet();
+  const { cashBalance, positions, refetch } = useSimulatorWallet();
+
+  const bankingPositions = useMemo(() => positions.filter(p => p.simulator_type === 'banking'), [positions]);
 
   // Fixed Deposit Calculator state
   const [principal, setPrincipal] = useState('');
