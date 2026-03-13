@@ -132,6 +132,17 @@ export default function SimulatorInvestment() {
           </Card>
         </div>
 
+        {/* Your Positions */}
+        {investmentPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={investmentPositionsList}
+              title="Your Investment Positions"
+              onSell={handleSellPosition}
+            />
+          </div>
+        )}
+
         {/* Market Tabs */}
         <Tabs defaultValue="gse" className="space-y-6">
           <TabsList>
