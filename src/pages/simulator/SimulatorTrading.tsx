@@ -9,8 +9,9 @@ import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
+import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import {
   ArrowLeft,
   ArrowUpRight,
