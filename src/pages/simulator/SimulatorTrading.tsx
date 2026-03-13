@@ -151,6 +151,17 @@ export default function SimulatorTrading() {
           </Card>
         </div>
 
+        {/* Your Positions */}
+        {tradingPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={tradingPositionsList}
+              title="Your Trading Positions"
+              onSell={handleSellPosition}
+            />
+          </div>
+        )}
+
         {/* Market Tabs */}
         <Tabs defaultValue="crypto" className="space-y-6">
           <TabsList>
