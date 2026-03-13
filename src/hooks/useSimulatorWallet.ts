@@ -105,6 +105,25 @@ export function useSimulatorWallet() {
           interest_rate: p.interest_rate != null ? Number(p.interest_rate) : null,
         }))
       );
+
+      // Fetch recent trades
+      const { data: tradeData, error: tradeError } = await supabase
+        .from('trades')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (tradeError) throw tradeError;
+
+      setRecentTrades(
+        (tradeData || []).map((t) => ({
+          ...t,
+          quantity: Number(t.quantity),
+          price_at_execution: Number(t.price_at_execution),
+          total_value: Number(t.total_value),
+        }))
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to load wallet');
     } finally {
