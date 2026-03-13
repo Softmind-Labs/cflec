@@ -1,36 +1,47 @@
 
 
-# Top-of-Screen Notification Toast Near Bell Icon
+# Phase 4: Update Leaderboard to Use Unified Wallet
 
 ## Problem
-When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
+The leaderboard RPC (`get_leaderboard`) still reads from the old `portfolios` + `stock_holdings` + `mock_stocks` tables. The new trading system writes to `portfolio_wallet` + `positions`. Users who trade via the new simulator won't appear on the leaderboard.
 
 ## Solution
-Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
+Replace the `get_leaderboard` RPC to read from the new unified tables, and update the Leaderboard page to show richer data.
 
-**Design:**
-- 320px wide, right-aligned (matching the bell's horizontal position)
-- Slides down from top with a subtle spring animation
-- Shows the notification icon (colored circle), message text, and "Just now" timestamp
-- White card with the standard 1px border and shadow (matches existing card style)
-- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
-- Max 1 visible at a time (new one replaces old)
+## What to build
 
-## Files Changed
+### 1. New `get_leaderboard` RPC
+Replace the existing function to query from `portfolio_wallet` and `positions`:
+
+```text
+SELECT
+  pw.user_id,
+  pr.full_name,
+  pr.avatar_url,
+  pr.account_type,
+  pw.cash_balance,
+  COALESCE(SUM(pos.total_invested), 0) as holdings_value,
+  pw.cash_balance + COALESCE(SUM(pos.total_invested), 0) as total_value
+FROM portfolio_wallet pw
+JOIN profiles pr ON pw.user_id = pr.user_id
+LEFT JOIN positions pos ON pw.user_id = pos.user_id
+GROUP BY pw.user_id, pr.full_name, pr.avatar_url, pr.account_type, pw.cash_balance
+ORDER BY total_value DESC
+LIMIT limit_count;
+```
+
+### 2. Update Leaderboard page
+- Change "in stocks" label to "in positions" since holdings now span all categories
+- Add trade count or category breakdown badge (optional enhancement)
+- Remove dependency on old `portfolios`/`stock_holdings` tables in the display
+
+### Files
 
 | File | Change |
 |---|---|
-| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
-| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
-| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
+| New migration | Replace `get_leaderboard` RPC to use `portfolio_wallet` + `positions` |
+| `src/pages/Leaderboard.tsx` | Update "in stocks" label to "in positions" |
 
-## NotificationToast Behavior
-1. `addNotification()` fires → sets `latestNotification` in context
-2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
-3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
-4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
-5. X button for immediate dismiss
-
-## No changes to existing toast calls
-The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
+### No breaking changes
+The RPC signature (`limit_count` parameter, returned columns) stays identical, so the frontend needs only a label tweak.
 
