@@ -8,9 +8,23 @@ import { StatsBar } from '@/components/ui/stats-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { AllocationChart } from '@/components/simulator/AllocationChart';
 import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Building2,
   TrendingUp,
