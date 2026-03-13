@@ -742,6 +742,21 @@ export type Database = {
       }
     }
     Functions: {
+      execute_simulator_trade: {
+        Args: {
+          p_asset_name: string
+          p_asset_symbol: string
+          p_category: string
+          p_interest_rate?: number
+          p_position_type: string
+          p_price: number
+          p_quantity: number
+          p_simulator_type: string
+          p_term_days?: number
+          p_trade_type: string
+        }
+        Returns: Json
+      }
       execute_trade: {
         Args: {
           p_quantity: number
