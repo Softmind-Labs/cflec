@@ -200,6 +200,47 @@ export default function Simulator() {
             </div>
           )}
 
+          {/* Allocation Chart + Reset */}
+          {user && !loading && positions.length > 0 && (
+            <div className="mb-10 flex flex-col md:flex-row gap-6">
+              <div className="flex-1">
+                <AllocationChart
+                  cashBalance={cashBalance}
+                  positionsByType={positionsByType}
+                  totalPortfolio={totalPortfolio}
+                />
+              </div>
+              <div className="flex items-end">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2 text-destructive">
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reset Portfolio
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset your portfolio?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will delete all your positions and trade history, and reset your cash balance back to the starting amount. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleReset}
+                        disabled={resetting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {resetting ? 'Resetting…' : 'Yes, reset everything'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
+
           {/* Market Categories Grid */}
           <div className="grid md:grid-cols-2 gap-6">
             {marketCategories.map((category) => {
