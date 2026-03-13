@@ -1,44 +1,36 @@
 
 
-# Phase 1: Hub Page Redesign — Live Portfolio Dashboard
+# Top-of-Screen Notification Toast Near Bell Icon
 
-Transform the simulator hub from a static menu into a live dashboard that reflects the user's actual wallet and positions.
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## What changes
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
 
-### 1. Portfolio Overview (top section)
-Replace the static "$500 / Leaderboard" cards with three live stat cards:
-- **Cash Available** — reads `portfolio_wallet.cash_balance` (auto-creates wallet on first visit if none exists)
-- **Total Portfolio** — cash + sum of all position values (market-priced use live prices, fixed-term use invested amount)
-- **Total Return** — `((total - 500) / 500) * 100%`, green if positive, red if negative
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
 
-### 2. Category cards — add position summaries
-Each of the 4 category cards gets a live subtitle:
-- Banking: "X active deposits" or "No positions"
-- Investment: "X stocks held" + mini P/L
-- Trading: "X positions" + mini P/L  
-- Capital Markets: "X bonds/funds" + mini P/L
+## Files Changed
 
-Data comes from querying `positions` grouped by `simulator_type`.
+| File | Change |
+|---|---|
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-### 3. "My Positions" section
-Below the 4 cards, a compact table showing ALL open positions across categories:
-- Asset name, category badge, current value, P/L
-- Clicking a row navigates to that simulator
-- Empty state: "No positions yet — pick a market to start investing"
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
 
-### 4. New hook: `useSimulatorWallet`
-A reusable hook that:
-- Fetches or creates the user's `portfolio_wallet`
-- Fetches all `positions` for the user
-- Computes totals (cash, invested, portfolio value)
-- Returns loading/error states
-
-### Files to create/modify
-- `src/hooks/useSimulatorWallet.ts` — new hook
-- `src/pages/Simulator.tsx` — redesign with live data
-- No database changes needed (tables already exist)
-
-### Leaderboard card
-Keep existing but show user's own rank + top 3 (uses existing `get_leaderboard` RPC).
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 
