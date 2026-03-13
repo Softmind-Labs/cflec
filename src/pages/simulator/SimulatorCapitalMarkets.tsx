@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
+import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import { 
   ArrowLeft, 
   Landmark,
