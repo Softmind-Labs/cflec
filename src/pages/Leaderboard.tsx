@@ -250,7 +250,7 @@ export default function Leaderboard() {
                            </p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <TrendingUp className="h-3 w-3" />
-                             ${Number(entry.holdings_value).toLocaleString()} in stocks
+                             ${Number(entry.holdings_value).toLocaleString()} in positions
                           </div>
                         </div>
                       </div>
