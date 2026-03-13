@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import { 
   BookOpen, 
   TrendingUp, 
@@ -17,7 +18,9 @@ import {
   ArrowRight,
   Target,
   Flame,
-  Clock
+  Clock,
+  Wallet,
+  BarChart3
 } from 'lucide-react';
 import type { Module, UserProgress, LeaderboardEntry, Stage } from '@/types';
 
