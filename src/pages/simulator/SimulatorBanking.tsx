@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { TradePanel } from '@/components/simulator/TradePanel';
 import { SimulationDialog } from '@/components/simulator/SimulationDialog';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketData } from '@/hooks/useMarketData';
 import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import {
