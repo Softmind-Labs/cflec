@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import { 
   BookOpen, 
   TrendingUp, 
@@ -17,7 +18,9 @@ import {
   ArrowRight,
   Target,
   Flame,
-  Clock
+  Clock,
+  Wallet,
+  BarChart3
 } from 'lucide-react';
 import type { Module, UserProgress, LeaderboardEntry, Stage } from '@/types';
 
@@ -36,6 +39,41 @@ export default function Dashboard() {
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { cashBalance, totalPortfolio, totalReturn, positions, loading: walletLoading } = useSimulatorWallet();
+
+  // Compute learning streak from user_progress completed_at dates
+  const learningStreak = useMemo(() => {
+    const completedDates = progress
+      .filter(p => p.completed_at)
+      .map(p => {
+        const d = new Date(p.completed_at!);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      });
+    const uniqueDates = [...new Set(completedDates)].sort().reverse();
+    if (uniqueDates.length === 0) return 0;
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    let streak = 0;
+    let checkDate = new Date(today);
+    
+    // If no activity today, start from yesterday
+    if (uniqueDates[0] !== todayStr) {
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    for (let i = 0; i < 365; i++) {
+      const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+      if (uniqueDates.includes(dateStr)) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }, [progress]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -219,10 +257,10 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <p className="font-display font-bold text-[2rem] tabular-nums text-[hsl(0_0%_4%)] leading-none">
-                  3
+                  {learningStreak}
                 </p>
                 <p className="text-[0.8125rem] text-muted-foreground mt-1">
-                  days · Keep it going!
+                  {learningStreak === 1 ? 'day' : 'days'} · {learningStreak > 0 ? 'Keep it going!' : 'Start today!'}
                 </p>
                 <p className="text-[0.8125rem] font-medium text-[hsl(240_4%_46%)] uppercase tracking-[0.06em] mt-2">
                   Learning Streak
@@ -340,11 +378,37 @@ export default function Dashboard() {
                     <TrendingUp className="h-5 w-5 text-primary" />
                     Trading Simulator
                   </CardTitle>
-                  <CardDescription>
-                    Practice trading with $500 in virtual money
-                  </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <Wallet className="h-3.5 w-3.5" />
+                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.04em]">Cash</span>
+                      </div>
+                      <p className="font-display font-bold text-[1.25rem] tabular-nums text-foreground leading-none">
+                        ${cashBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        <span className="text-[0.75rem] font-medium uppercase tracking-[0.04em]">Portfolio</span>
+                      </div>
+                      <p className="font-display font-bold text-[1.25rem] tabular-nums text-foreground leading-none">
+                        ${totalPortfolio.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mb-4 text-[0.8125rem]">
+                    <span className={`font-semibold tabular-nums ${totalReturn >= 0 ? 'text-[hsl(142_71%_35%)]' : 'text-destructive'}`}>
+                      {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}%
+                    </span>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">
+                      {positions.length} {positions.length === 1 ? 'position' : 'positions'}
+                    </span>
+                  </div>
                   <Link to="/simulator">
                     <Button className="w-full rounded-[10px]" variant="outline">
                       Open Simulator
