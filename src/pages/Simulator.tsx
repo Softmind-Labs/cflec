@@ -37,6 +37,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
+  RotateCcw,
 } from 'lucide-react';
 
 const accentColors = {
