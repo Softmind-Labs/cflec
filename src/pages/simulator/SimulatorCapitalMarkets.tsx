@@ -39,7 +39,9 @@ const mutualFunds = [
 ];
 
 export default function SimulatorCapitalMarkets() {
-  const { cashBalance, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, positions, positionsByType, refetch } = useSimulatorWallet();
+
+  const capitalPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'capital_markets'), [positions]);
 
   // Trade panel state
   const [tradeOpen, setTradeOpen] = useState(false);
