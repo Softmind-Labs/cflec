@@ -34,7 +34,9 @@ function formatMarketCap(value: number): string {
 const AFRICAN_PAIRS = ['USD/GHS', 'EUR/GHS', 'GBP/GHS', 'USD/NGN', 'USD/ZAR'];
 
 export default function SimulatorTrading() {
-  const { cashBalance, totalInvested, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, totalInvested, positions, positionsByType, refetch } = useSimulatorWallet();
+
+  const tradingPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'trading'), [positions]);
 
   const { data: forexData, isLoading: forexLoading, isError: forexError, refetch: refetchForex } = useMarketDataWithTimestamp('forex');
   const { data: commoditiesData, isLoading: commoditiesLoading, isError: commoditiesError, refetch: refetchCommodities } = useMarketDataWithTimestamp('commodities');
