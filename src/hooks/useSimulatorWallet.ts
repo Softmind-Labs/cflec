@@ -155,6 +155,7 @@ export function useSimulatorWallet() {
   return {
     wallet,
     positions,
+    recentTrades,
     loading,
     error,
     refetch: fetchData,
