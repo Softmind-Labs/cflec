@@ -39,8 +39,10 @@ const SECTOR_COLORS: Record<string, string> = {
 const SECTOR_TABS = ['All', 'Technology', 'Finance', 'Healthcare', 'Energy', 'Consumer', 'ETF'];
 
 export default function SimulatorInvestment() {
-  const { cashBalance, totalInvested, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, totalInvested, positions, positionsByType, refetch } = useSimulatorWallet();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const investmentPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'investment'), [positions]);
   const [sectorTab, setSectorTab] = useState('All');
 
   // Trade panel state
