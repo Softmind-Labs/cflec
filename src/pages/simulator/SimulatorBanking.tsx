@@ -91,6 +91,18 @@ export default function SimulatorBanking() {
           </div>
         </div>
 
+        {/* Active Deposits */}
+        {bankingPositions.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={bankingPositions}
+              title="Active Deposits"
+              emptyMessage="No active deposits."
+              showMaturity
+            />
+          </div>
+        )}
+
         {/* Section 1: T-Bills */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Treasury Bills (Bank of Ghana)</h2>

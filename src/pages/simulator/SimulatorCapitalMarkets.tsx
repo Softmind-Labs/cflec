@@ -65,6 +65,10 @@ export default function SimulatorCapitalMarkets() {
     setTradeOpen(true);
   };
 
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, pos.category, 'market', 'sell');
+  };
+
   return (
     <MainLayout>
       <div className="max-w-[1280px] mx-auto px-5 py-6 md:px-12 md:py-12">
