@@ -76,6 +76,10 @@ export default function SimulatorInvestment() {
     setTradeOpen(true);
   };
 
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, 'USD', 'sell');
+  };
+
   const SkeletonRows = () => (
     <div className="space-y-2">
       {[1, 2, 3, 4].map(i => (
