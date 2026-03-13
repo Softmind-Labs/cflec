@@ -281,6 +281,33 @@ export type Database = {
           },
         ]
       }
+      portfolio_wallet: {
+        Row: {
+          cash_balance: number
+          created_at: string
+          id: string
+          initial_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       portfolios: {
         Row: {
           cash_balance: number
@@ -300,6 +327,63 @@ export type Database = {
           cash_balance?: number
           created_at?: string
           id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      positions: {
+        Row: {
+          asset_name: string
+          asset_symbol: string
+          category: string
+          created_at: string
+          entry_price: number
+          id: string
+          interest_rate: number | null
+          is_matured: boolean | null
+          maturity_date: string | null
+          position_type: string
+          quantity: number
+          simulator_type: string
+          term_days: number | null
+          total_invested: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_name: string
+          asset_symbol: string
+          category: string
+          created_at?: string
+          entry_price?: number
+          id?: string
+          interest_rate?: number | null
+          is_matured?: boolean | null
+          maturity_date?: string | null
+          position_type: string
+          quantity?: number
+          simulator_type: string
+          term_days?: number | null
+          total_invested?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_name?: string
+          asset_symbol?: string
+          category?: string
+          created_at?: string
+          entry_price?: number
+          id?: string
+          interest_rate?: number | null
+          is_matured?: boolean | null
+          maturity_date?: string | null
+          position_type?: string
+          quantity?: number
+          simulator_type?: string
+          term_days?: number | null
+          total_invested?: number
           updated_at?: string
           user_id?: string
         }
@@ -504,6 +588,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trades: {
+        Row: {
+          asset_name: string
+          asset_symbol: string
+          category: string
+          created_at: string
+          id: string
+          price_at_execution: number
+          quantity: number
+          simulator_type: string
+          total_value: number
+          trade_type: string
+          user_id: string
+        }
+        Insert: {
+          asset_name: string
+          asset_symbol: string
+          category: string
+          created_at?: string
+          id?: string
+          price_at_execution?: number
+          quantity?: number
+          simulator_type: string
+          total_value?: number
+          trade_type: string
+          user_id: string
+        }
+        Update: {
+          asset_name?: string
+          asset_symbol?: string
+          category?: string
+          created_at?: string
+          id?: string
+          price_at_execution?: number
+          quantity?: number
+          simulator_type?: string
+          total_value?: number
+          trade_type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
