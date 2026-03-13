@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataBadge } from '@/components/simulator/DataBadge';
+import { TradePanel } from '@/components/simulator/TradePanel';
 import { SimulationDialog } from '@/components/simulator/SimulationDialog';
 import { useMarketData } from '@/hooks/useMarketData';
+import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import {
   ArrowLeft,
   Landmark,
@@ -20,6 +22,7 @@ import {
 
 export default function SimulatorBanking() {
   const { data: tbills, isLoading: tbillsLoading } = useMarketData('tbills');
+  const { cashBalance, refetch } = useSimulatorWallet();
 
   // Fixed Deposit Calculator state
   const [principal, setPrincipal] = useState('');
@@ -28,7 +31,11 @@ export default function SimulatorBanking() {
   const [institution, setInstitution] = useState('');
   const [fdResult, setFdResult] = useState<{ maturity: number; interest: number; monthlyRate: number } | null>(null);
 
-  // Simulation dialog state
+  // Trade panel state
+  const [tradeOpen, setTradeOpen] = useState(false);
+  const [tradeBill, setTradeBill] = useState<{ rate: number; tenor: string; tenorDays: number } | null>(null);
+
+  // Simulation dialog state (what-if calculator)
   const [simOpen, setSimOpen] = useState(false);
   const [simBill, setSimBill] = useState<{ rate: number; tenor: string; tenorDays: number } | null>(null);
 
@@ -40,6 +47,12 @@ export default function SimulatorBanking() {
     const maturity = p + interest;
     const monthlyRate = r / 12;
     setFdResult({ maturity, interest, monthlyRate });
+  };
+
+  const openTrade = (bill: any) => {
+    const tenorDays = bill.tenor.startsWith('91') ? 91 : bill.tenor.startsWith('182') ? 182 : 364;
+    setTradeBill({ rate: bill.rate, tenor: bill.tenor, tenorDays });
+    setTradeOpen(true);
   };
 
   const openTBillSim = (bill: any) => {
@@ -104,7 +117,10 @@ export default function SimulatorBanking() {
                     <p className="text-sm text-muted-foreground">Annual Yield</p>
                     <p className="text-xs text-muted-foreground">{bill.source}</p>
                     <p className="text-xs text-muted-foreground">Updated: {bill.updated}</p>
-                    <Button className="w-full mt-2" variant="outline" onClick={() => openTBillSim(bill)}>Simulated Investment</Button>
+                    <div className="flex gap-2 mt-2">
+                      <Button className="flex-1" onClick={() => openTrade(bill)}>Invest</Button>
+                      <Button variant="outline" className="flex-1" onClick={() => openTBillSim(bill)}>What-if</Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -231,7 +247,27 @@ export default function SimulatorBanking() {
         </div>
       </div>
 
-      {/* T-Bill Simulation Dialog */}
+      {/* Trade Panel for T-Bill Investment */}
+      {tradeBill && (
+        <TradePanel
+          open={tradeOpen}
+          onOpenChange={setTradeOpen}
+          assetName={`${tradeBill.tenor.replace('-', '-Day ').replace('day', '')} T-Bill`}
+          assetSymbol={tradeBill.tenor}
+          price={0}
+          simulatorType="banking"
+          category="tbill"
+          positionType="fixed_term"
+          tradeType="invest"
+          currency="GHS"
+          cashBalance={cashBalance}
+          interestRate={tradeBill.rate}
+          termDays={tradeBill.tenorDays}
+          onSuccess={refetch}
+        />
+      )}
+
+      {/* What-if Simulation Dialog */}
       {simBill && (
         <SimulationDialog
           open={simOpen}

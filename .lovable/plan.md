@@ -1,51 +1,36 @@
 
 
-# Phase 1B: Universal Trade Execution
+# Top-of-Screen Notification Toast Near Bell Icon
 
-Replace the client-side-only `SimulationDialog` with a real trade system that persists to the new unified tables (`portfolio_wallet`, `positions`, `trades`).
+## Problem
+When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
 
-## Overview
+## Solution
+Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
 
-Currently, Buy/Sell buttons across all 4 simulator categories open a `SimulationDialog` that only calculates hypothetical outcomes. This phase makes trades real — deducting from the shared $500 wallet, creating positions, and logging every trade.
+**Design:**
+- 320px wide, right-aligned (matching the bell's horizontal position)
+- Slides down from top with a subtle spring animation
+- Shows the notification icon (colored circle), message text, and "Just now" timestamp
+- White card with the standard 1px border and shadow (matches existing card style)
+- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
+- Max 1 visible at a time (new one replaces old)
 
-## What to build
+## Files Changed
 
-### 1. Database RPC: `execute_simulator_trade`
-A `SECURITY DEFINER` function (like the existing `execute_trade`) that:
-- Locks the user's `portfolio_wallet` row (`FOR UPDATE`)
-- Validates: sufficient cash (buy) or sufficient position quantity (sell)
-- On **buy**: deducts cash, creates or updates a `positions` row, logs to `trades`
-- On **sell**: adds cash back, reduces or deletes position, logs to `trades`
-- On **invest** (fixed-term like T-Bills/bonds): deducts cash, creates position with `interest_rate`, `term_days`, `maturity_date`
-- Returns the new cash balance and trade details
-- Accepts: `p_simulator_type`, `p_category`, `p_asset_symbol`, `p_asset_name`, `p_position_type`, `p_trade_type` (buy/sell/invest), `p_quantity`, `p_price`, optional `p_interest_rate`, `p_term_days`
+| File | Change |
+|---|---|
+| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
+| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
+| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
 
-### 2. New component: `TradePanel` (Sheet)
-A slide-in Sheet (from right) that replaces `SimulationDialog` for wallet-backed trades:
-- Shows asset name, current price, wallet cash balance
-- Input for quantity (market assets) or amount (fixed-term)
-- Live total calculation
-- "Confirm Trade" button calls the RPC
-- Success: toast + closes panel + triggers `refetch` on the wallet hook
-- Reusable across all 4 simulator pages
+## NotificationToast Behavior
+1. `addNotification()` fires → sets `latestNotification` in context
+2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
+3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
+4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
+5. X button for immediate dismiss
 
-### 3. Wire up simulator pages
-Each page's Buy/Sell buttons open the new `TradePanel` instead of `SimulationDialog`:
-- **Banking**: T-Bill "Invest" → `TradePanel` with `position_type='fixed_term'`, `interest_rate`, `term_days`
-- **Investment**: GSE/World stock "Trade" → `TradePanel` with `position_type='market'`
-- **Trading**: Crypto/Forex/Commodity Buy/Sell → `TradePanel` with `position_type='market'`
-- **Capital Markets**: Bond/Fund/ETF "Invest" → `TradePanel`
-
-The existing `SimulationDialog` stays available as a secondary "What-if Calculator" option but is no longer the primary action.
-
-### Files
-- **New migration**: `execute_simulator_trade` RPC function
-- **New**: `src/components/simulator/TradePanel.tsx`
-- **Edit**: All 4 simulator pages to use `TradePanel`
-- **Keep**: `SimulationDialog` as-is (optional educational tool)
-
-### Key design decisions
-- The RPC uses server-side price validation where possible (for `mock_stocks` it reads the price from DB; for live market assets the client passes the price since there's no server-side price table for forex/crypto/commodities)
-- Quantity is decimal (not integer) to support fractional crypto/forex
-- Fixed-term positions set `maturity_date = now() + term_days` and `is_matured = false`
+## No changes to existing toast calls
+The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
 
