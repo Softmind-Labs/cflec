@@ -9,8 +9,9 @@ import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
+import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -33,7 +34,9 @@ function formatMarketCap(value: number): string {
 const AFRICAN_PAIRS = ['USD/GHS', 'EUR/GHS', 'GBP/GHS', 'USD/NGN', 'USD/ZAR'];
 
 export default function SimulatorTrading() {
-  const { cashBalance, totalInvested, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, totalInvested, positions, positionsByType, refetch } = useSimulatorWallet();
+
+  const tradingPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'trading'), [positions]);
 
   const { data: forexData, isLoading: forexLoading, isError: forexError, refetch: refetchForex } = useMarketDataWithTimestamp('forex');
   const { data: commoditiesData, isLoading: commoditiesLoading, isError: commoditiesError, refetch: refetchCommodities } = useMarketDataWithTimestamp('commodities');
@@ -52,6 +55,10 @@ export default function SimulatorTrading() {
   const openTrade = (name: string, symbol: string, price: number, category: string, tradeType: TradeType) => {
     setTradeAsset({ name, symbol, price, category, tradeType });
     setTradeOpen(true);
+  };
+
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, pos.category, 'sell');
   };
 
   const africanForex = useMemo(() => forex.filter(p => AFRICAN_PAIRS.includes(p.pair)), [forex]);
@@ -143,6 +150,17 @@ export default function SimulatorTrading() {
             <CardContent><p className="text-sm text-muted-foreground">Total value in positions</p></CardContent>
           </Card>
         </div>
+
+        {/* Your Positions */}
+        {tradingPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={tradingPositionsList}
+              title="Your Trading Positions"
+              onSell={handleSellPosition}
+            />
+          </div>
+        )}
 
         {/* Market Tabs */}
         <Tabs defaultValue="crypto" className="space-y-6">

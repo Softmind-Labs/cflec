@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { TradePanel } from '@/components/simulator/TradePanel';
 import { SimulationDialog } from '@/components/simulator/SimulationDialog';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketData } from '@/hooks/useMarketData';
 import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
 import {
@@ -22,7 +23,9 @@ import {
 
 export default function SimulatorBanking() {
   const { data: tbills, isLoading: tbillsLoading } = useMarketData('tbills');
-  const { cashBalance, refetch } = useSimulatorWallet();
+  const { cashBalance, positions, refetch } = useSimulatorWallet();
+
+  const bankingPositions = useMemo(() => positions.filter(p => p.simulator_type === 'banking'), [positions]);
 
   // Fixed Deposit Calculator state
   const [principal, setPrincipal] = useState('');
@@ -87,6 +90,18 @@ export default function SimulatorBanking() {
             </p>
           </div>
         </div>
+
+        {/* Active Deposits */}
+        {bankingPositions.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={bankingPositions}
+              title="Active Deposits"
+              emptyMessage="No active deposits."
+              showMaturity
+            />
+          </div>
+        )}
 
         {/* Section 1: T-Bills */}
         <div className="mb-8">

@@ -25,6 +25,19 @@ export interface SimulatorWallet {
   initial_balance: number;
 }
 
+export interface Trade {
+  id: string;
+  simulator_type: string;
+  category: string;
+  asset_symbol: string;
+  asset_name: string;
+  trade_type: string;
+  quantity: number;
+  price_at_execution: number;
+  total_value: number;
+  created_at: string;
+}
+
 export interface PositionSummary {
   count: number;
   totalInvested: number;
@@ -34,6 +47,7 @@ export function useSimulatorWallet() {
   const { user } = useAuth();
   const [wallet, setWallet] = useState<SimulatorWallet | null>(null);
   const [positions, setPositions] = useState<Position[]>([]);
+  const [recentTrades, setRecentTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -91,6 +105,25 @@ export function useSimulatorWallet() {
           interest_rate: p.interest_rate != null ? Number(p.interest_rate) : null,
         }))
       );
+
+      // Fetch recent trades
+      const { data: tradeData, error: tradeError } = await supabase
+        .from('trades')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (tradeError) throw tradeError;
+
+      setRecentTrades(
+        (tradeData || []).map((t) => ({
+          ...t,
+          quantity: Number(t.quantity),
+          price_at_execution: Number(t.price_at_execution),
+          total_value: Number(t.total_value),
+        }))
+      );
     } catch (err: any) {
       setError(err.message || 'Failed to load wallet');
     } finally {
@@ -122,6 +155,7 @@ export function useSimulatorWallet() {
   return {
     wallet,
     positions,
+    recentTrades,
     loading,
     error,
     refetch: fetchData,

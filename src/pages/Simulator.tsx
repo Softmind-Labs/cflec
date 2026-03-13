@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { StatsBar } from '@/components/ui/stats-bar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
 import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { format } from 'date-fns';
 import {
   Building2,
   TrendingUp,
@@ -41,6 +44,12 @@ const simulatorRoutes: Record<string, string> = {
   investment: '/simulator/investment',
   trading: '/simulator/trading',
   capital_markets: '/simulator/capital-markets',
+};
+
+const tradeTypeBadge: Record<string, { label: string; className: string }> = {
+  buy: { label: 'Buy', className: 'bg-gain/15 text-gain border-gain/30' },
+  invest: { label: 'Invest', className: 'bg-gain/15 text-gain border-gain/30' },
+  sell: { label: 'Sell', className: 'bg-loss/15 text-loss border-loss/30' },
 };
 
 const marketCategories = [
@@ -96,10 +105,21 @@ export default function Simulator() {
     totalReturn,
     totalInvested,
     positions,
+    recentTrades,
     positionsByType,
+    refetch,
   } = useSimulatorWallet();
 
   const isPositive = totalReturn >= 0;
+
+  // Sell from hub
+  const [sellOpen, setSellOpen] = useState(false);
+  const [sellPosition, setSellPosition] = useState<Position | null>(null);
+
+  const openSell = (pos: Position) => {
+    setSellPosition(pos);
+    setSellOpen(true);
+  };
 
   return (
     <MainLayout>
@@ -244,16 +264,16 @@ export default function Simulator() {
                         <TableHead className="text-right">Qty</TableHead>
                         <TableHead className="text-right">Entry Price</TableHead>
                         <TableHead className="text-right">Invested</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {positions.slice(0, 10).map((pos) => (
-                        <TableRow
-                          key={pos.id}
-                          className="cursor-pointer"
-                          onClick={() => navigate(simulatorRoutes[pos.simulator_type] || '/simulator')}
-                        >
-                          <TableCell>
+                        <TableRow key={pos.id}>
+                          <TableCell
+                            className="cursor-pointer"
+                            onClick={() => navigate(simulatorRoutes[pos.simulator_type] || '/simulator')}
+                          >
                             <div>
                               <p className="font-medium text-sm">{pos.asset_name}</p>
                               <p className="text-xs text-muted-foreground">{pos.asset_symbol}</p>
@@ -273,6 +293,13 @@ export default function Simulator() {
                           <TableCell className="text-right tabular-nums font-medium">
                             {formatCurrency(pos.total_invested)}
                           </TableCell>
+                          <TableCell className="text-right">
+                            {pos.position_type === 'market' && (
+                              <Button size="sm" variant="outline" className="text-loss" onClick={() => openSell(pos)}>
+                                Sell
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -282,6 +309,65 @@ export default function Simulator() {
                       Showing 10 of {positions.length} positions
                     </div>
                   )}
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* Recent Activity */}
+          {user && (
+            <div className="mt-12">
+              <h2 className="font-display font-semibold text-xl mb-4">Recent Activity</h2>
+              {loading ? (
+                <Skeleton className="h-32 w-full rounded-xl" />
+              ) : recentTrades.length === 0 ? (
+                <Card>
+                  <CardContent className="py-10 text-center">
+                    <p className="text-muted-foreground">
+                      No trades yet — execute your first trade to see activity here.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Asset</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead className="text-right">Qty</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentTrades.map((trade) => {
+                        const badge = tradeTypeBadge[trade.trade_type] || tradeTypeBadge.buy;
+                        return (
+                          <TableRow key={trade.id}>
+                            <TableCell className="text-sm tabular-nums text-muted-foreground">
+                              {format(new Date(trade.created_at), 'MMM d, HH:mm')}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-medium text-sm">{trade.asset_name}</p>
+                                <p className="text-xs text-muted-foreground">{trade.asset_symbol}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={`text-xs ${badge.className}`}>
+                                {badge.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">{trade.quantity}</TableCell>
+                            <TableCell className="text-right tabular-nums">{formatCurrency(trade.price_at_execution)}</TableCell>
+                            <TableCell className="text-right tabular-nums font-medium">{formatCurrency(trade.total_value)}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
                 </Card>
               )}
             </div>
@@ -308,6 +394,23 @@ export default function Simulator() {
           </Card>
         </div>
       </div>
+
+      {/* Sell Trade Panel */}
+      {sellPosition && (
+        <TradePanel
+          open={sellOpen}
+          onOpenChange={setSellOpen}
+          assetName={sellPosition.asset_name}
+          assetSymbol={sellPosition.asset_symbol}
+          price={sellPosition.entry_price}
+          simulatorType={sellPosition.simulator_type}
+          category={sellPosition.category}
+          positionType="market"
+          tradeType="sell"
+          cashBalance={cashBalance}
+          onSuccess={refetch}
+        />
+      )}
     </MainLayout>
   );
 }

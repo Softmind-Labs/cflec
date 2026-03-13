@@ -12,8 +12,9 @@ import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { DataBadge } from '@/components/simulator/DataBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
+import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import {
   ArrowLeft,
   TrendingUp,
@@ -38,8 +39,10 @@ const SECTOR_COLORS: Record<string, string> = {
 const SECTOR_TABS = ['All', 'Technology', 'Finance', 'Healthcare', 'Energy', 'Consumer', 'ETF'];
 
 export default function SimulatorInvestment() {
-  const { cashBalance, totalInvested, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, totalInvested, positions, positionsByType, refetch } = useSimulatorWallet();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const investmentPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'investment'), [positions]);
   const [sectorTab, setSectorTab] = useState('All');
 
   // Trade panel state
@@ -71,6 +74,10 @@ export default function SimulatorInvestment() {
   const openTrade = (name: string, symbol: string, price: number, currency: string, tradeType: TradeType) => {
     setTradeStock({ name, symbol, price, currency, tradeType });
     setTradeOpen(true);
+  };
+
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, 'USD', 'sell');
   };
 
   const SkeletonRows = () => (
@@ -124,6 +131,17 @@ export default function SimulatorInvestment() {
             <CardContent><p className="text-sm text-muted-foreground">Total in stocks</p></CardContent>
           </Card>
         </div>
+
+        {/* Your Positions */}
+        {investmentPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={investmentPositionsList}
+              title="Your Investment Positions"
+              onSell={handleSellPosition}
+            />
+          </div>
+        )}
 
         {/* Market Tabs */}
         <Tabs defaultValue="gse" className="space-y-6">

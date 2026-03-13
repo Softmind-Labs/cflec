@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LiveBadge } from '@/components/simulator/LiveBadge';
 import { MarketError } from '@/components/simulator/MarketError';
 import { TradePanel, type TradeType } from '@/components/simulator/TradePanel';
+import { PositionsSection } from '@/components/simulator/PositionsSection';
 import { useMarketDataWithTimestamp } from '@/hooks/useMarketData';
-import { useSimulatorWallet } from '@/hooks/useSimulatorWallet';
+import { useSimulatorWallet, type Position } from '@/hooks/useSimulatorWallet';
 import { 
   ArrowLeft, 
   Landmark,
@@ -38,7 +39,9 @@ const mutualFunds = [
 ];
 
 export default function SimulatorCapitalMarkets() {
-  const { cashBalance, positionsByType, refetch } = useSimulatorWallet();
+  const { cashBalance, positions, positionsByType, refetch } = useSimulatorWallet();
+
+  const capitalPositionsList = useMemo(() => positions.filter(p => p.simulator_type === 'capital_markets'), [positions]);
 
   // Trade panel state
   const [tradeOpen, setTradeOpen] = useState(false);
@@ -60,6 +63,10 @@ export default function SimulatorCapitalMarkets() {
   ) => {
     setTradeAsset({ name, symbol, price, category, positionType, tradeType, ...extra });
     setTradeOpen(true);
+  };
+
+  const handleSellPosition = (pos: Position) => {
+    openTrade(pos.asset_name, pos.asset_symbol, pos.entry_price, pos.category, 'market', 'sell');
   };
 
   return (
@@ -98,6 +105,19 @@ export default function SimulatorCapitalMarkets() {
             <CardContent><p className="text-sm text-muted-foreground">Total in capital markets</p></CardContent>
           </Card>
         </div>
+
+        {/* Your Holdings */}
+        {capitalPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={capitalPositionsList}
+              title="Your Capital Market Holdings"
+              showMaturity
+              onSell={(pos) => pos.position_type === 'market' ? handleSellPosition(pos) : undefined}
+              sellLabel="Close"
+            />
+          </div>
+        )}
 
         {/* Market Tabs */}
         <Tabs defaultValue="bonds" className="space-y-6">
