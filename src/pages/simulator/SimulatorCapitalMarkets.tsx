@@ -106,6 +106,19 @@ export default function SimulatorCapitalMarkets() {
           </Card>
         </div>
 
+        {/* Your Holdings */}
+        {capitalPositionsList.length > 0 && (
+          <div className="mb-8">
+            <PositionsSection
+              positions={capitalPositionsList}
+              title="Your Capital Market Holdings"
+              showMaturity
+              onSell={(pos) => pos.position_type === 'market' ? handleSellPosition(pos) : undefined}
+              sellLabel="Close"
+            />
+          </div>
+        )}
+
         {/* Market Tabs */}
         <Tabs defaultValue="bonds" className="space-y-6">
           <TabsList>
