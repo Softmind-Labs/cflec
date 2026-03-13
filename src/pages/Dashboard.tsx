@@ -39,6 +39,41 @@ export default function Dashboard() {
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const { cashBalance, totalPortfolio, totalReturn, positions, loading: walletLoading } = useSimulatorWallet();
+
+  // Compute learning streak from user_progress completed_at dates
+  const learningStreak = useMemo(() => {
+    const completedDates = progress
+      .filter(p => p.completed_at)
+      .map(p => {
+        const d = new Date(p.completed_at!);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      });
+    const uniqueDates = [...new Set(completedDates)].sort().reverse();
+    if (uniqueDates.length === 0) return 0;
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    let streak = 0;
+    let checkDate = new Date(today);
+    
+    // If no activity today, start from yesterday
+    if (uniqueDates[0] !== todayStr) {
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    for (let i = 0; i < 365; i++) {
+      const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+      if (uniqueDates.includes(dateStr)) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }, [progress]);
 
   useEffect(() => {
     const fetchData = async () => {
