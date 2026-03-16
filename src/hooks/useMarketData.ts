@@ -110,8 +110,9 @@ export function useMarketData<T extends MarketType>(
   return useQuery({
     queryKey: ['market-data', type, params],
     queryFn: () => fetchMarketData(type, params),
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 300_000,
+    refetchInterval: 300_000,
+    refetchOnWindowFocus: false,
     retry: 2,
     select: (res) => res.data,
   });
