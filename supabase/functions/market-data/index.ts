@@ -34,6 +34,18 @@ function meta(source: string, cached: boolean, simulated: boolean) {
   return { source, cached, simulated };
 }
 
+// ─── FETCH WITH TIMEOUT ───────────────────────────────────────────
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 5000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ─── CRYPTO ────────────────────────────────────────────────────────
 async function fetchCrypto() {
   const hit = getCached("crypto", "crypto");
@@ -55,22 +67,31 @@ async function fetchCrypto() {
   const headers: Record<string, string> = { accept: "application/json" };
   if (apiKey) headers["x-cg-demo-api-key"] = apiKey;
 
-  const res = await fetch(url, { headers });
-  if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
-  const raw = await res.json();
+  try {
+    const res = await fetchWithTimeout(url, { headers }, 8000);
+    if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`);
+    const raw = await res.json();
 
-  const data = Object.entries(raw).map(([id, v]: [string, any]) => ({
-    id,
-    name: cryptoNameMap[id]?.name || id,
-    symbol: cryptoNameMap[id]?.symbol || id.toUpperCase(),
-    price: v.usd,
-    change_24h: v.usd_24h_change ?? 0,
-    market_cap: v.usd_market_cap ?? 0,
-    _meta: meta("coingecko", false, false),
-  }));
+    const data = Object.entries(raw).map(([id, v]: [string, any]) => ({
+      id,
+      name: cryptoNameMap[id]?.name || id,
+      symbol: cryptoNameMap[id]?.symbol || id.toUpperCase(),
+      price: v.usd,
+      change_24h: v.usd_24h_change ?? 0,
+      market_cap: v.usd_market_cap ?? 0,
+      _meta: meta("coingecko", false, false),
+    }));
 
-  setCache("crypto", data);
-  return { data, _meta: meta("coingecko", false, false) };
+    setCache("crypto", data);
+    return { data, _meta: meta("coingecko", false, false) };
+  } catch (e) {
+    console.error("CoinGecko fetch failed:", e);
+    const fallback = Object.entries(cryptoNameMap).map(([id, info]) => ({
+      id, name: info.name, symbol: info.symbol, price: 0, change_24h: 0, market_cap: 0,
+      _meta: meta("fallback", false, true),
+    }));
+    return { data: fallback, _meta: meta("fallback", false, true) };
+  }
 }
 
 const cryptoNameMap: Record<string, { name: string; symbol: string }> = {
@@ -150,9 +171,9 @@ async function fetchStocks(symbols: string) {
 
   try {
     const url = `https://data.alpaca.markets/v2/stocks/snapshots?symbols=${symbols}`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { "APCA-API-KEY-ID": apiKey, "APCA-API-SECRET-KEY": apiSecret },
-    });
+    }, 8000);
 
     if (!res.ok) throw new Error(`Alpaca error: ${res.status}`);
     const raw = await res.json();
@@ -185,7 +206,6 @@ async function fetchStocks(symbols: string) {
 }
 
 // ─── FOREX ─────────────────────────────────────────────────────────
-// Pairs to fetch from Alpaca
 const alpacaForexPairs = [
   { pair: "USD/GHS", base: "USD", quote: "GHS" },
   { pair: "EUR/USD", base: "EUR", quote: "USD" },
@@ -198,7 +218,6 @@ const alpacaForexPairs = [
   { pair: "XAU/USD", base: "XAU", quote: "USD" },
 ];
 
-// African pairs not available on Alpaca – always fallback
 const africanFallbackPairs = [
   { pair: "USD/NGN", bid: 1550.00, ask: 1555.00, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
   { pair: "USD/ZAR", bid: 18.10, ask: 18.15, change_percent: 0, simulated: true, _meta: meta("fallback", false, true) },
@@ -232,12 +251,11 @@ async function fetchForex() {
   }
 
   try {
-    // Fetch latest forex rates from Alpaca
     const currencyPairs = alpacaForexPairs.map(p => `${p.base}/${p.quote}`).join(",");
     const url = `https://data.alpaca.markets/v1beta3/forex/latest/rates?currency_pairs=${encodeURIComponent(currencyPairs)}`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { "APCA-API-KEY-ID": apiKey, "APCA-API-SECRET-KEY": apiSecret },
-    });
+    }, 8000);
 
     if (!res.ok) throw new Error(`Alpaca forex error: ${res.status}`);
     const raw = await res.json();
@@ -248,10 +266,8 @@ async function fetchForex() {
       const r = rates[rateKey];
 
       if (r && r.bp && r.ap) {
-        // bp = bid price, ap = ask price, mp = mid price
         const bid = Number(r.bp);
         const ask = Number(r.ap);
-        // Compute change from previous close if available
         const prevClose = r.pc ?? 0;
         const mid = (bid + ask) / 2;
         const change = prevClose > 0 ? Number(((mid - prevClose) / prevClose * 100).toFixed(2)) : 0;
@@ -262,7 +278,6 @@ async function fetchForex() {
         };
       }
 
-      // Fallback for this pair
       const fb = forexFallback.find(f => f.pair === cfg.pair);
       return {
         pair: cfg.pair, bid: fb?.bid ?? 0, ask: fb?.ask ?? 0,
@@ -327,7 +342,7 @@ async function fetchGSE() {
   if (hit) return { data: hit.data, _meta: meta("gse", true, false) };
 
   try {
-    const res = await fetch("https://dev.kwayisi.org/apis/gse/live");
+    const res = await fetchWithTimeout("https://dev.kwayisi.org/apis/gse/live", {}, 5000);
     if (!res.ok) throw new Error(`GSE error: ${res.status}`);
     const raw = await res.json();
 
@@ -343,6 +358,8 @@ async function fetchGSE() {
       };
     });
 
+    if (data.length === 0) throw new Error("GSE returned empty data");
+
     setCache("gse", data);
     return { data, _meta: meta("gse", false, false) };
   } catch (e) {
@@ -352,22 +369,45 @@ async function fetchGSE() {
   }
 }
 
+// Full GSE fallback covering all 37 tickers from gseCompanyMap
 const gseFallback = [
-  { symbol: "MTN", name: "MTN Ghana", price: 2.20, change: 0, volume: 0 },
-  { symbol: "GCB", name: "GCB Bank", price: 6.50, change: 0, volume: 0 },
-  { symbol: "GOIL", name: "GOIL PLC", price: 2.10, change: 0, volume: 0 },
-  { symbol: "SCB", name: "Standard Chartered Bank", price: 25.00, change: 0, volume: 0 },
-  { symbol: "TOTAL", name: "TotalEnergies Marketing Ghana", price: 4.50, change: 0, volume: 0 },
-  { symbol: "FML", name: "Fan Milk Limited", price: 1.80, change: 0, volume: 0 },
-  { symbol: "ECOBANK", name: "Ecobank Ghana", price: 9.50, change: 0, volume: 0 },
-  { symbol: "GGBL", name: "Guinness Ghana Breweries", price: 1.15, change: 0, volume: 0 },
-  { symbol: "CAL", name: "CAL Bank", price: 1.60, change: 0, volume: 0 },
-  { symbol: "EGL", name: "Enterprise Group", price: 3.40, change: 0, volume: 0 },
-  { symbol: "BOPP", name: "Benso Oil Palm Plantation", price: 3.80, change: 0, volume: 0 },
-  { symbol: "UNIL", name: "Unilever Ghana", price: 12.00, change: 0, volume: 0 },
-  { symbol: "SOGEGH", name: "Société Générale Ghana", price: 1.05, change: 0, volume: 0 },
+  { symbol: "AADS", name: "AngloGold Ashanti (Dep. Shares)", price: 45.00, change: 0, volume: 0 },
   { symbol: "ACCESS", name: "Access Bank Ghana", price: 4.20, change: 0, volume: 0 },
-  { symbol: "MTNGH", name: "MTN Ghana (Pref)", price: 2.20, change: 0, volume: 0 },
+  { symbol: "ADB", name: "Agricultural Development Bank", price: 5.80, change: 0, volume: 0 },
+  { symbol: "AGA", name: "AngloGold Ashanti Ltd", price: 55.00, change: 0, volume: 0 },
+  { symbol: "ALLGH", name: "Allianz Insurance Ghana", price: 0.12, change: 0, volume: 0 },
+  { symbol: "ASG", name: "Aluworks Ltd", price: 0.04, change: 0, volume: 0 },
+  { symbol: "BOPP", name: "Benso Oil Palm Plantation", price: 3.80, change: 0, volume: 0 },
+  { symbol: "CAL", name: "CalBank Ltd", price: 1.60, change: 0, volume: 0 },
+  { symbol: "CLYD", name: "Clydestone Ghana", price: 0.05, change: 0, volume: 0 },
+  { symbol: "CMLT", name: "Camelot Ghana", price: 0.10, change: 0, volume: 0 },
+  { symbol: "CPC", name: "Cocoa Processing Company", price: 0.03, change: 0, volume: 0 },
+  { symbol: "DASPHARMA", name: "Danadams Pharmaceutical", price: 0.18, change: 0, volume: 0 },
+  { symbol: "DIGICUT", name: "DigiCut Ltd", price: 0.05, change: 0, volume: 0 },
+  { symbol: "EGH", name: "Ecobank Ghana", price: 9.50, change: 0, volume: 0 },
+  { symbol: "EGL", name: "Enterprise Group Ltd", price: 3.40, change: 0, volume: 0 },
+  { symbol: "ETI", name: "Ecobank Transnational Inc", price: 0.15, change: 0, volume: 0 },
+  { symbol: "FAB", name: "Fan Milk Ltd (Danone)", price: 1.80, change: 0, volume: 0 },
+  { symbol: "FML", name: "Fan Milk Ltd", price: 1.80, change: 0, volume: 0 },
+  { symbol: "GCB", name: "GCB Bank Ltd", price: 6.50, change: 0, volume: 0 },
+  { symbol: "GGBL", name: "Guinness Ghana Breweries", price: 1.15, change: 0, volume: 0 },
+  { symbol: "GLD", name: "Gold Fields Ghana (Dep. Shares)", price: 42.00, change: 0, volume: 0 },
+  { symbol: "GOIL", name: "GOIL PLC", price: 2.10, change: 0, volume: 0 },
+  { symbol: "HORDS", name: "Hords Ltd", price: 0.02, change: 0, volume: 0 },
+  { symbol: "IIL", name: "Intravenous Infusions Ltd", price: 0.08, change: 0, volume: 0 },
+  { symbol: "MAC", name: "Mega African Capital", price: 7.50, change: 0, volume: 0 },
+  { symbol: "MMH", name: "Mechanical Lloyd", price: 0.12, change: 0, volume: 0 },
+  { symbol: "MTNGH", name: "MTN Ghana Ltd", price: 2.20, change: 0, volume: 0 },
+  { symbol: "RBGH", name: "Republic Bank Ghana", price: 3.00, change: 0, volume: 0 },
+  { symbol: "SAMBA", name: "Sam Woode Ltd", price: 0.03, change: 0, volume: 0 },
+  { symbol: "SCB", name: "Standard Chartered Bank Ghana", price: 25.00, change: 0, volume: 0 },
+  { symbol: "SCBPREF", name: "Standard Chartered Bank (Pref)", price: 0.50, change: 0, volume: 0 },
+  { symbol: "SIC", name: "SIC Insurance Company", price: 0.06, change: 0, volume: 0 },
+  { symbol: "SOGEGH", name: "Société Générale Ghana", price: 1.05, change: 0, volume: 0 },
+  { symbol: "TBL", name: "Trust Bank Ltd (The Gambia)", price: 0.30, change: 0, volume: 0 },
+  { symbol: "TLW", name: "Tullow Oil Ghana", price: 18.50, change: 0, volume: 0 },
+  { symbol: "TOTAL", name: "TotalEnergies Marketing Ghana", price: 4.50, change: 0, volume: 0 },
+  { symbol: "UNIL", name: "Unilever Ghana Ltd", price: 12.00, change: 0, volume: 0 },
 ];
 
 // ─── COMMODITIES ───────────────────────────────────────────────────
@@ -413,11 +453,10 @@ async function fetchCommodities() {
   }
 
   const results = await Promise.all(commoditiesConfig.map(async (c) => {
-    // For metals: use forex/rates endpoint
     if (c.finnhubBase) {
       try {
         const url = `https://finnhub.io/api/v1/quote?symbol=OANDA:${c.finnhubBase}_USD&token=${apiKey}`;
-        const res = await fetch(url);
+        const res = await fetchWithTimeout(url, {}, 5000);
         if (!res.ok) throw new Error(`${res.status}`);
         const q = await res.json();
         if (q.c && q.c > 0) {
@@ -432,12 +471,11 @@ async function fetchCommodities() {
       } catch { /* fall through */ }
     }
 
-    // For non-metals or failed metals: try candle endpoint for recent price
     try {
       const now = Math.floor(Date.now() / 1000);
       const dayAgo = now - 86400;
       const url = `https://finnhub.io/api/v1/stock/candle?symbol=${c.symbol}&resolution=D&from=${dayAgo}&to=${now}&token=${apiKey}`;
-      const res = await fetch(url);
+      const res = await fetchWithTimeout(url, {}, 5000);
       if (res.ok) {
         const q = await res.json();
         if (q.s === "ok" && q.c?.length) {
@@ -453,7 +491,6 @@ async function fetchCommodities() {
       }
     } catch { /* fall through */ }
 
-    // Final fallback
     return {
       name: c.name, symbol: c.symbol, price: commodityFallback[c.symbol]?.price ?? 0,
       change_percent: 0, unit: c.unit, category: c.category, simulated: true,
