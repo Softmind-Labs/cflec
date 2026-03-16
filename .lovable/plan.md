@@ -1,36 +1,32 @@
 
 
-# Top-of-Screen Notification Toast Near Bell Icon
+# Fix: Market Data Cache Timing & GSE Data Reliability
 
-## Problem
-When a notification fires, the only visual feedback is a tiny red dot on the bell icon. Users don't notice it. The old bottom toasts were removed (CourseDetail) or kept (Trade, Profile, Module) but they're disconnected from the bell — users don't associate them with the notification dropdown.
+## Problems Found
 
-## Solution
-Add an animated notification banner that slides down from directly below the TopNav (top of viewport, right-aligned near the bell icon) whenever `addNotification` is called. It auto-dismisses after 4 seconds. Clicking it opens the notification dropdown. This creates a clear visual connection: "something just happened → it's in your bell."
+1. **Cache timing never fixed**: `useMarketData.ts` still uses `staleTime: 30_000` and `refetchInterval: 60_000` instead of the approved 5-minute intervals. This causes excessive edge function calls, leading to WORKER_LIMIT errors that make ALL market data (including GSE) fail.
 
-**Design:**
-- 320px wide, right-aligned (matching the bell's horizontal position)
-- Slides down from top with a subtle spring animation
-- Shows the notification icon (colored circle), message text, and "Just now" timestamp
-- White card with the standard 1px border and shadow (matches existing card style)
-- Auto-dismisses after 4s with a fade-out, or user can dismiss with X
-- Max 1 visible at a time (new one replaces old)
+2. **No `refetchOnWindowFocus: false`**: Every tab switch triggers refetch, compounding the overload.
 
-## Files Changed
+3. **GSE API fragility**: The external GSE API (`dev.kwayisi.org/apis/gse/live`) can timeout, and the edge function call itself timed out during testing. The fallback data exists but the edge function may be hitting compute limits before it even gets to serve GSE data.
+
+## Changes
+
+### 1. Fix `src/hooks/useMarketData.ts`
+Both `useMarketData` and `useMarketDataWithTimestamp` hooks:
+- `staleTime`: 30,000 → **300,000** (5 min)
+- `refetchInterval`: 60,000 → **300,000** (5 min)  
+- Add `refetchOnWindowFocus: false`
+
+### 2. Harden GSE fetch in edge function (`supabase/functions/market-data/index.ts`)
+- Add a timeout (5 seconds) to the GSE API fetch using `AbortController` so it fails fast and falls back to `gseFallback` instead of hanging
+- Apply the same timeout pattern to other external API calls (Alpaca, CoinGecko, Finnhub) for resilience
+
+### 3. Expand GSE fallback data
+The current fallback has 15 stocks with stale placeholder prices. Ensure all 37 GSE tickers from `gseCompanyMap` are in the fallback so users always see the full list even when the API is down.
 
 | File | Change |
 |---|---|
-| `src/components/layout/NotificationContext.tsx` | Add a `latestNotification` state + `clearLatest()` method so the toast component knows when a new notification arrives |
-| `src/components/layout/NotificationToast.tsx` | **New** — Animated top-right toast that renders when `latestNotification` is set. Uses CSS keyframes for slide-down/fade-out. Auto-clears after 4s. |
-| `src/components/layout/TopNav.tsx` | Render `<NotificationToast />` just below the nav bar so it appears anchored to the top-right |
-
-## NotificationToast Behavior
-1. `addNotification()` fires → sets `latestNotification` in context
-2. `NotificationToast` renders with slide-down animation (positioned `fixed top-[72px] right-5`)
-3. After 4 seconds, fade-out animation plays, then `clearLatest()` removes it
-4. If user clicks the toast, it opens the bell popover (or just scrolls attention to bell)
-5. X button for immediate dismiss
-
-## No changes to existing toast calls
-The bottom toasts from `useToast()` on Trade, Module, and Profile pages stay as immediate confirmation feedback. The new top-right notification toast is a separate visual that connects events to the bell icon. Both fire simultaneously for Trade/Module/Profile events; only the top toast fires for CourseDetail.
+| `src/hooks/useMarketData.ts` | Fix staleTime, refetchInterval, add refetchOnWindowFocus |
+| `supabase/functions/market-data/index.ts` | Add AbortController timeout to GSE fetch (and other APIs), expand GSE fallback to all 37 tickers |
 
